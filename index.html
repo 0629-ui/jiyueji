@@ -1038,20 +1038,201 @@ button,input,textarea,select{max-width:100%}
 .pc-send-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.08);}
 .pc-send-row input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-size:13px;}
 .pc-send-row button{background:linear-gradient(135deg,#ff5f8f,#ff8a5f);border:none;color:#fff;border-radius:10px;padding:0 16px;font-size:13px;cursor:pointer;}
-/* ===== 查手机·仿真桌面 ===== */
-.pc-desktop{flex:1;overflow-y:auto;background:linear-gradient(160deg,#7c6cff,#5ac8fa 55%,#ffb86b);display:flex;flex-direction:column;min-height:0;}
+/* ===== 查手机·仿真桌面 v44 ===== */
+.pc-desktop{flex:1;overflow:hidden;background:linear-gradient(160deg,#7c6cff,#5ac8fa 55%,#ffb86b);display:flex;flex-direction:column;min-height:0;}
 .pc-dt-status{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 2px;color:#fff;font-size:12px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.35);flex:0 0 auto;}
 .pc-dt-time{font-size:16px;font-weight:700;}
 .pc-dt-icons{display:flex;gap:6px;align-items:center;font-size:12px;}
-.pc-grid{display:flex;flex-wrap:wrap;padding:14px 8px 6px;}
-.pc-app{width:25%;display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:18px;cursor:pointer;-webkit-user-select:none;user-select:none;}
+.pc-dt-icons .ic{width:15px;height:15px;color:#fff;}
+.pc-carousel{position:relative;margin:8px 12px 2px;border-radius:16px;overflow:hidden;flex:0 0 auto;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+.pc-cs-track{display:flex;transition:transform .45s ease;}
+.pc-cs-item{flex:0 0 100%;min-width:100%;box-sizing:border-box;padding:14px 16px 26px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);color:#fff;cursor:pointer;}
+.pc-cs-tag{font-size:10px;font-weight:700;letter-spacing:1px;opacity:.9;margin-bottom:4px;}
+.pc-cs-title{font-size:15px;font-weight:800;margin-bottom:3px;text-shadow:0 1px 3px rgba(0,0,0,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-cs-desc{font-size:11px;opacity:.85;line-height:1.5;}
+.pc-cs-dots{position:absolute;left:16px;bottom:8px;display:flex;gap:4px;}
+.pc-cs-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;}
+.pc-cs-dots i.on{background:#fff;width:12px;border-radius:3px;}
+.pc-cs-refresh{position:absolute;right:10px;bottom:6px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(255,255,255,.28);color:#fff;font-size:15px;cursor:pointer;line-height:1;}
+.pc-cs-refresh:active{transform:rotate(180deg);}
+.pc-grid-wrap{flex:1;overflow-y:auto;min-height:0;padding-bottom:6px;}
+.pc-grid{display:flex;flex-wrap:wrap;padding:8px 6px 4px;}
+.pc-app{width:25%;display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:16px;cursor:pointer;-webkit-user-select:none;user-select:none;}
 .pc-app:active .pc-app-ico{transform:scale(.88);}
 .pc-app-ico{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 3px 8px rgba(0,0,0,.28);}
+.pc-app-ico svg{width:26px;height:26px;color:#fff;}
 .pc-app-name{font-size:11px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);font-weight:500;max-width:64px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pc-dock{display:flex;justify-content:center;gap:22px;padding:10px 16px 14px;background:rgba(255,255,255,.22);border-top:1px solid rgba(255,255,255,.18);flex:0 0 auto;}
 .pc-dock .pc-app{margin-bottom:0;}
 .pc-dock .pc-app-ico{width:50px;height:50px;border-radius:14px;}
 .pc-app-page{flex:1;overflow:hidden;display:none;flex-direction:column;background:#101014;min-height:0;}
+.pc-app-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);flex:0 0 auto;}
+.pc-app-head button{width:30px;height:30px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:18px;cursor:pointer;}
+.pc-app-head .t{flex:1;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#pcAppContent{flex:1;overflow-y:auto;min-height:0;}
+/* APP \u901a\u7528 */
+.pc-wx-item,.pc-call-item,.pc-sms-item,.pc-music-item,.pc-bw-item,.pc-order,.pc-memo-item,.pc-pay-bill,.pc-set-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;}
+.pc-wx-item:active,.pc-sms-item:active,.pc-music-item:active,.pc-bw-item:active,.pc-order:active,.pc-memo-item:active,.pc-pay-bill:active{background:rgba(255,255,255,.06);}
+.pc-wx-av{width:42px;height:42px;border-radius:50%;flex:0 0 42px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;}
+.pc-wx-main{flex:1;min-width:0;}
+.pc-wx-top{display:flex;justify-content:space-between;align-items:center;}
+.pc-wx-name{font-weight:700;font-size:14px;}
+.pc-wx-time{font-size:11px;color:rgba(255,255,255,.4);}
+.pc-wx-last{font-size:12px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
+.pc-badge{background:#ff453a;color:#fff;font-size:11px;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 5px;font-weight:700;flex:0 0 auto;}
+.pc-chat{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:8px;min-height:0;}
+.pc-bubble-row{display:flex;flex-direction:column;align-items:flex-start;max-width:78%;}
+.pc-bubble-row.me{align-self:flex-end;align-items:flex-end;}
+.pc-bubble{padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.1);color:#fff;font-size:13px;line-height:1.5;border-bottom-left-radius:4px;}
+.pc-bubble-row.me .pc-bubble{background:linear-gradient(135deg,#07c160,#059a4d);border-bottom-left-radius:14px;border-bottom-right-radius:4px;}
+.pc-bubble-time{font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;}
+.pc-chat-send{display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.08);flex:0 0 auto;}
+.pc-chat-send input{flex:1;padding:10px;border-radius:18px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-size:13px;outline:none;}
+.pc-chat-send button{background:linear-gradient(135deg,#07c160,#059a4d);border:none;color:#fff;border-radius:18px;padding:0 18px;font-size:13px;cursor:pointer;}
+.pc-call-item .nm{flex:1;font-size:14px;font-weight:600;}
+.pc-call-ico{font-size:16px;width:22px;text-align:center;}
+.pc-call-type{font-size:12px;color:rgba(255,255,255,.5);}
+.pc-call-item .tm{font-size:12px;color:rgba(255,255,255,.4);}
+.pc-sms-item{flex-wrap:wrap;}
+.pc-sms-item .who{width:100%;font-size:14px;font-weight:700;color:#fff;}
+.pc-sms-item .txt{width:100%;font-size:12px;color:rgba(255,255,255,.65);line-height:1.5;}
+.pc-sms-item .tm{font-size:11px;color:rgba(255,255,255,.35);}
+.pc-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:4px;}
+.pc-photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;cursor:pointer;}
+.pc-photo-view{display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px;}
+.pc-photo-view img{max-width:100%;border-radius:14px;}
+.pc-photo-nav{display:flex;gap:12px;}
+.pc-photo-nav button{background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:10px;padding:8px 18px;cursor:pointer;font-size:13px;}
+.pc-cam{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;}
+.pc-cam .frame{width:220px;height:300px;border-radius:20px;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.14),rgba(0,0,0,.4));border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:40px;}
+.pc-cam-info{font-size:12px;color:rgba(255,255,255,.5);}
+.pc-music-cover{width:44px;height:44px;border-radius:10px;flex:0 0 44px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;}
+.pc-music-main{flex:1;min-width:0;}
+.pc-music-name{font-size:14px;font-weight:700;}
+.pc-music-artist{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;}
+.pc-music-play{color:rgba(255,255,255,.6);font-size:14px;}
+.pc-now-playing{display:flex;flex-direction:column;align-items:center;padding:30px 20px;gap:10px;}
+.pc-mp-cover{width:180px;height:180px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:900;color:#fff;background:linear-gradient(135deg,#ff5f8f,#7c6cff);box-shadow:0 12px 30px rgba(0,0,0,.4);}
+.pc-mp-name{font-size:18px;font-weight:800;}
+.pc-mp-artist{font-size:13px;color:rgba(255,255,255,.5);}
+.pc-mp-bar{width:80%;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin-top:14px;overflow:hidden;}
+.pc-mp-bar i{display:block;height:100%;width:28%;border-radius:2px;background:linear-gradient(90deg,#ff5f8f,#ff8a5f);}
+.pc-mp-time{width:80%;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.45);}
+.pc-mp-ctrl{display:flex;align-items:center;gap:30px;margin-top:10px;}
+.pc-mp-ctrl button{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;}
+.pc-mp-ctrl .pc-mp-main-btn{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#ff5f8f,#ff8a5f);font-size:24px;display:flex;align-items:center;justify-content:center;}
+.pc-order{flex-wrap:wrap;position:relative;}
+.pc-order-top{width:100%;display:flex;justify-content:space-between;align-items:center;}
+.pc-order-g{font-size:14px;font-weight:700;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-order-st{font-size:12px;font-weight:700;}
+.pc-order-sub{font-size:12px;color:rgba(255,255,255,.5);}
+.pc-order-price{position:absolute;right:14px;bottom:10px;font-size:15px;font-weight:800;}
+.pc-bw-fav{font-size:20px;}
+.pc-bw-main{flex:1;min-width:0;}
+.pc-bw-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-bw-url{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-bw-time{font-size:11px;color:rgba(255,255,255,.35);}
+.pc-bw-page{display:flex;flex-direction:column;height:100%;}
+.pc-bw-bar{flex:0 0 auto;padding:9px 14px;margin:10px;border-radius:18px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-bw-body{padding:4px 16px 30px;line-height:1.8;color:rgba(255,255,255,.85);font-size:14px;}
+.pc-bw-body h3{color:#fff;font-size:18px;margin-bottom:10px;}
+.pc-bw-body p{margin-bottom:12px;}
+.pc-bw-meta{font-size:11px;color:rgba(255,255,255,.4);}
+.pc-memo-item{flex-wrap:wrap;}
+.pc-memo-t{width:100%;font-size:15px;font-weight:800;color:#fff;}
+.pc-memo-p{width:100%;font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-memo-time{font-size:11px;color:rgba(255,255,255,.35);}
+.pc-memo-detail{padding:20px 16px;}
+.pc-memo-dtime{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;}
+.pc-memo-dbody{font-size:15px;line-height:1.9;color:rgba(255,255,255,.9);}
+.pc-cal-head{padding:16px 16px 8px;font-size:17px;font-weight:800;text-align:center;}
+.pc-cal{width:100%;border-collapse:collapse;padding:0 8px;}
+.pc-cal th{font-size:11px;color:rgba(255,255,255,.4);padding:8px 0;font-weight:500;}
+.pc-cal td{text-align:center;padding:9px 0;font-size:13px;color:rgba(255,255,255,.75);position:relative;}
+.pc-cal td.has{font-weight:800;color:#fff;cursor:pointer;border-radius:50%;}
+.pc-cal td.today{background:rgba(255,95,143,.35);border-radius:50%;}
+.pc-cal td.has i{position:absolute;left:50%;bottom:2px;width:4px;height:4px;border-radius:50%;background:#ff5f8f;transform:translateX(-50%);}
+.pc-cal-tip{padding:10px;text-align:center;font-size:11px;color:rgba(255,255,255,.4);}
+.pc-cal-day{padding:22px 18px;}
+.pc-cal-day-title{font-size:18px;font-weight:800;margin-bottom:14px;}
+.pc-cal-day-body{font-size:14px;line-height:1.9;color:rgba(255,255,255,.85);}
+.pc-weather-card{margin:14px;padding:22px 18px;border-radius:18px;background:linear-gradient(160deg,#4f9dff,#6ec6ff);color:#fff;}
+.pc-weather-card .wcity{font-size:13px;opacity:.9;}
+.pc-weather-card .wtemp{font-size:46px;font-weight:800;margin:6px 0;}
+.pc-weather-row{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px;}
+.pc-clock-big{display:flex;flex-direction:column;align-items:center;padding:46px 0 20px;}
+.pc-clock-big .ct{font-size:56px;font-weight:800;letter-spacing:2px;font-variant-numeric:tabular-nums;}
+.pc-clock-big .cd{font-size:13px;color:rgba(255,255,255,.5);margin-top:6px;}
+.pc-clock-world{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 16px;}
+.pc-wc{display:flex;justify-content:space-between;background:rgba(255,255,255,.07);border-radius:14px;padding:14px;font-size:14px;}
+.pc-wc b{color:rgba(255,255,255,.5);font-weight:500;}
+.pc-map{position:relative;height:100%;min-height:340px;background:linear-gradient(160deg,#1e3a5f,#2b5876);border-radius:0;overflow:hidden;}
+.pc-map .road{position:absolute;background:rgba(255,255,255,.13);}
+.pc-map .pin{position:absolute;font-size:22px;transform:translate(-50%,-100%);z-index:2;}
+.map-poi{position:absolute;transform:translate(-50%,-50%);font-size:11px;background:rgba(255,255,255,.9);color:#1e3a5f;border-radius:10px;padding:3px 8px;white-space:nowrap;}
+.map-search{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.9);color:#333;border-radius:18px;padding:8px 16px;font-size:12px;width:70%;text-align:center;}
+.pc-game-card{display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;}
+.pc-game-card:active{background:rgba(255,255,255,.06);}
+.pc-game-ico{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;}
+.pc-game-main{flex:1;}
+.pc-game-name{font-size:14px;font-weight:700;}
+.pc-game-desc{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;}
+.pc-game-go{color:rgba(255,255,255,.5);}
+.pc-game-tap{display:flex;flex-direction:column;align-items:center;padding:40px 20px;gap:16px;}
+.pc-game-score{font-size:64px;font-weight:900;color:#a855f7;}
+.pc-game-tip{font-size:13px;color:rgba(255,255,255,.55);}
+.pc-game-btn{background:linear-gradient(135deg,#a855f7,#7c3aed);border:none;color:#fff;font-size:18px;font-weight:800;border-radius:30px;padding:14px 40px;cursor:pointer;}
+.pc-game-btn:disabled{opacity:.8;}
+.pc-game-card-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:16px;}
+.pc-gcard{aspect-ratio:1;border-radius:12px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;}
+.pc-gcard span{opacity:0;transition:opacity .15s;}
+.pc-gcard.flip{background:rgba(255,255,255,.14);}
+.pc-gcard.flip span{opacity:1;}
+.pc-game-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:70%;color:rgba(255,255,255,.5);font-size:14px;}
+.pc-game-soon-ico{font-size:44px;}
+.pc-health-ring{display:flex;justify-content:center;padding:22px 0 8px;}
+.pc-hr-circle{width:130px;height:130px;border-radius:50%;background:conic-gradient(#ff4d6d 0% 72%,rgba(255,255,255,.12) 72% 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;}
+.pc-hr-circle::before{content:"";position:absolute;inset:12px;border-radius:50%;background:#101014;}
+.pc-hr-circle b{font-size:24px;z-index:1;}
+.pc-hr-circle span{font-size:10px;color:rgba(255,255,255,.5);z-index:1;margin-top:2px;}
+.pc-health-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 14px;}
+.pc-health-item{background:rgba(255,255,255,.07);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px;}
+.pc-hi-ico{font-size:18px;}
+.pc-hi-name{font-size:11px;color:rgba(255,255,255,.5);}
+.pc-health-item b{font-size:17px;}
+.pc-health-goal{display:flex;align-items:center;gap:10px;padding:6px 16px 18px;font-size:12px;color:rgba(255,255,255,.5);}
+.pc-health-goal i{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;}
+.pc-health-goal i b{display:block;height:100%;background:linear-gradient(90deg,#ff4d6d,#ff8a5f);border-radius:4px;}
+.pc-pay-balance{margin:14px;padding:20px 18px;border-radius:18px;background:linear-gradient(160deg,#1677ff,#0d5bd6);color:#fff;}
+.pc-pb-label{font-size:12px;opacity:.85;}
+.pc-pb-amt{font-size:34px;font-weight:800;margin:8px 0 14px;}
+.pc-pb-actions{display:flex;gap:10px;}
+.pc-pb-actions span{font-size:12px;background:rgba(255,255,255,.2);border-radius:16px;padding:6px 18px;cursor:pointer;}
+.pc-pay-bill-head{padding:6px 16px 4px;font-size:13px;font-weight:700;color:rgba(255,255,255,.7);}
+.pc-pb-ico{font-size:20px;}
+.pc-pb-main{flex:1;min-width:0;}
+.pc-pb-shop{font-size:14px;font-weight:600;}
+.pc-pb-cat{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+.pc-pb-amt2{font-size:15px;font-weight:800;}
+.pc-pay-detail{display:flex;flex-direction:column;align-items:center;padding:26px 18px;}
+.pc-pd-status{font-size:14px;font-weight:800;color:rgba(255,255,255,.6);}
+.pc-pd-status.ok{color:#34c759;}
+.pc-pd-amt{font-size:36px;font-weight:900;margin:10px 0 4px;}
+.pc-pd-shop{font-size:15px;color:rgba(255,255,255,.8);margin-bottom:22px;}
+.pc-pd-row{width:100%;display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px;}
+.pc-pd-k{color:rgba(255,255,255,.5);}
+.pc-pd-v{color:rgba(255,255,255,.9);max-width:60%;text-align:right;word-break:break-all;}
+.pc-set-device{display:flex;align-items:center;gap:12px;padding:18px 14px;border-bottom:1px solid rgba(255,255,255,.08);}
+.pc-sd-ico{font-size:30px;}
+.pc-sd-name{font-size:16px;font-weight:800;}
+.pc-sd-sub{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;}
+.pc-set-row .sn{flex:1;font-size:14px;}
+.pc-set-row .sv{font-size:12px;color:rgba(255,255,255,.45);}
+.pc-toggle{width:42px;height:24px;border-radius:12px;background:rgba(255,255,255,.18);position:relative;transition:background .2s;}
+.pc-toggle.on{background:#34c759;}
+.pc-toggle i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;}
+.pc-toggle.on i{left:20px;}
+
 .pc-app-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);flex:0 0 auto;}
 .pc-app-head button{width:30px;height:30px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:18px;cursor:pointer;}
 .pc-app-head .t{font-size:14px;font-weight:700;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1340,7 +1521,7 @@ button,input,textarea,select{max-width:100%}
     <div class="pc-head"><button onclick="closePcPhone()">‹</button><span id="pcPhoneTitle"></span><span id="pcCaught" style="display:none">⏱ 被抓现行倒计时</span></div>
     <div class="pc-desktop" id="pcDesktop"></div>
     <div class="pc-app-page" id="pcAppPage">
-      <div class="pc-app-head"><button onclick="backToDesktop()">‹</button><span class="t" id="pcAppTitle"></span></div>
+      <div class="pc-app-head"><button onclick="pcDetailBack()">‹</button><span class="t" id="pcAppTitle"></span></div>
       <div class="pc-app-content" id="pcAppContent"></div>
     </div>
     <div class="pc-send-row" id="pcSendRow" style="display:none"><input id="pcSendInput" type="text" placeholder="用TA的手机偷偷发消息…" autocomplete="off"><button onclick="pcSendMsg()">发送</button></div>
@@ -10095,25 +10276,46 @@ function wpComment() {
 __name(wpComment, "wpComment");
 var PC_TABS = ["\u5FAE\u4FE1", "\u5907\u5FD8\u5F55", "\u6D4F\u89C8\u5668", "\u652F\u4ED8\u5B9D", "\u76F8\u518C", "\u97F3\u4E50", "\u8D2D\u7269", "\u5065\u5EB7"];
 /* ===== 查手机·仿真桌面 ===== */
+/* ===== 查手机·仿真桌面 ===== */
+var PC_ICONS = {
+  wechat:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>',
+  phone:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  msg:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>',
+  album:'<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>',
+  camera:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
+  music:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  shop:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+  browser:'<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>',
+  memo:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>',
+  calendar:'<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  weather:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41M15.95 12.65a4 4 0 0 0-5.93-4.13"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>',
+  clock:'<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  map:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  game:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/><rect x="2" y="6" width="20" height="12" rx="4"/></svg>',
+  health:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  alipay:'<svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
+  setting:'<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>'
+};
 var PC_APPS = [
-  {id:"wechat", name:"微信", icon:"💬", bg:"linear-gradient(135deg,#07c160,#059a4d)", key:"wx"},
-  {id:"phone", name:"电话", icon:"📞", bg:"linear-gradient(135deg,#34c759,#059a4d)", key:"call"},
-  {id:"msg", name:"短信", icon:"✉️", bg:"linear-gradient(135deg,#07c160,#059a4d)", key:"sms"},
-  {id:"album", name:"相册", icon:"🖼️", bg:"linear-gradient(135deg,#ff9a9e,#fad0c4)", key:"photos"},
-  {id:"camera", name:"相机", icon:"📷", bg:"linear-gradient(135deg,#555,#222)", key:"cam"},
-  {id:"music", name:"音乐", icon:"🎵", bg:"linear-gradient(135deg,#ff5f5f,#e02424)", key:"music"},
-  {id:"shop", name:"购物", icon:"🛒", bg:"linear-gradient(135deg,#ff9500,#ff6b00)", key:"shop"},
-  {id:"browser", name:"浏览器", icon:"🌐", bg:"linear-gradient(135deg,#4f8cff,#2b6de8)", key:"browser"},
-  {id:"memo", name:"备忘录", icon:"📝", bg:"linear-gradient(135deg,#ffd60a,#f5a623)", key:"memo"},
-  {id:"calendar", name:"日历", icon:"📅", bg:"linear-gradient(135deg,#5ac8fa,#2b9df0)", key:"cal"},
-  {id:"weather", name:"天气", icon:"⛅", bg:"linear-gradient(135deg,#4f9dff,#6ec6ff)", key:"weather"},
-  {id:"clock", name:"时钟", icon:"🕐", bg:"linear-gradient(135deg,#333,#111)", key:"clock"},
-  {id:"map", name:"地图", icon:"🗺️", bg:"linear-gradient(135deg,#5ac8fa,#2b9df0)", key:"map"},
-  {id:"game", name:"游戏", icon:"🎮", bg:"linear-gradient(135deg,#a855f7,#7c3aed)", key:"game"},
-  {id:"health", name:"健康", icon:"❤️", bg:"linear-gradient(135deg,#ff4d6d,#e0214e)", key:"health"},
-  {id:"alipay", name:"支付宝", icon:"💰", bg:"linear-gradient(135deg,#1677ff,#0d5bd6)", key:"pay"},
-  {id:"setting", name:"设置", icon:"⚙️", bg:"linear-gradient(135deg,#8e8e93,#5c5c5c)", key:"set"}
+  {id:"wechat", name:"微信", icon:PC_ICONS.wechat, bg:"linear-gradient(135deg,#07c160,#059a4d)", key:"wx"},
+  {id:"phone", name:"电话", icon:PC_ICONS.phone, bg:"linear-gradient(135deg,#34c759,#059a4d)", key:"call"},
+  {id:"msg", name:"短信", icon:PC_ICONS.msg, bg:"linear-gradient(135deg,#07c160,#059a4d)", key:"sms"},
+  {id:"album", name:"相册", icon:PC_ICONS.album, bg:"linear-gradient(135deg,#ff9a9e,#fad0c4)", key:"photos"},
+  {id:"camera", name:"相机", icon:PC_ICONS.camera, bg:"linear-gradient(135deg,#555,#222)", key:"cam"},
+  {id:"music", name:"音乐", icon:PC_ICONS.music, bg:"linear-gradient(135deg,#ff5f5f,#e02424)", key:"music"},
+  {id:"shop", name:"购物", icon:PC_ICONS.shop, bg:"linear-gradient(135deg,#ff9500,#ff6b00)", key:"shop"},
+  {id:"browser", name:"浏览器", icon:PC_ICONS.browser, bg:"linear-gradient(135deg,#4f8cff,#2b6de8)", key:"browser"},
+  {id:"memo", name:"备忘录", icon:PC_ICONS.memo, bg:"linear-gradient(135deg,#ffd60a,#f5a623)", key:"memo"},
+  {id:"calendar", name:"日历", icon:PC_ICONS.calendar, bg:"linear-gradient(135deg,#5ac8fa,#2b9df0)", key:"cal"},
+  {id:"weather", name:"天气", icon:PC_ICONS.weather, bg:"linear-gradient(135deg,#4f9dff,#6ec6ff)", key:"weather"},
+  {id:"clock", name:"时钟", icon:PC_ICONS.clock, bg:"linear-gradient(135deg,#333,#111)", key:"clock"},
+  {id:"map", name:"地图", icon:PC_ICONS.map, bg:"linear-gradient(135deg,#5ac8fa,#2b9df0)", key:"map"},
+  {id:"game", name:"游戏", icon:PC_ICONS.game, bg:"linear-gradient(135deg,#a855f7,#7c3aed)", key:"game"},
+  {id:"health", name:"健康", icon:PC_ICONS.health, bg:"linear-gradient(135deg,#ff4d6d,#e0214e)", key:"health"},
+  {id:"alipay", name:"支付宝", icon:PC_ICONS.alipay, bg:"linear-gradient(135deg,#1677ff,#0d5bd6)", key:"pay"},
+  {id:"setting", name:"设置", icon:PC_ICONS.setting, bg:"linear-gradient(135deg,#8e8e93,#5c5c5c)", key:"set"}
 ];
+
 var PC_DOCK = ["phone", "msg", "browser", "camera"];
 var PC_WALLPAPERS = [
   "linear-gradient(160deg,#7c6cff,#5ac8fa 55%,#ffb86b)",
@@ -10126,116 +10328,345 @@ function findPcApp(id) {
   for (var i = 0; i < PC_APPS.length; i++) if (PC_APPS[i].id === id) return PC_APPS[i];
   return null;
 }
+var _pcCarouselTimer = null;
+var _pcCarouselIdx = 0;
+function pcAppIcon(a, showName) {
+  return '<div class="pc-app" onclick="openPcApp(\'' + a.id + '\')"><div class="pc-app-ico" style="background:' + a.bg + '">' + a.icon + '</div>' + (showName ? '<div class="pc-app-name">' + a.name + "</div>" : "") + "</div>";
+}
+function pcCarouselHtml(d) {
+  var items = (d && d.news) || [];
+  var cards = items.map(function(n, i) {
+    return '<div class="pc-cs-item' + (i === 0 ? " on" : "") + '" onclick="pcCarouselTo(' + i + ')"><div class="pc-cs-tag">' + escapeHtml(n.tag) + "</div><div class=\"pc-cs-title\">" + escapeHtml(n.title) + '</div><div class="pc-cs-desc">' + escapeHtml(n.desc) + "</div></div>";
+  }).join("");
+  var dots = items.map(function(n, i) {
+    return '<i class="' + (i === 0 ? "on" : "") + '" onclick="pcCarouselTo(' + i + ')"></i>';
+  }).join("");
+  return '<div class="pc-carousel"><div class="pc-cs-track" id="pcCsTrack">' + cards + '</div><div class="pc-cs-dots">' + dots + '</div><button class="pc-cs-refresh" onclick="pcRefreshData()" title="API 刷新内容">\u21bb</button></div>';
+}
+function pcCarouselTo(i) {
+  var d = DB._pcData;
+  if (!d || !d.news || !d.news.length) return;
+  var n = d.news.length;
+  _pcCarouselIdx = ((i % n) + n) % n;
+  var track = document.getElementById("pcCsTrack");
+  var dots = document.querySelectorAll(".pc-cs-dots i");
+  if (track) track.style.transform = "translateX(-" + _pcCarouselIdx * 100 + "%)";
+  for (var k = 0; k < dots.length; k++) dots[k].className = k === _pcCarouselIdx ? "on" : "";
+}
+function startPcCarousel() {
+  stopPcCarousel();
+  _pcCarouselIdx = 0;
+  _pcCarouselTimer = setInterval(function() {
+    var d = DB._pcData;
+    if (!d || !d.news || !d.news.length) return;
+    pcCarouselTo(_pcCarouselIdx + 1);
+  }, 4200);
+}
+function stopPcCarousel() {
+  if (_pcCarouselTimer) { clearInterval(_pcCarouselTimer); _pcCarouselTimer = null; }
+}
 function renderPcDesktop() {
   var d = DB._pcData;
   if (!d) return;
   var seed = Math.abs(pcSeed(DB._pcTarget)) % PC_WALLPAPERS.length;
-  document.getElementById("pcDesktop").style.background = PC_WALLPAPERS[seed];
+  var desk = document.getElementById("pcDesktop");
+  desk.style.background = PC_WALLPAPERS[seed];
   var now = new Date();
   var hh = ("0" + now.getHours()).slice(-2);
   var mm = ("0" + now.getMinutes()).slice(-2);
-  var html = '<div class="pc-dt-status"><span class="pc-dt-time">' + hh + ":" + mm + '</span><span class="pc-dt-icons">📶　🔋</span></div>';
-  html += '<div class="pc-grid">';
-  for (var i = 0; i < PC_APPS.length; i++) {
-    var a = PC_APPS[i];
-    html += '<div class="pc-app" onclick="openPcApp(\'' + a.id + '\')"><div class="pc-app-ico" style="background:' + a.bg + '">' + a.icon + '</div><div class="pc-app-name">' + a.name + "</div></div>";
-  }
-  html += "</div>";
+  var wd = "\u65e5\u4e00\u4e8c\u4e09\u56db\u4e94\u516d".charAt(now.getDay());
+  var md = (now.getMonth() + 1) + "\u6708" + now.getDate() + "\u65e5";
+  var html = '';
+  html += '<div class="pc-dt-status"><span class="pc-dt-time">' + hh + ":" + mm + '</span><span class="pc-dt-info">' + wd + " " + md + '</span><span class="pc-dt-icons"><svg class="ic stroke sm" viewBox="0 0 24 24"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg><svg class="ic stroke sm" viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"/><path d="M23 13v-2"/></svg></span></div>';
+  html += pcCarouselHtml(d);
+  html += '<div class="pc-grid-wrap"><div class="pc-grid">';
+  for (var i = 0; i < PC_APPS.length; i++) html += pcAppIcon(PC_APPS[i], true);
+  html += "</div></div>";
   html += '<div class="pc-dock">';
   for (var j = 0; j < PC_DOCK.length; j++) {
     var ap = findPcApp(PC_DOCK[j]);
-    html += '<div class="pc-app" onclick="openPcApp(\'' + ap.id + '\')"><div class="pc-app-ico" style="background:' + ap.bg + '">' + ap.icon + "</div></div>";
+    if (ap) html += pcAppIcon(ap, false);
   }
   html += "</div>";
-  document.getElementById("pcDesktop").innerHTML = html;
+  desk.innerHTML = html;
+  startPcCarousel();
 }
-function openPcApp(appId) {
+function pcEsc(s) {
+  return escapeHtml(String(s == null ? "" : s));
+}
+function pcSetTitle(t) {
+  document.getElementById("pcAppTitle").textContent = t;
+}
+function openPcApp(id){ pcOpenApp(id); }
+function pcOpenApp(appId) {
+  DB._pcInDetail = false;
   var a = findPcApp(appId);
   if (!a) return;
   document.getElementById("pcDesktop").style.display = "none";
   document.getElementById("pcAppPage").style.display = "flex";
-  document.getElementById("pcAppTitle").textContent = a.name;
+  document.getElementById("pcSendRow").style.display = "none";
+  stopPcCarousel();
   var d = DB._pcData || {};
   var html = "";
-  if (a.key === "wx") {
-    html = d.wx.map(function(w) {
-      return '<div class="pc-card"><div class="pc-card-t">与 ' + escapeHtml(w.who) + " 的聊天</div>" + w.msgs.map(function(m) {
-        return '<div class="pc-line">' + escapeHtml(m) + "</div>";
-      }).join("") + "</div>";
-    }).join("");
-    document.getElementById("pcSendRow").style.display = "flex";
-  } else if (a.key === "memo") {
-    html = d.memo.map(function(m) { return '<div class="pc-card"><div class="pc-line">📝 ' + escapeHtml(m) + "</div></div>"; }).join("");
-  } else if (a.key === "browser") {
-    html = d.browser.map(function(m) { return '<div class="pc-card"><div class="pc-line">🔍 ' + escapeHtml(m) + "</div></div>"; }).join("");
-  } else if (a.key === "pay") {
-    html = d.pay.map(function(m) { return '<div class="pc-card"><div class="pc-line">' + escapeHtml(m.op) + " - ¥" + m.amt + "</div></div>"; }).join("");
-  } else if (a.key === "photos") {
-    html = '<div class="pc-photos">' + d.photos.map(function(u) { return '<img src="' + u + '" alt="">'; }).join("") + "</div>";
-  } else if (a.key === "music") {
-    html = d.music.map(function(m) { return '<div class="pc-card"><div class="pc-line">🎵 ' + escapeHtml(m) + "</div></div>"; }).join("");
-  } else if (a.key === "shop") {
-    html = d.shop.map(function(m) { return '<div class="pc-card"><div class="pc-line">🛒 ' + escapeHtml(m) + "</div></div>"; }).join("");
-  } else if (a.key === "health") {
-    html = d.health.map(function(m) { return '<div class="pc-card"><div class="pc-line">❤️ ' + escapeHtml(m) + "</div></div>"; }).join("");
-  } else if (a.key === "call") {
-    html = pcCallHtml(d);
-  } else if (a.key === "sms") {
-    html = pcSmsHtml(d);
-  } else if (a.key === "cam") {
-    html = '<div class="pc-cam"><div class="frame">📷 相机预览</div></div>';
-  } else if (a.key === "weather") {
-    html = pcWeatherHtml(d);
-  } else if (a.key === "clock") {
-    html = pcClockHtml();
-    startPcClock();
-  } else if (a.key === "cal") {
-    html = pcCalHtml();
-  } else if (a.key === "map") {
-    html = pcMapHtml();
-  } else if (a.key === "game") {
-    html = pcGameHtml(d);
-  } else if (a.key === "set") {
-    html = pcSetHtml();
-  }
-  document.getElementById("pcAppContent").innerHTML = html || '<div class="empty-tip">空空如也</div>';
+  var title = a.name;
+  if (a.key === "wx") { title = "\u5fae\u4fe1"; html = pcListWx(d); }
+  else if (a.key === "call") { title = "\u6700\u8fd1\u901a\u8bdd"; html = pcListCall(d); }
+  else if (a.key === "sms") { title = "\u77ed\u4fe1"; html = pcListSms(d); }
+  else if (a.key === "photos") { title = "\u76f8\u518c"; html = pcListPhotos(d); }
+  else if (a.key === "cam") { title = "\u76f8\u673a"; html = pcCamHtml(); }
+  else if (a.key === "music") { title = "\u97f3\u4e50"; html = pcListMusic(d); }
+  else if (a.key === "shop") { title = "\u8d2d\u7269"; html = pcListShop(d); }
+  else if (a.key === "browser") { title = "\u6d4f\u89c8\u5668"; html = pcListBrowser(d); }
+  else if (a.key === "memo") { title = "\u5907\u5fd8\u5f55"; html = pcListMemo(d); }
+  else if (a.key === "cal") { title = "\u65e5\u5386"; html = pcCalHtml(d); }
+  else if (a.key === "weather") { title = "\u5929\u6c14"; html = pcWeatherHtml(d); }
+  else if (a.key === "clock") { title = "\u65f6\u949f"; html = pcClockHtml(); startPcClock(); }
+  else if (a.key === "map") { title = "\u5730\u56fe"; html = pcMapHtml(d); }
+  else if (a.key === "game") { title = "\u6e38\u620f"; html = pcGameHtml(d); }
+  else if (a.key === "health") { title = "\u5065\u5eb7"; html = pcListHealth(d); }
+  else if (a.key === "pay") { title = "\u652f\u4ed8\u5b9d"; html = pcListPay(d); }
+  else if (a.key === "set") { title = "\u8bbe\u7f6e"; html = pcSetHtml(d); }
+  pcSetTitle(title);
+  document.getElementById("pcAppContent").innerHTML = html || '<div class="empty-tip">\u7a7a\u7a7a\u5982\u4e5f</div>';
+}
+function pcDetailBack() {
+  var key = DB._pcLastKey;
+  if (key) pcOpenApp(key);
+  else backToDesktop();
 }
 function backToDesktop() {
   stopPcClock();
+  stopPcCarousel();
   document.getElementById("pcSendRow").style.display = "none";
   document.getElementById("pcAppPage").style.display = "none";
   document.getElementById("pcDesktop").style.display = "";
+  startPcCarousel();
 }
-function pcCallHtml(d) {
-  var names = d.contacts && d.contacts.length ? d.contacts.slice(0, 4).map(function(x) { return x.name; }) : ["妈妈", "同事", "外卖", "快递"];
-  var times = ["今天 09:12", "昨天 22:40", "昨天 18:03", "周一 14:25"];
-  var types = ["📞 呼入", "📞 呼出", "📞 未接", "📞 呼入"];
+/* ---------- \u5fae\u4fe1 ---------- */
+function pcListWx(d) {
+  DB._pcLastKey = "wx";
   var html = "";
-  for (var i = 0; i < names.length; i++) html += '<div class="pc-call-item"><span class="nm">' + types[i] + " " + escapeHtml(names[i]) + '</span><span class="tm">' + times[i] + "</span></div>";
+  for (var i = 0; i < (d.wx || []).length; i++) {
+    var w = d.wx[i];
+    var last = w.msgs[w.msgs.length - 1];
+    html += '<div class="pc-wx-item" onclick="pcWxChat(' + i + ')"><div class="pc-wx-av" style="background:' + ["#ff8a5f", "#5ac8fa", "#7c6cff", "#34c759", "#ff5f8f", "#f5a623"][i % 6] + '">' + pcEsc(w.who.charAt(0)) + '</div><div class="pc-wx-main"><div class="pc-wx-top"><span class="pc-wx-name">' + pcEsc(w.who) + '</span><span class="pc-wx-time">' + pcEsc(w.time) + "</span></div><div class=\"pc-wx-last\">" + pcEsc(last ? (last.me ? "\u6211\uff1a" : "") + last.txt : "") + "</div></div>" + (w.unread ? '<span class="pc-badge">' + w.unread + "</span>" : "") + "</div>";
+  }
   return html;
 }
-function pcSmsHtml(d) {
-  var names = d.contacts && d.contacts.length ? d.contacts.slice(0, 3).map(function(x) { return x.name; }) : ["运营商", "快递", "银行"];
-  var texts = ["您的外卖已送达，请及时取餐。", "【XX银行】您尾号8866的账户消费58.00元。", "明天下午三点老地方见！", "快递已到驿站，取件码 3-2-4158。"];
-  var html = "";
-  for (var i = 0; i < names.length; i++) html += '<div class="pc-sms-item"><div class="who">' + escapeHtml(names[i]) + '</div><div class="txt">' + texts[i] + "</div></div>";
-  return html;
+function pcWxChat(idx) {
+  DB._pcInDetail = true;
+  var d = DB._pcData;
+  var w = d.wx[idx];
+  if (!w) return;
+  DB._pcLastKey = "wx";
+  DB._pcWxIdx = idx;
+  pcSetTitle(w.who);
+  var html = '<div class="pc-chat" id="pcChat">';
+  for (var i = 0; i < w.msgs.length; i++) {
+    var m = w.msgs[i];
+    html += '<div class="pc-bubble-row ' + (m.me ? "me" : "") + '"><div class="pc-bubble">' + pcEsc(m.txt) + "</div><div class=\"pc-bubble-time\">" + pcEsc(m.time) + "</div></div>";
+  }
+  html += '</div><div class="pc-chat-send"><input id="pcChatInput" placeholder="\u53d1\u9001\u6d88\u606f\u2026" autocomplete="off"><button onclick="pcChatSend()">\u53d1\u9001</button></div>';
+  document.getElementById("pcAppContent").innerHTML = html;
+  var box = document.getElementById("pcChat");
+  if (box) box.scrollTop = box.scrollHeight;
 }
-function pcWeatherHtml(d) {
-  var temp = 24 + Math.floor(pcRnd(pcSeed(DB._pcTarget)).v * 10);
-  var rows = [["今天", temp + "°", "☀️"], ["明天", (temp - 2) + "°", "⛅"], ["后天", (temp + 1) + "°", "🌧️"], ["周四", (temp - 1) + "°", "☁️"]];
-  var html = '<div class="pc-weather-card"><div class="wcity">📍 深圳</div><div class="wtemp">' + temp + '°C</div><div>晴，空气良好</div></div>';
-  for (var i = 0; i < rows.length; i++) html += '<div class="pc-weather-row"><span>' + rows[i][0] + "</span><span>" + rows[i][2] + " " + rows[i][1] + "</span></div>";
-  return html;
-}
-function pcClockHtml() {
+function pcChatSend() {
+  var input = document.getElementById("pcChatInput");
+  var text = input && input.value ? input.value.trim() : "";
+  if (!text) return;
+  var d = DB._pcData;
+  var w = d.wx[DB._pcWxIdx];
+  if (!w) return;
   var now = new Date();
-  var hh = ("0" + now.getHours()).slice(-2);
-  var mm = ("0" + now.getMinutes()).slice(-2);
-  var ss = ("0" + now.getSeconds()).slice(-2);
-  var week = ["日", "一", "二", "三", "四", "五", "六"][now.getDay()];
-  var md = (now.getMonth() + 1) + "月" + now.getDate() + "日 星期" + week;
-  return '<div class="pc-clock-big"><div class="ct" id="pcClockTime">' + hh + ":" + mm + ":" + ss + '</div><div class="cd">' + md + "</div></div>";
+  w.msgs.push({ me: 1, txt: text, time: "\u4eca\u5929 " + ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2) });
+  input.value = "";
+  pcWxChat(DB._pcWxIdx);
+}
+/* ---------- \u901a\u8bdd ---------- */
+function pcListCall(d) {
+  DB._pcLastKey = "call";
+  var html = "";
+  var icons = { "\u547c\u5165": "\u2193", "\u547c\u51fa": "\u2191", "\u672a\u63a5": "\u2715" };
+  var cols = { "\u547c\u5165": "#34c759", "\u547c\u51fa": "#5ac8fa", "\u672a\u63a5": "#ff453a" };
+  for (var i = 0; i < (d.call || []).length; i++) {
+    var c = d.call[i];
+    html += '<div class="pc-call-item"><span class="pc-call-ico" style="color:' + cols[c.type] + '">' + (icons[c.type] || "\u2193") + '</span><span class="nm">' + pcEsc(c.name) + '</span><span class="pc-call-type">' + pcEsc(c.type) + '</span><span class="tm">' + pcEsc(c.time) + "</span></div>";
+  }
+  return html;
+}
+/* ---------- \u77ed\u4fe1 ---------- */
+function pcListSms(d) {
+  DB._pcLastKey = "sms";
+  var html = "";
+  for (var i = 0; i < (d.sms || []).length; i++) {
+    var s = d.sms[i];
+    html += '<div class="pc-sms-item" onclick="pcSmsDetail(' + i + ')"><div class="who">' + pcEsc(s.who) + '</div><div class="txt">' + pcEsc(s.txt) + '</div><div class="tm">' + pcEsc(s.time) + "</div></div>";
+  }
+  return html;
+}
+function pcSmsDetail(idx) {
+  DB._pcInDetail = true;
+  var s = DB._pcData.sms[idx];
+  if (!s) return;
+  pcSetTitle(s.who);
+  var html = '<div class="pc-chat">' + '<div class="pc-bubble-row me"><div class="pc-bubble">' + pcEsc(s.txt) + "</div><div class=\"pc-bubble-time\">" + pcEsc(s.time) + "</div></div>" + '</div><div class="pc-chat-send" style="display:none"></div>';
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+/* ---------- \u76f8\u518c ---------- */
+function pcListPhotos(d) {
+  DB._pcLastKey = "photos";
+  var html = '<div class="pc-photos">';
+  for (var i = 0; i < (d.photos || []).length; i++) {
+    html += '<img src="' + d.photos[i] + '" alt="" onclick="pcPhotoView(' + i + ')">';
+  }
+  return html + "</div>";
+}
+function pcPhotoView(idx) {
+  DB._pcInDetail = true;
+  var d = DB._pcData;
+  var src = d.photos[idx];
+  if (!src) return;
+  pcSetTitle("\u76f8\u7247 " + (idx + 1) + " / " + d.photos.length);
+  var html = '<div class="pc-photo-view"><img src="' + src + '" alt=""><div class="pc-photo-nav"><button onclick="pcPhotoView(' + ((idx - 1 + d.photos.length) % d.photos.length) + ')">\u4e0a\u4e00\u5f20</button><button onclick="pcPhotoView(' + ((idx + 1) % d.photos.length) + ')">\u4e0b\u4e00\u5f20</button></div></div>';
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+/* ---------- \u76f8\u673a ---------- */
+function pcCamHtml() {
+  DB._pcLastKey = "cam";
+  return '<div class="pc-cam"><div class="frame">\ud83d\udcf7 \u76f8\u673a\u9884\u89c8</div><div class="pc-cam-info">\u626b\u63cf / \u4eba\u50cf / \u666f\u89c2\u6a21\u5f0f\u5df2\u5c01\u88c5</div></div>';
+}
+/* ---------- \u97f3\u4e50 ---------- */
+function pcListMusic(d) {
+  DB._pcLastKey = "music";
+  var html = "";
+  for (var i = 0; i < (d.music || []).length; i++) {
+    var m = d.music[i];
+    var mm = Math.floor(m.dur / 60) + ":" + ("0" + (m.dur % 60)).slice(-2);
+    html += '<div class="pc-music-item" onclick="pcMusicPlay(' + i + ')"><div class="pc-music-cover" style="background:linear-gradient(135deg,hsl(' + (i * 47 % 360) + ',70%,60%),hsl(' + (i * 47 + 60) % 360 + ',70%,45%))">' + pcEsc(m.title.charAt(0)) + '</div><div class="pc-music-main"><div class="pc-music-name">' + pcEsc(m.title) + '</div><div class="pc-music-artist">' + pcEsc(m.artist) + " \u00b7 " + mm + "</div></div><span class=\"pc-music-play\">\u25b6</span></div>";
+  }
+  return html;
+}
+function pcMusicPlay(idx) {
+  DB._pcInDetail = true;
+  var m = DB._pcData.music[idx];
+  if (!m) return;
+  DB._pcLastKey = "music";
+  pcSetTitle("\u6b63\u5728\u64ad\u653e");
+  var mm = Math.floor(m.dur / 60) + ":" + ("0" + (m.dur % 60)).slice(-2);
+  var html = '<div class="pc-now-playing"><div class="pc-mp-cover">' + pcEsc(m.title.charAt(0)) + '</div><div class="pc-mp-name">' + pcEsc(m.title) + '</div><div class="pc-mp-artist">' + pcEsc(m.artist) + "</div><div class=\"pc-mp-bar\"><i></i></div><div class=\"pc-mp-time\"><span>01:24</span><span>" + mm + '</span></div><div class="pc-mp-ctrl"><button onclick="pcOpenApp(\'music\')">\u23f9</button><button class="pc-mp-main-btn">\u25b6</button><button onclick="pcOpenApp(\'music\')">\u23ed</button></div></div>';
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+/* ---------- \u8d2d\u7269 ---------- */
+function pcListShop(d) {
+  DB._pcLastKey = "shop";
+  var html = "";
+  var stc = { "\u5f85\u53d1\u8d27": "#f5a623", "\u8fd0\u8f93\u4e2d": "#5ac8fa", "\u5df2\u7b7e\u6536": "#34c759", "\u9000\u6b3e\u4e2d": "#ff453a" };
+  for (var i = 0; i < (d.shop || []).length; i++) {
+    var s = d.shop[i];
+    html += '<div class="pc-order" onclick="pcShopDetail(' + i + ')"><div class="pc-order-top"><span class="pc-order-g">' + pcEsc(s.goods) + '</span><span class="pc-order-st" style="color:' + (stc[s.status] || "#999") + '">' + pcEsc(s.status) + '</span></div><div class="pc-order-sub">' + pcEsc(s.cat) + " \u00b7 " + pcEsc(s.time) + '</div><div class="pc-order-price">\uffe5' + s.price.toFixed(2) + "</div></div>";
+  }
+  return html;
+}
+function pcShopDetail(idx) {
+  DB._pcInDetail = true;
+  var s = DB._pcData.shop[idx];
+  if (!s) return;
+  pcSetTitle("\u8ba2\u5355\u8be6\u60c5");
+  var rows = [["\u5546\u54c1", s.goods], ["\u5206\u7c7b", s.cat], ["\u6536\u4ef6\u4eba", s.addr.split(" ")[0] || "\u5c0f\u7f8e"], ["\u5730\u5740", s.addr], ["\u8ba2\u5355\u53f7", s.orderNo], ["\u4e0b\u5355\u65f6\u95f4", s.time], ["\u72b6\u6001", s.status]];
+  var html = '<div class="pc-pay-detail"><div class="pc-pd-status ' + (s.status === "\u5df2\u7b7e\u6536" ? "ok" : "") + '">' + pcEsc(s.status) + '</div><div class="pc-pd-amt">\uffe5' + s.price.toFixed(2) + "</div>";
+  for (var i = 0; i < rows.length; i++) html += '<div class="pc-pd-row"><span class="pc-pd-k">' + rows[i][0] + '</span><span class="pc-pd-v">' + pcEsc(rows[i][1]) + "</span></div>";
+  html += "</div>";
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+/* ---------- \u6d4f\u89c8\u5668 ---------- */
+function pcListBrowser(d) {
+  DB._pcLastKey = "browser";
+  var html = "";
+  var favs = ["\ud83d\udd0d", "\ud83d\udcf0", "\ud83c\udf0d", "\ud83c\udf73", "\ud83c\udfa5", "\ud83d\udc31", "\u2708\ufe0f", "\ud83e\uddfe"];
+  for (var i = 0; i < (d.browser || []).length; i++) {
+    var b = d.browser[i];
+    html += '<div class="pc-bw-item" onclick="pcBrowserDetail(' + i + ')"><span class="pc-bw-fav">' + favs[i % favs.length] + '</span><div class="pc-bw-main"><div class="pc-bw-title">' + pcEsc(b.title) + '</div><div class="pc-bw-url">' + pcEsc(b.url) + "</div></div><span class=\"pc-bw-time\">" + pcEsc(b.time) + "</span></div>";
+  }
+  return html;
+}
+function pcBrowserDetail(idx) {
+  DB._pcInDetail = true;
+  var b = DB._pcData.browser[idx];
+  if (!b) return;
+  pcSetTitle(b.title);
+  var html = '<div class="pc-bw-page"><div class="pc-bw-bar">' + pcEsc(b.url) + '</div><div class="pc-bw-body"><h3>' + pcEsc(b.title) + "</h3><p>" + pcEsc(b.desc) + "</p><p>" + pcEsc(b.desc) + "\uff0c\u8fd9\u7bc7\u5185\u5bb9\u770b\u8d77\u6765\u5f88\u8ba4\u771f\uff0c\u4f30\u8ba1\u8fd8\u4f1a\u7ee7\u7eed\u6d4f\u89c8\u3002</p><div class=\"pc-bw-meta\">\u6d4f\u89c8\u65f6\u95f4\uff1a" + pcEsc(b.time) + "</div></div></div>";
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+/* ---------- \u5907\u5fd8\u5f55 ---------- */
+function pcListMemo(d) {
+  DB._pcLastKey = "memo";
+  var html = "";
+  for (var i = 0; i < (d.memo || []).length; i++) {
+    var m = d.memo[i];
+    html += '<div class="pc-memo-item" onclick="pcMemoDetail(' + i + ')"><div class="pc-memo-t">' + pcEsc(m.title) + '</div><div class="pc-memo-p">' + pcEsc(m.body.split("\n")[0]) + '</div><div class="pc-memo-time">' + pcEsc(m.time) + "</div></div>";
+  }
+  return html;
+}
+function pcMemoDetail(idx) {
+  DB._pcInDetail = true;
+  var m = DB._pcData.memo[idx];
+  if (!m) return;
+  pcSetTitle(m.title);
+  var body = pcEsc(m.body).replace(/\n/g, "<br>");
+  var html = '<div class="pc-memo-detail"><div class="pc-memo-dtime">' + pcEsc(m.time) + '</div><div class="pc-memo-dbody">' + body + "</div></div>";
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+/* ---------- \u65e5\u5386 ---------- */
+function pcCalHtml(d) {
+  DB._pcLastKey = "cal";
+  d = d || DB._pcData;
+  var cal = d.cal || { month: new Date().getMonth() + 1, days: [] };
+  var now = new Date();
+  var y = now.getFullYear(), m = now.getMonth();
+  var first = new Date(y, m, 1).getDay();
+  var dim = new Date(y, m + 1, 0).getDate();
+  var marks = {};
+  for (var i = 0; i < cal.days.length; i++) marks[cal.days[i].date] = cal.days[i];
+  var html = '<div class="pc-cal-head">' + y + "\u5e74 " + cal.month + "\u6708</div><table class=\"pc-cal\"><tr><th>\u65e5</th><th>\u4e00</th><th>\u4e8c</th><th>\u4e09</th><th>\u56db</th><th>\u4e94</th><th>\u516d</th></tr><tr>";
+  for (var k = 0; k < first; k++) html += "<td></td>";
+  for (var day = 1; day <= dim; day++) {
+    var today = day === now.getDate();
+    var has = marks[day];
+    html += '<td class="' + (today ? "today" : "") + (has ? " has" : "") + '"' + (has ? ' onclick="pcCalDay(' + day + ')"' : "") + ">" + day + (has ? "<i></i>" : "") + "</td>";
+    if ((first + day) % 7 === 0) html += "</tr><tr>";
+  }
+  html += "</tr></table><div class=\"pc-cal-tip\">\u70b9\u51fb\u6709\u56de\u62fe\u7684\u65e5\u671f\u67e5\u770b\u8be6\u60c5</div>";
+  return html;
+}
+function pcCalDay(day) {
+  DB._pcInDetail = true;
+  var d = DB._pcData;
+  var item = null;
+  for (var i = 0; i < d.cal.days.length; i++) if (d.cal.days[i].date === day) item = d.cal.days[i];
+  if (!item) return;
+  pcSetTitle(d.cal.month + "\u6708 " + day + "\u65e5");
+  var body = pcEsc(item.body).replace(/\n/g, "<br>");
+  var html = '<div class="pc-cal-day"><div class="pc-cal-day-title">' + pcEsc(item.title) + '</div><div class="pc-cal-day-body">' + body + "</div></div>";
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+/* ---------- \u5929\u6c14 ---------- */
+function pcWeatherHtml(d) {
+  DB._pcLastKey = "weather";
+  d = d || DB._pcData;
+  var w = d.weather || {};
+  var emo = { "\u6674": "\u2600\ufe0f", "\u591a\u4e91": "\u26c5\ufe0f", "\u9635\u96e8": "\ud83c\udf27\ufe0f", "\u9634": "\u2601\ufe0f" };
+  var html = '<div class="pc-weather-card"><div class="wcity">\ud83d\udccd ' + pcEsc(w.city) + '</div><div class="wtemp">' + w.temp + '\u00b0C</div><div>' + pcEsc(w.desc) + "\uff0c\u7a7a\u6c14\u826f\u597d\uff0c\u6e7f\u5ea6 62%</div></div>";
+  for (var i = 0; i < (w.days || []).length; i++) {
+    var row = w.days[i];
+    html += '<div class="pc-weather-row"><span>' + pcEsc(row.w) + '</span><span>' + (emo[row.d] || "") + " " + pcEsc(row.d) + '</span><span>' + row.t + "\u00b0</span></div>";
+  }
+  return html;
+}
+/* ---------- \u65f6\u949f ---------- */
+function pcClockHtml() {
+  DB._pcLastKey = "clock";
+  return '<div class="pc-clock-big"><div class="ct" id="pcClockTime">--:--:--</div><div class="cd">\u672c\u5730\u65f6\u95f4</div></div><div class="pc-clock-world"><div class="pc-wc"><span>\u4e1c\u4eac</span><b>+1h</b></div><div class="pc-wc"><span>\u7ebd\u7ea6</span><b>-12h</b></div><div class="pc-wc"><span>\u4f26\u6566</span><b>-7h</b></div><div class="pc-wc"><span>\u5df4\u9ece</span><b>-6h</b></div></div>';
 }
 function startPcClock() {
   stopPcClock();
@@ -10252,45 +10683,171 @@ function startPcClock() {
 function stopPcClock() {
   if (_pcClockTimer) { clearInterval(_pcClockTimer); _pcClockTimer = null; }
 }
-function pcCalHtml() {
-  var now = new Date();
-  var y = now.getFullYear(), m = now.getMonth();
-  var startDow = new Date(y, m, 1).getDay();
-  var days = new Date(y, m + 1, 0).getDate();
-  var html = '<div class="pc-card"><div class="pc-card-t">' + y + " 年 " + (m + 1) + " 月</div><table class=\"pc-cal\"><tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr><tr>";
-  for (var i = 0; i < startDow; i++) html += "<td></td>";
-  for (var day = 1; day <= days; day++) {
-    if ((startDow + day - 1) % 7 === 0) html += "</tr><tr>";
-    html += '<td' + (day === now.getDate() ? ' class="today"' : "") + ">" + day + "</td>";
+/* ---------- \u5730\u56fe ---------- */
+function pcMapHtml(d) {
+  DB._pcLastKey = "map";
+  d = d || DB._pcData;
+  var pois = ["\u5fc3\u5fc3\u5496\u5561", "\u5168\u5bb6\u4fbf\u5229\u5e97", "\u5730\u94c1\u53e3", "\u82b1\u5e97", "\u5c0f\u6e2f\u6e7e\u516c\u56ed", "\u7535\u5f71\u9662"];
+  var html = '<div class="pc-map" id="pcMap">';
+  for (var i = 0; i < 6; i++) {
+    var roadH = i % 2 === 0;
+    html += '<div class="road ' + (roadH ? "h" : "v") + '" style="' + (roadH ? "top:" + (12 + i * 13) + "%;left:0;width:100%;height:5px" : "left:" + (14 + i * 13) + "%;top:0;height:100%;width:5px") + '"></div>';
   }
-  html += "</tr></table></div>";
+  html += '<div class="pin" style="left:48%;top:44%">\ud83d\udccd</div>';
+  for (var j = 0; j < pois.length; j++) {
+    var l = 8 + (j * 17) % 80, t = 16 + (j * 23) % 62;
+    html += '<div class="map-poi" style="left:' + l + "%;top:" + t + '%">' + pcEsc(pois[j]) + "</div>";
+  }
+  html += '<div class="map-search">\ud83d\udd0d \u641c\u7d22\u5730\u70b9</div></div>';
   return html;
 }
-function pcMapHtml() {
-  return '<div class="pc-map">' +
-    '<div class="road" style="left:0;top:40px;width:100%;height:10px;"></div>' +
-    '<div class="road" style="left:0;top:120px;width:100%;height:6px;"></div>' +
-    '<div class="road" style="left:60px;top:0;width:8px;height:100%;"></div>' +
-    '<div class="road" style="left:180px;top:0;width:6px;height:100%;"></div>' +
-    '<div class="road" style="left:250px;top:0;width:10px;height:100%;"></div>' +
-    '<div class="pin" style="left:50%;top:55%;">📍</div>' +
-    '<div style="position:absolute;left:8px;bottom:8px;font-size:11px;color:#333;">XX 市 · 地图</div></div>';
-}
+/* ---------- \u6e38\u620f ---------- */
 function pcGameHtml(d) {
-  var games = [["🏀", "街头篮球", "linear-gradient(135deg,#ff9500,#ff6b00)"], ["🐦", "愤怒小鸟", "linear-gradient(135deg,#ff5f5f,#e02424)"], ["🍬", "消消乐", "linear-gradient(135deg,#34c759,#059a4d)"], ["🚗", "飞车竞速", "linear-gradient(135deg,#4f8cff,#2b6de8)"], ["🀄", "麻将天地", "linear-gradient(135deg,#a855f7,#7c3aed)"], ["🎯", "射击大师", "linear-gradient(135deg,#ffd60a,#f5a623)"]];
+  DB._pcLastKey = "game";
+  d = d || DB._pcData;
   var html = "";
-  for (var i = 0; i < games.length; i++) html += '<div class="pc-game"><div class="gi" style="background:' + games[i][2] + '">' + games[i][0] + '</div><div class="gn">' + games[i][1] + "</div></div>";
+  for (var i = 0; i < (d.games || []).length; i++) {
+    var g = d.games[i];
+    html += '<div class="pc-game-card" onclick="pcGamePlay(\'' + g.id + '\')"><div class="pc-game-ico">' + g.ico + '</div><div class="pc-game-main"><div class="pc-game-name">' + pcEsc(g.name) + '</div><div class="pc-game-desc">' + pcEsc(g.desc) + "</div></div><span class=\"pc-game-go\">\u25b6</span></div>";
+  }
   return html;
 }
-function pcSetHtml() {
-  var rows = [["飞行模式", ""], ["Wi-Fi", "XX-WiFi"], ["蓝牙", "开"], ["蜂窝数据", "5G"], ["个人热点", "关"], ["声音与触感", ""], ["显示与亮度", "自动"], ["电池", "85%"]];
-  var html = "";
+function pcGamePlay(gid) {
+  DB._pcInDetail = true;
+  if (gid === "gtap") {
+    pcSetTitle("\u5feb\u901f\u70b9\u51fb");
+    document.getElementById("pcAppContent").innerHTML = '<div class="pc-game-tap"><div class="pc-game-score" id="gtapScore">0</div><div class="pc-game-tip" id="gtapTip">\u70b9\u51fb\u5f00\u59cb</div><button class="pc-game-btn" id="gtapBtn" onclick="gtapStart()">\u5f00\u59cb</button></div>';
+  } else if (gid === "gcard") {
+    pcSetTitle("\u8bb0\u5fc6\u7ffb\u724c");
+    gcardInit();
+  } else {
+    pcSetTitle("\u6570\u5b57\u6d88\u6d88\u4e50");
+    document.getElementById("pcAppContent").innerHTML = '<div class="pc-game-soon"><div class="pc-game-soon-ico">\ud83d\udea7</div><div>\u6e38\u620f\u5f00\u53d1\u4e2d\uff0c\u656c\u8bf7\u671f\u5f85</div></div>';
+  }
+}
+var _gtapTimer = null;
+function gtapStart() {
+  var score = 0;
+  var remain = 30;
+  var btn = document.getElementById("gtapBtn");
+  var tip = document.getElementById("gtapTip");
+  var sc = document.getElementById("gtapScore");
+  btn.textContent = "30";
+  btn.disabled = true;
+  btn.onclick = function() {
+    score++;
+    sc.textContent = score;
+  };
+  _gtapTimer = setInterval(function() {
+    remain--;
+    if (remain <= 0) {
+      clearInterval(_gtapTimer);
+      btn.disabled = false;
+      btn.textContent = "\u518d\u6765\u4e00\u6b21";
+      btn.onclick = gtapStart;
+      tip.textContent = "\u65f6\u95f4\u5230\uff01\u6700\u7ec8\u5f97\u5206";
+      sc.textContent = score;
+    } else {
+      btn.textContent = remain;
+    }
+  }, 1000);
+}
+var _gcard = { opened: [], matched: [], timer: null };
+function gcardInit() {
+  var emojis = ["\ud83c\udf1f", "\ud83c\udf89", "\ud83c\udf38", "\u2b50", "\ud83c\udf81", "\ud83c\udf82", "\ud83d\udc8c", "\ud83d\udc9c"];
+  var deck = emojis.concat(emojis);
+  for (var i = deck.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
+  }
+  _gcard.deck = deck;
+  _gcard.opened = [];
+  _gcard.matched = {};
+  var html = '<div class="pc-game-card-grid">';
+  for (var k = 0; k < deck.length; k++) html += '<div class="pc-gcard" id="gcard' + k + '" onclick="gcardFlip(' + k + ')"><span></span></div>';
+  html += '</div><div class="pc-game-tip" id="gcardTip">\u627e\u51fa\u6240\u6709\u76f8\u540c\u7684\u724c\u5bf9</div>';
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+function gcardFlip(idx) {
+  var c = _gcard;
+  if (c.matched[idx] || c.opened.indexOf(idx) >= 0 || c.opened.length >= 2) return;
+  var el = document.getElementById("gcard" + idx);
+  el.classList.add("flip");
+  el.querySelector("span").textContent = c.deck[idx];
+  c.opened.push(idx);
+  if (c.opened.length === 2) {
+    var a = c.opened[0], b = c.opened[1];
+    if (c.deck[a] === c.deck[b]) {
+      c.matched[a] = c.matched[b] = 1;
+      c.opened = [];
+      if (Object.keys(c.matched).length === 16) document.getElementById("gcardTip").textContent = "\u606d\u559c\uff0c\u5168\u90e8\u627e\u5230\uff01";
+    } else {
+      setTimeout(function() {
+        document.getElementById("gcard" + a).classList.remove("flip");
+        document.getElementById("gcard" + b).classList.remove("flip");
+        document.getElementById("gcard" + a).querySelector("span").textContent = "";
+        document.getElementById("gcard" + b).querySelector("span").textContent = "";
+        c.opened = [];
+      }, 700);
+    }
+  }
+}
+/* ---------- \u5065\u5eb7 ---------- */
+function pcListHealth(d) {
+  DB._pcLastKey = "health";
+  d = d || DB._pcData;
+  var h = d.health || {};
+  var goalPct = Math.min(100, Math.round(h.steps / h.goal * 100));
+  var html = '<div class="pc-health-ring"><div class="pc-hr-circle"><b>' + h.steps + '</b><span>\u6b65\u6570 / \u76ee\u6807 ' + h.goal + "</span></div></div>";
+  html += '<div class="pc-health-grid">';
+  var items = [["\u7761\u7720", h.sleep + "\u5c0f\u65f6", "\ud83d\udca4"], ["\u5fc3\u7387", h.heart + " bpm", "\ud83d\udc93"], ["\u4f53\u91cd", h.weight + " kg", "\u2696\ufe0f"], ["\u70ed\u91cf", h.kcal + " \u5343\u5361", "\ud83d\udd25"]];
+  for (var i = 0; i < items.length; i++) {
+    html += '<div class="pc-health-item"><span class="pc-hi-ico">' + items[i][2] + '</span><span class="pc-hi-name">' + items[i][0] + '</span><b>' + items[i][1] + "</b></div>";
+  }
+  html += "</div><div class=\"pc-health-goal\"><span>\u6d3b\u52a8\u73af</span><i><b style=\"width:" + goalPct + '%"></b></i><b>' + goalPct + "%</b></div>";
+  return html;
+}
+/* ---------- \u652f\u4ed8\u5b9d ---------- */
+function pcListPay(d) {
+  DB._pcLastKey = "pay";
+  d = d || DB._pcData;
+  var pay = d.pay || { balance: 0, bills: [] };
+  var html = '<div class="pc-pay-balance"><div class="pc-pb-label">\u4f59\u989d\u5b9d</div><div class="pc-pb-amt">\uffe5 ' + pay.balance.toFixed(2) + '</div><div class="pc-pb-actions"><span>\u5145\u503c</span><span>\u63d0\u73b0</span></div></div>';
+  html += '<div class="pc-pay-bill-head">\u8d26\u5355\u660e\u7ec6</div>';
+  var catIco = { "\u9910\u996e": "\ud83c\udf54", "\u8d2d\u7269": "\ud83d\udecd\ufe0f", "\u51fa\u884c": "\ud83d\ude97", "\u5a31\u4e50": "\ud83c\udfa5", "\u751f\u6d3b": "\ud83c\udfe0", "\u8054\u7f51": "\ud83d\udcf1" };
+  for (var i = 0; i < pay.bills.length; i++) {
+    var b = pay.bills[i];
+    html += '<div class="pc-pay-bill" onclick="pcPayDetail(' + i + ')"><span class="pc-pb-ico">' + (catIco[b.cat] || "\ud83d\udcb3") + '</span><div class="pc-pb-main"><div class="pc-pb-shop">' + pcEsc(b.shop) + '</div><div class="pc-pb-cat">' + pcEsc(b.cat) + " \u00b7 " + pcEsc(b.time) + '</div></div><span class="pc-pb-amt2">-' + b.amt.toFixed(2) + "</span></div>";
+  }
+  return html;
+}
+function pcPayDetail(idx) {
+  DB._pcInDetail = true;
+  var b = DB._pcData.pay.bills[idx];
+  if (!b) return;
+  pcSetTitle("\u8d26\u5355\u8be6\u60c5");
+  var html = '<div class="pc-pay-detail"><div class="pc-pd-status ok">\u652f\u4ed8\u6210\u529f</div><div class="pc-pd-amt">-' + b.amt.toFixed(2) + '</div><div class="pc-pd-shop">' + pcEsc(b.shop) + "</div>";
+  var rows = [["\u5546\u6237", b.shop], ["\u5546\u54c1\u7c7b\u522b", b.cat], ["\u652f\u4ed8\u65b9\u5f0f", b.method], ["\u652f\u4ed8\u65f6\u95f4", b.time], ["\u4ea4\u6613\u53f7", b.no]];
+  if (b.invoice) rows.push(["\u53d1\u7968\u53f7", b.invoice]);
+  if (b.note) rows.push(["\u5907\u6ce8", b.note]);
+  for (var i = 0; i < rows.length; i++) html += '<div class="pc-pd-row"><span class="pc-pd-k">' + rows[i][0] + '</span><span class="pc-pd-v">' + pcEsc(rows[i][1]) + "</span></div>";
+  html += "</div>";
+  document.getElementById("pcAppContent").innerHTML = html;
+}
+/* ---------- \u8bbe\u7f6e ---------- */
+function pcSetHtml(d) {
+  DB._pcLastKey = "set";
+  d = d || DB._pcData;
+  var dev = d.device || { model: "iPhone", os: "iOS", storage: "512GB", used: 200, battery: 85 };
+  var html = '<div class="pc-set-device"><div class="pc-sd-ico">\ud83d\udcf1</div><div class="pc-sd-info"><div class="pc-sd-name">' + pcEsc(dev.model) + '</div><div class="pc-sd-sub">' + pcEsc(dev.os) + " \u00b7 " + pcEsc(dev.storage) + "</div></div></div>";
+  var rows = [["\u98de\u884c\u6a21\u5f0f", "\u5173", 0], ["Wi-Fi", "XX-WiFi", 1], ["\u84dd\u7259", "\u5f00", 1], ["\u8054\u7f51\u6570\u636e", "5G", 1], ["\u4e2a\u4eba\u70ed\u70b9", "\u5173", 0], ["\u58f0\u97f3\u4e0e\u89e6\u611f", "", 0], ["\u663e\u793a\u4e0e\u4eae\u5ea6", "\u81ea\u52a8", 0], ["\u7535\u6c60", dev.battery + "%", 0], ["\u5173\u4e8e\u672c\u673a", "\u5e8f\u5217\u53f7 " + pcEsc(dev.sn), 0]];
   for (var i = 0; i < rows.length; i++) {
-    var on = i === 1 || i === 2 || i === 3;
+    var on = rows[i][2] === 1;
     html += '<div class="pc-set-row"><span class="sn">' + rows[i][0] + '</span><span class="sv">' + rows[i][1] + '</span><div class="pc-toggle' + (on ? " on" : "") + '"><i></i></div></div>';
   }
   return html;
 }
+
 function renderPhoneCheck() {
   var box = document.getElementById("pcList");
   var list = personaList().concat(DB.npcs || []);
@@ -10314,51 +10871,230 @@ function pcRnd(seed) {
   return { v: seed / 4294967296, seed };
 }
 __name(pcRnd, "pcRnd");
+function pcPick(rnd, arr) {
+  return arr[Math.floor(rnd() * arr.length)];
+}
+function pcNum(rnd, a, b) {
+  return a + Math.floor(rnd() * (b - a + 1));
+}
+function pcPad(n) {
+  return n < 10 ? "0" + n : "" + n;
+}
+function pcTimeStr(rnd, offsetDays) {
+  var now = new Date();
+  var dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (offsetDays || 0), pcNum(rnd, 8, 22), pcNum(rnd, 0, 59));
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var day = Math.round((dt - today) / 864e5);
+  if (day === 0) return "今天 " + pcPad(dt.getHours()) + ":" + pcPad(dt.getMinutes());
+  if (day === -1) return "昨天 " + pcPad(dt.getHours()) + ":" + pcPad(dt.getMinutes());
+  if (day > -7) return "周" + "\u65e5\u4e00\u4e8c\u4e09\u56db\u4e94\u516d".charAt(dt.getDay()) + " " + pcPad(dt.getHours()) + ":" + pcPad(dt.getMinutes());
+  return (dt.getMonth() + 1) + "月" + dt.getDate() + "日";
+}
+function pcStory(p) {
+  var story = { rel: "friend", relName: "\u597d\u670b\u53cb", chatN: 0 };
+  try {
+    var love = DB.love || {};
+    var b = (love.bindings && love.bindings[p.id]) || {};
+    if (b && typeof b === "object") {
+      story.chatN = b.chatCount || 0;
+      var st = String(b.status || "");
+      if (st.indexOf("lover") >= 0) { story.rel = "lover"; story.relName = "\u559c\u6b22\u7684\u4eba"; }
+      else if (st.indexOf("crush") >= 0) { story.rel = "crush"; story.relName = "\u5728\u610f\u7684\u4eba"; }
+      else if (st.indexOf("friend") >= 0) { story.rel = "friend"; story.relName = "\u597d\u670b\u53cb"; }
+      else if (st.indexOf("dating") >= 0) { story.rel = "dating"; story.relName = "\u7ea6\u4f1a\u5bf9\u8c61"; }
+    }
+  } catch (e) {}
+  return story;
+}
+function pcStyleWords(p) {
+  var s = String(p.style || p.name || "").replace(/[·\u30fb,,\uff0c\u3002\s]+/g, " ");
+  return s.split(" ").filter(function(x) {
+    return x && x.length <= 4;
+  }).slice(0, 3);
+}
 function pcDataOf(p) {
-  var seed = pcSeed(p.id);
+  var seed = pcSeed(p.id) + (DB._pcGenN || 0) * 7919;
   var d = {};
   function rnd() {
     var r = pcRnd(seed);
     seed = r.seed;
     return r.v;
   }
-  __name(rnd, "rnd");
-  var wxCandidates = ["\u5728\u5417", "\u5468\u672B\u6709\u7A7A\u5417", "\u54C8\u54C8\u54C8\u54C8\u54C8", "\u770B\u5230\u4E2A\u597D\u4E1C\u897F\uFF0C\u53D1\u4F60", "\u4ECA\u665A\u4E00\u8D77\u5403\u996D\uFF1F", "\u90A3\u4E2A\u9879\u76EE\u600E\u4E48\u6837\u4E86", "\u522B\u544A\u8BC9\u522B\u4EBA\u554A", "\u6211\u53C8\u60F3\u8D77\u4F60\u8BF4\u7684\u8BDD\u4E86"];
-  var wxC = ["\u4F60", "\u540C\u4E8B", "\u95FA\u871C", "\u5BB6\u4EBA", "\u540C\u5B66"];
-  var wCount = 4 + Math.floor(rnd() * 4);
+  var story = pcStory(p);
+  var sw = pcStyleWords(p);
+  var pn = p.name || "";
+  var rn = story.relName;
+  var city = "\u6df1\u5733";
+  var places = ["\u7d2b\u95fb\u8c37\u5546\u5708", "\u5e02\u6c11\u4e2d\u5fc3", "\u6d77\u6d0b\u516c\u56ed", "\u82b1\u57ce\u5e7f\u573a", "\u8f6e\u6e21\u6e2f", "\u4e1c\u95e8\u8857\u9053", "\u79d1\u6280\u56ed\u533a", "\u5c0f\u6e2f\u6e7e"];
+  var malls = ["\u745e\u5e78\u5496\u5561", "\u5168\u5bb6\u4fbf\u5229\u5e97", "\u7f8e\u56e2\u5916\u5356", "\u6ef4\u6ef4\u51fa\u884c", "\u661f\u5df4\u514b", "\u4f18\u8863\u5e93", "\u6dd8\u5b9d", "\u4eac\u4e1c", "\u540d\u521b\u4f18\u54c1", "\u5f71\u9662", "\u5065\u8eab\u623f", "\u5730\u94c1", "\u8bdd\u8d39\u5145\u503c", "\u8336\u767e\u9053", "\u5c0f\u683c\u529b\u8c37\u725b\u5976", "\u7ea2\u8273\u7248\u725b\u5976"];
+  var cats = ["\u9910\u996e", "\u8d2d\u7269", "\u51fa\u884c", "\u5a31\u4e50", "\u751f\u6d3b", "\u8054\u7f51"];
+  var payM = ["\u4f59\u989d\u4ed8\u6b3e", "\u82b1\u5457", "\u5de5\u5546\u94f6\u884c\u5361", "\u62db\u5546\u94f6\u884c\u5361"];
+  var goodsPool = [
+    { g: "\u7f51\u7ea2\u5c0f\u96f6\u98df\u5927\u793c\u5305 30\u5305", p: 39.9, c: "\u96f6\u98df" },
+    { g: "\u7eaf\u68c9\u57fa\u7840T\u6064 \u591a\u8272", p: 29.9, c: "\u670d\u88c5" },
+    { g: "\u65e0\u7ebf\u84dd\u7259\u8033\u673a \u534a\u5165\u8033\u964d\u566a", p: 199, c: "\u6570\u7801" },
+    { g: "\u96ea\u5730\u6c34\u679c\u7cd6 500g", p: 25.8, c: "\u96f6\u98df" },
+    { g: "\u52a0\u6e7f\u5668 \u5bb6\u7528\u5927\u5bb9\u91cf", p: 89, c: "\u5bb6\u5c45" },
+    { g: "\u5927\u724c\u7cbe\u534e\u6c34 \u8865\u6c34\u5957\u88c5", p: 329, c: "\u7f8e\u5986" },
+    { g: "\u8dd1\u6b65\u978b \u8f7b\u91cf\u7f13\u632f", p: 259, c: "\u8fd0\u52a8" },
+    { g: "\u5b75\u5b75\u914d\u4ef6 \u670d\u88c5\u5b55\u5987\u88c5", p: 149, c: "\u670d\u88c5" }
+  ];
+  var songs = [
+    { t: "\u6674\u5929", a: "\u5468\u6770\u4f26" }, { t: "\u7a3b\u9999", a: "\u5468\u6770\u4f26" }, { t: "\u5b64\u52c7\u8005", a: "\u9648\u5955\u8fc5" }, { t: "\u8d77\u98ce\u4e86", a: "\u91d1\u5fd7\u6587" },
+    { t: "\u5e73\u51e1\u4e4b\u8def", a: "\u83ab\u6587\u971e" }, { t: "\u5149\u5e74\u4e4b\u5916", a: "\u9648\u5955\u8fc5" }, { t: "\u4ed9\u65cf\u4e4b\u6b4c", a: "\u7f57\u5927\u4f50" }, { t: "\u7c89\u96ea\u6d53\u9ed8", a: "\u5f90\u826f" }
+  ];
+  var shops = ["\u6d77\u5357\u98de\u8231", "\u5c0f\u6c34\u624b", "\u660e\u65e5\u65b9\u821f", "\u539f\u795e", "\u738b\u8005\u8363\u8000", "\u548c\u5e73\u7cbe\u82f1", "\u82f1\u96c4\u8054\u76df", "\u5f39\u5f39\u5802"];
+  var memoTpl = [
+    { t: "\u4eca\u5929\u7684\u5c0f\u6ce8\u610f", b: "\u4e0b\u73ed\u8def\u8fc7\u82b1\u5e97\uff0c\u770b\u5230\u4e00\u675f\u96cf\u83ca\u5f88\u50cf\u4e0a\u6b21\u548c" + rn + "\u4e00\u8d77\u9009\u7684\u90a3\u675f\u3002\n\n\u7a81\u7136\u6709\u70b9\u60f3\u5ff5\u4ed6\u4e86\u3002" },
+    { t: "\u660e\u65e5\u6e05\u5355", b: "\u65e9\u4e0a 7:30 \u8dd1\u6b65 3 \u516c\u91cc\uff1b\u4e2d\u5348\u7ed9\u5988\u5988\u56de\u7535\u8bdd\uff1b\u665a\u4e0a\u8981\u628a\u5de5\u4f5c\u53f0\u6574\u7406\u4e00\u904d\u3002\n\n\u52a0\u6cb9\uff01\u8fd9\u4e00\u5468\u90fd\u5f88\u6709\u5e72\u52b2\u3002" },
+    { t: "\u53d1\u73b0\u4e00\u5bb6\u597d\u5e97", b: "\u4eca\u5929\u968f\u4fbf\u8fdb\u4e86\u4e00\u5bb6\u5c0f\u5e97\uff0c\u6c99\u62c9\u7ade\u7136\u975e\u5e38\u597d\u5403\u3002\n\n\u5df2\u52a0\u5165\u7f8e\u98df\u6e05\u5355\uff0c\u4e0b\u6b21\u5e26" + rn + "\u4e00\u8d77\u6765\u8bd5\u8bd5\u3002" },
+    { t: "\u5de5\u4f5c\u5907\u5fd8", b: "\u5468\u4e09\u4e0b\u5348\u4e09\u70b9\u5f00\u4f1a\uff0c\u8bb0\u5f97\u5e26\u7b14\u8bb0\u672c\u3002\n\u9879\u76ee\u8fdb\u5ea6\u8868\u5df2\u53d1\u7ed9\u961f\u957f\uff0c\u5468\u672b\u524d\u8981\u786e\u8ba4\u6d4b\u8bd5\u7248\u672c\u3002" },
+    { t: "\u7528\u5fc3\u8bb0\u5f97", b: "\u5bf9\u4eba\u518d\u6e29\u67d4\u4e00\u70b9\uff0c\u5bf9\u4e8b\u518d\u8ba4\u771f\u4e00\u70b9\u3002\n\n\u8fd9\u4e00\u53e5\u662f\u5199\u7ed9\u81ea\u5df1\u7684\u3002" },
+    { t: "\u4e70\u5f55", b: "\u4e0b\u6708\u8981\u4e70\uff1a\u62a4\u80a4\u54c1\uff08\u6c34\u4e73\u6ca1\u4e86\uff09\u3001\u65e5\u7528\u7eb8\u3001\u732b\u7cae\u3001\u5976\u8336\u5238\u3002\n\u8282\u65e5\u524d\u540e\u4f1a\u6709\u6d3b\u52a8\uff0c\u7b49\u4e0b\u5355\u4f18\u60e0\u518d\u4e70\u3002" },
+    { t: "\u60f3\u8bf4\u7684\u8bdd", b: "\u6709\u4e9b\u8bdd\u4e0d\u77e5\u9053\u600e\u4e48\u5f00\u53e3\uff0c\u5148\u5199\u5728\u8fd9\u91cc\u3002\n\u5e0c\u671b\u4e0b\u6b21\u89c1\u9762\u7684\u65f6\u5019\uff0c\u81ea\u5df1\u80fd\u66f4\u52a0\u52c7\u6562\u4e00\u70b9\u3002" },
+    { t: "\u8bfb\u4e66\u7b14\u8bb0", b: "\u201c\u4eba\u751f\u6ca1\u6709\u6807\u51c6\u7b54\u6848\uff0c\u4f46\u6bcf\u4e00\u6b21\u9009\u62e9\u90fd\u503c\u5f97\u8ba4\u771f\u3002\u201d\n\u4eca\u5929\u770b\u5230\u7684\u53e5\u5b50\uff0c\u8bb0\u5f55\u4e0b\u6765\u3002" },
+    { t: "\u8eab\u4f53\u7ba1\u7406", b: "\u665a\u4e0a 11 \u70b9\u524d\u7761\u89c9\u3002\n\u5c11\u559d\u51b7\u996e\uff0c\u591a\u559d\u6c34\u3002\u8fd9\u5468\u5df2\u8dd1\u6b65 2 \u6b21\uff0c\u7ee7\u7eed\u52a0\u6cb9\u3002" }
+  ];
+  var sw0 = sw[0] || "\u6c14\u8d28";
+  var calTpl = [
+    { t: "\u548c" + rn + "\u65e9\u8dd1", b: pn + "\u4eca\u5929\u8d77\u4e86\u4e2a\u5927\u65e9\uff0c\u548c" + rn + "\u4e00\u8d77\u8dd1\u4e86 5 \u516c\u91cc\u3002" + rn + "\u8bf4\u6211\u6700\u8fd1\u597d\u50cf\u53c8\u8f7b\u4e86\uff0c\u5fc3\u91cc\u6697\u6697\u5f00\u5fc3\u3002" },
+    { t: pn + "\u7684\u52a0\u73ed\u591c", b: "\u4eca\u5929\u53c8\u52a0\u73ed\u5230\u5f88\u665a\uff0c\u56de\u5bb6\u65f6\u5019\u770b\u5230" + rn + "\u53d1\u6765\u7684\u201c\u522b\u592a\u7d2f\u201d\uff0c\u5fc3\u91cc\u6696\u6696\u7684\u3002" + sw0 + "\u7684\u4eba\u4e5f\u4f1a\u60f3\u88ab\u5173\u5fc3\u7684\u3002" },
+    { t: "\u548c" + rn + "\u559d\u5976\u8336", b: "\u4e0b\u5348\u548c" + rn + "\u53bb\u4e86\u5c0f\u683c\u529b\u8c37\uff0c\u70b9\u4e86\u4e24\u676f\u5976\u8336\u3002" + rn + "\u4e0d\u559c\u6b22\u592a\u751c\uff0c\u4eca\u5929\u5c11\u653e\u4e86\u534a\u7cd6\uff0c\u4ed6\u8bf4\u8fd9\u6b21\u505a\u5f97\u6b63\u597d\u3002" },
+    { t: "\u966a" + rn + "\u901b\u5546\u573a", b: "\u665a\u4e0a\u966a" + rn + "\u901b\u5546\u573a\uff0c" + rn + "\u770b\u4e2d\u4e00\u4ef6\u5916\u5957\u8bd5\u4e86\u534a\u5929\uff0c\u6700\u540e\u8fd8\u662f\u6ca1\u4e70\u3002" + pn + "\u5728\u65c1\u8fb9\u5feb\u7b11\u51fa\u58f0\uff0c\u56e0\u4e3a\u4ed6\u770b\u8d77\u6765\u771f\u7684\u5f88\u72b9\u8c31\u3002" },
+    { t: "\u548c" + rn + "\u770b\u7535\u5f71", b: "\u665a\u4e0a\u548c" + rn + "\u770b\u4e86\u4e00\u573a\u7535\u5f71\uff0c\u60c5\u8282\u4e0d\u9519\uff0c\u5c31\u662f\u7ed3\u5c3e\u6709\u70b9\u5ffd\u7136\u3002" + rn + "\u8bf4\u8981\u4e8c\u5230\u5e95\uff0c" + pn + "\u770b\u4ed6\u8ba4\u771f\u7684\u6837\u5b50\u5fcd\u4e0d\u4f4f\u7b11\u4e86\u3002" },
+    { t: pn + "\u7684\u4e0b\u53a8\u65e5", b: "\u4eca\u5929\u60f3\u7ed9\u81ea\u5df1\u505a\u4e00\u987f\u597d\u7684\uff0c\u716e\u4e86\u7ea2\u70e7\u8089\u3002\u62cd\u4e86\u5f20\u7167\u53d1\u7ed9" + rn + "\uff0c\u7ed3\u679c\u4ed6\u8bf4\u201c\u770b\u8d77\u6765\u6bd4\u4e0a\u6b21\u8fdb\u6b65\u4e86\u201d\uff0c" + pn + "\u5f97\u610f\u4e86\u4e00\u6574\u665a\u3002" },
+    { t: pn + "\u60f3\u8d77" + rn, b: "\u4eca\u5929\u5fc3\u60c5\u6709\u70b9\u590d\u6742\uff0c\u65e0\u7f18\u65e0\u6545\u60f3\u8d77" + rn + "\u3002" + pn + "\u628a\u8fd9\u4e9b\u5199\u4e0b\u6765\u7684\u65f6\u5019\uff0c\u597d\u50cf\u5b89\u5b9a\u4e86\u4e00\u4e9b\u3002" },
+    { t: pn + "\u7684" + sw0 + "\u4e00\u5929", b: "\u666e\u666e\u901a\u901a\u7684\u4e00\u5929\uff0c\u4e0b\u73ed\u540e\u548c" + rn + "\u901a\u4e86\u7535\u8bdd\uff0c\u8bf4\u4e86\u5f88\u591a\u5c0f\u4e8b\u3002" + pn + "\u89c9\u5f97\u8fd9\u5c31\u662f\u201c" + sw0 + "\u201d\u7684\u65e5\u5e38\uff1a\u5e73\u6de1\u4f46\u6e29\u6696\u3002" }
+  ];
+  var browserTpl = [
+    { t: "\u9644\u8fd1\u7f8e\u98df\u63a8\u8350 - \u5c0f\u7ea2\u4e66", u: "xiaohongshu.com/explore/food", d: "\u641c\u7d22\u9644\u8fd1\u597d\u5403\u7684\u5e97\uff0c\u770b\u5230\u597d\u51e0\u5bb6\u60f3\u53bb\u8bd5\u8bd5\uff0c\u5148\u6536\u85cf\u4e86\u3002" },
+    { t: "\u9001\u793c\u7269\u653b\u7565 - \u77e5\u4e4e", u: "zhihu.com/question/gift-guide", d: "\u8fd8\u6709\u4e00\u5468\u5c31\u662f\u8282\u65e5\u4e86\uff0c\u770b\u770b\u522b\u4eba\u90fd\u9001\u4ec0\u4e48\u793c\u7269\u3002\u770b\u4e86\u534a\u5929\u8fd8\u662f\u6ca1\u5934\u7eea\u3002" },
+    { t: "\u5929\u6c14\u9884\u62a5 - \u6df1\u5733", u: "weather.com.cn/sz", d: "\u5468\u672b\u8981\u53bb\u90ca\u6e38\uff0c\u5148\u67e5\u4e00\u4e0b\u5929\u6c14\u3002\u5e0c\u671b\u4e0d\u4e0b\u96e8\u3002" },
+    { t: "\u65b0\u4e0a\u6620\u7535\u5f71 - \u732b\u773c", u: "maoyan.com/movie", d: "\u672c\u5468\u65b0\u4e0a\u6620\u4e86\u4e24\u90e8\u7247\u5b50\uff0c\u8bc4\u5206\u90fd\u4e0d\u9519\uff0c\u5468\u672b\u53ef\u4ee5\u7ea6\u4e00\u8d77\u770b\u3002" },
+    { t: "\u600e\u4e48\u505a\u7ea2\u70e7\u8089 - \u4e0b\u53a8\u623f", u: "xiachufang.com/hongshaorou", d: "\u60f3\u7ed9\u81ea\u5df1\u505a\u4e00\u987f\u597d\u7684\uff0c\u641c\u4e86\u4e2a\u83dc\u8c31\u3002\u6750\u6599\u5df2\u52a0\u8fdb\u8d2d\u7269\u8f66\u3002" },
+    { t: "\u65b0\u624b\u517b\u732b\u6ce8\u610f\u4e8b\u9879", u: "zhihu.com/question/cat-care", d: "\u670b\u53cb\u5bb6\u7684\u732b\u6708\u672b\u8981\u501f\u6211\u517b\u51e0\u5929\uff0c\u5148\u505a\u4e2a\u653b\u7565\u3002" },
+    { t: "\u4e91\u5357\u65c5\u884c\u653b\u7565 - \u9a6c\u8702\u7a9d", u: "mafengwo.cn/yunnan", d: "\u5e74\u5047\u60f3\u53bb\u4e91\u5357\uff0c\u5148\u6536\u96c6\u4e00\u4e0b\u8def\u7ebf\uff0c\u8fde\u7eed\u770b\u4e86\u597d\u51e0\u7bc7\u3002" },
+    { t: "\u5de5\u8d44\u7a0e\u6536\u8ba1\u7b97\u5668", u: "taxcalc.com", d: "\u5feb\u5230\u53d1\u85aa\u65e5\u4e86\uff0c\u7b97\u4e00\u4e0b\u8fd9\u4e2a\u6708\u80fd\u62ff\u591a\u5c11\u3002" }
+  ];
+  var smsTpl = [
+    { w: "\u7528\u6237\u4e2d\u5fc3", t: "\u3010XX\u6d3b\u52a8\u3011\u60a8\u7684\u4f18\u60e0\u5238\u5c06\u4e8e\u660e\u665a\u8fc7\u671f\uff0c\u5feb\u53bb\u770b\u770b\u5427\u3002\u56deT\u9000\u8ba2\u3002" },
+    { w: "\u5feb\u9012\u5c0f\u54e5", t: "\u60a8\u7684\u5feb\u9052\u5df2\u653e\u7f6e\u5728\u5feb\u901f\u7ad9 3-2-\u67dc\uff0c\u53d6\u4ef6\u7801 " + pcNum(rnd, 1000, 9999) + "\u3002" },
+    { w: "\u94f6\u884c\u63d0\u9192", t: "\u3010XX\u94f6\u884c\u3011\u60a8\u5c3e\u53f7 " + pcNum(rnd, 1000, 9999) + " \u7684\u8d26\u6237\u4eca\u65e5\u6d88\u8d39 " + (pcNum(rnd, 10, 300) + 0.5) + "\u5143\uff0c\u4f59\u989d\u4e0d\u8db3\u8bf7\u6ce8\u610f\u3002" },
+    { w: "\u7535\u8bdd\u8425\u9500", t: "\u60a8\u597d\uff0c\u6211\u4eec\u662f XX \u8d22\u52a1\u987e\u95ee\u4e2d\u5fc3\uff0c\u60a8\u6709\u5174\u8da3\u4e86\u89e3\u7406\u8d22\u4ea7\u54c1\u5417\uff1f" },
+    { w: "\u597d\u53cb " + rn, t: "\u660e\u5929\u4e0b\u5348\u4e09\u70b9\u8001\u5730\u65b9\u89c1\uff01\u522b\u5fd8\u4e86\u554a\u3002" },
+    { w: "\u8fd0\u8425\u5546", t: "\u3010\u901a\u77e5\u3011\u60a8\u8ba2\u8d2d\u7684\u5bf9\u8bdd\u5df2\u5f00\u59cb\uff0c\u6389\u7ebf\u540e\u53ef\u5728\u76f4\u64ad\u95f4\u770b\u56de\u653e\u3002" },
+    { w: "\u623f\u4e1c", t: "\u8fd9\u4e2a\u6708\u623f\u79df\u6536\u5230\u4e86\uff0c\u8c22\u8c22\uff01\u7535\u8d39\u5df2\u7ed3\u7b97\uff0c\u5408\u8ba1 " + pcNum(rnd, 60, 180) + "\u5143\u3002" },
+    { w: "\u5065\u5eb7\u63d0\u9192", t: "\u3010XX\u533b\u9662\u3011\u60a8\u9884\u7ea6\u7684\u4f53\u68c0\u65e5\u671f\u4e3a " + pcNum(rnd, 3, 28) + "\u65e5\u4e0a\u5348 9:00\uff0c\u8bf7\u643a\u5e26\u8eab\u4efd\u8bc1\u51c6\u65f6\u5230\u8fbe\u3002" }
+  ];
+  var wxTpl = [
+    { who: "\u5c0f\u7f8e", msgs: ["\u4f60\u770b\u6211\u65b0\u4e70\u7684\u53e3\u7ea2\uff01", "\u6628\u5929\u8ba9\u4f60\u5e2e\u6211\u770b\u7684\u8863\u670d\u4e0b\u5355\u4e86\u6ca1", "\u5468\u672b\u4e00\u8d77\u53bb\u62cd\u7167\u554a"] },
+    { who: rn, msgs: ["\u4eca\u665a\u6709\u7a7a\u5417\uff1f", "\u6709\u4e00\u5bb6\u65b0\u5f00\u7684\u706b\u9505\u5e97\u60f3\u53bb\u8bd5\u8bd5", "\u6211\u8bf7\u5ba2"] },
+    { who: "\u5de5\u4f5c\u7fa4", msgs: ["\u3010\u901a\u77e5\u3011\u660e\u5929\u4e0b\u5348 2 \u70b9\u5f00\u4f1a\uff0c\u8bf7\u5404\u4f4d\u51c6\u65f6\u53c2\u52a0", "\u9879\u76ee\u7248\u672c\u5df2\u66f4\u65b0\uff0c\u8bf7\u5927\u5bb6\u6d4b\u8bd5"] },
+    { who: "\u5988\u5988", msgs: ["\u665a\u4e0a\u56de\u6765\u5403\u996d\u5417\uff1f", "\u716e\u4e86\u4f60\u7231\u5403\u7684\u7ea2\u70e7\u8089"] },
+    { who: "\u540c\u4e8b\u5c0f\u738b", msgs: ["\u90a3\u4efd\u62a5\u8868\u4f60\u4ea4\u4e86\u5417", "\u6211\u53d1\u4f60\u7684\u6a21\u677f\u6536\u5230\u4e86\u5417", "\u5feb\u5230\u622a\u6b62\u65f6\u95f4\u4e86\uff01"] },
+    { who: "\u5b66\u59d0", msgs: ["\u4e0b\u5468\u6709\u4e2a\u5c55\u4f1a\uff0c\u4e00\u8d77\u53bb\u770b\u5417\uff1f", "\u6211\u591a\u62a2\u4e86\u4e00\u5f20\u7968"] }
+  ];
+  var newsTpl = [
+    { tag: "\u65e5\u7a0b\u63d0\u9192", t: "\u4eca\u665a 8 \u70b9\u6709\u4e00\u4e2a\u7ea6\u4f1a", d: "\u8bb0\u5f97\u63d0\u524d\u51fa\u53d1\uff0c\u8def\u4e0a\u53ef\u80fd\u4f1a\u585e\u8f66\u3002" },
+    { tag: "\u5feb\u9012\u63d0\u9192", t: "\u60a8\u7684\u5feb\u9052\u5df2\u5230\u7f51\u70b9", d: "\u53d6\u4ef6\u7801 3-2-" + pcNum(rnd, 1000, 9999) + "\uff0c\u8bb0\u5f97\u5c3d\u5feb\u53d6\u56de\u3002" },
+    { tag: "\u5929\u6c14", t: "\u660e\u65e5\u591a\u4e91\uff0c\u6700\u9ad8\u6c14\u6e29 " + pcNum(rnd, 26, 33) + "\u00b0C", d: "\u9002\u5408\u6237\u5916\u6d3b\u52a8\uff0c\u8bb0\u5f97\u64e6\u9632\u6652\u3002" },
+    { tag: "\u65b0\u95fb", t: "\u4eca\u65e5\u8bdd\u9898\u4e0a\u70ed\u641c", d: "\u5927\u5bb6\u90fd\u5728\u8ba8\u8bba\u7684\u4e8b\uff0c\u4f60\u770b\u4e86\u5417\uff1f" },
+    { tag: "\u97f3\u4e50\u63a8\u8350", t: "\u4eca\u65e5\u7cbe\u9009\uff1a\u300a" + pcPick(rnd, songs).t + "\u300b", d: "\u636e\u8bf4\u542c\u8fd9\u9996\u6b4c\u7684\u4eba\u90fd\u5728\u91cd\u590d\u5faa\u73af\u3002" },
+    { tag: "\u5065\u5eb7", t: "\u4eca\u65e5\u8d70\u6b65\u76ee\u6807\u8fbe\u6210\u4e86\u5417\uff1f", d: "\u5df2\u8d70 " + pcNum(rnd, 2000, 8000) + "\u6b65\uff0c\u8ddd\u79bb\u76ee\u6807\u8fd8\u5dee\u4e00\u70b9\u3002" }
+  ];
+  d.contacts = [];
+  var cNames = ["\u5c0f\u7f8e", "\u5988\u5988", "\u7238\u7238", "\u5c0f\u738b", "\u5b66\u59d0", "\u5c0f\u6797", "\u53d4\u53d4", rn];
+  var cNotes = ["\u597d\u59d0\u59b9", "\u5bb6\u4eba", "\u5bb6\u4eba", "\u540c\u4e8b", "\u524d\u8f88", "\u53d1\u5c0f", "\u4eb2\u621a", rn];
+  for (var ci = 0; ci < 8; ci++) d.contacts.push({ id: "pc_c" + ci, name: cNames[ci], note: cNotes[ci] });
   d.wx = [];
-  for (var i = 0; i < wCount; i++) {
-    var other = wxC[Math.floor(rnd() * wxC.length)];
-    var msg = wxCandidates[Math.floor(rnd() * wxCandidates.length)] + "\uFF08" + p.name + "\uFF1A" + wxCandidates[Math.floor(rnd() * wxCandidates.length)] + "\uFF09";
-    d.wx.push({ who: other, msgs: [msg], time: Math.floor(rnd() * 24) + "\u5C0F\u65F6\u524D" });
+  for (var wi = 0; wi < 7; wi++) {
+    var wt = wxTpl[Math.floor(rnd() * wxTpl.length)];
+    var msgs = wt.msgs.map(function(m) {
+      return { me: Math.random() < 0.5 ? 1 : 0, txt: m, time: pcTimeStr(rnd, Math.floor(rnd() * 2)) };
+    });
+    d.wx.push({ who: wt.who, msgs: msgs, time: pcTimeStr(rnd, Math.floor(rnd() * 3)), unread: Math.random() < 0.5 ? pcNum(rnd, 1, 9) : 0 });
   }
-  var memos = ["\u8BB0\u5F97\u4E70\u725B\u5976", "\u5468\u4E09\u4EA4\u623F\u79DF", "\u7ED9\u5988\u5988\u56DE\u7535\u8BDD", "\u7EC3\u7434\u4E00\u5C0F\u65F6", "\u5468\u4E09\u5F00\u4F1A", "\u5468\u672B\u6D17\u8F66", "\u4E70\u732B\u7CAE", "\u770B\u5B8C\u90A3\u672C\u4E66"];
+  d.sms = [];
+  for (var si = 0; si < 8; si++) {
+    var st = smsTpl[Math.floor(rnd() * smsTpl.length)];
+    d.sms.push({ who: st.w, txt: st.t, time: pcTimeStr(rnd, Math.floor(rnd() * 4)) });
+  }
+  d.call = [];
+  var cTypes = ["\u547c\u5165", "\u547c\u51fa", "\u672a\u63a5"];
+  for (var ci2 = 0; ci2 < 8; ci2++) d.call.push({ name: d.contacts[Math.floor(rnd() * d.contacts.length)].name, type: pcPick(rnd, cTypes), time: pcTimeStr(rnd, Math.floor(rnd() * 6)) });
   d.memo = [];
-  for (var i = 0; i < 4 + Math.floor(rnd() * 3); i++) d.memo.push(memos[Math.floor(rnd() * memos.length)]);
-  var brows = ["\u641C\u4E00\u4E0B\u4ECA\u665A\u5403\u4EC0\u4E48", "\u9644\u8FD1\u597D\u5403\u7684\u5E97", "XXX \u4E3A\u4EC0\u4E48\u90A3\u4E48\u706B", "\u5468\u672B\u53BB\u54EA\u91CC\u73A9", "\u600E\u4E48\u517B\u732B", "\u7701\u94B1\u653B\u7565", "\u6700\u65B0\u7535\u5F71", "\u5929\u6C14"];
+  var memoTmp = memoTpl.slice();
+  while (d.memo.length < 8) {
+    var mt = memoTmp.splice(Math.floor(rnd() * memoTmp.length), 1)[0] || memoTpl[Math.floor(rnd() * memoTpl.length)];
+    d.memo.push({ title: mt.t, body: mt.b, time: pcTimeStr(rnd, Math.floor(rnd() * 5)) });
+  }
   d.browser = [];
-  for (var i = 0; i < 4 + Math.floor(rnd() * 3); i++) d.browser.push(brows[Math.floor(rnd() * brows.length)]);
-  var payOps = ["\u8F6C\u8D26", "\u5916\u5356\u8BA2\u5355", "\u7535\u5F71\u7968", "\u8D85\u5E02\u8D2D\u7269", "\u6253\u8F66", "\u8BDD\u8D39\u5145\u503C", "\u5FEB\u9012\u8D39"];
-  d.pay = [];
-  for (var i = 0; i < 4 + Math.floor(rnd() * 3); i++) d.pay.push({ op: payOps[Math.floor(rnd() * payOps.length)], amt: Math.floor(rnd() * 200) + 5 });
-  var photoSeeds = ["pcA", "pcB", "pcC", "pcD", "pcE", "pcF"];
-  d.photos = photoSeeds.map(function(s) {
-    return "https://picsum.photos/seed/" + p.id + "_" + s + "/200/200";
-  }).slice(0, 3 + Math.floor(rnd() * 3));
-  var musics = ["\u6674\u5929", "\u7A3B\u9999", "\u591C\u66F2", "\u5B64\u52C7\u8005", "\u8D77\u98CE\u4E86", "\u5E73\u51E1\u4E4B\u8DEF", "\u6C5F\u5357", "\u5149\u5E74\u4E4B\u5916"];
+  for (var bi = 0; bi < 8; bi++) {
+    var bt = browserTpl[Math.floor(rnd() * browserTpl.length)];
+    d.browser.push({ title: bt.t, url: bt.u, desc: bt.d, time: pcTimeStr(rnd, Math.floor(rnd() * 4)) });
+  }
+  d.pay = { balance: pcNum(rnd, 800, 5000) + Math.round(rnd() * 99) / 100, bills: [] };
+  for (var pi = 0; pi < 8; pi++) {
+    var mall = pcPick(rnd, malls);
+    var amt = Math.round((pcNum(rnd, 8, 300) + Math.round(rnd() * 9) / 10) * 10) / 10;
+    var no = "2026" + pcNum(rnd, 100000000, 999999999);
+    d.pay.bills.push({ shop: mall, cat: pcPick(rnd, cats), amt: amt, time: pcTimeStr(rnd, Math.floor(rnd() * 6)), no: no, invoice: Math.random() < 0.6 ? "INV" + pcNum(rnd, 10000000, 99999999) : "", method: pcPick(rnd, payM), note: Math.random() < 0.4 ? "\u5feb\u9012\u8d39 / \u670d\u52a1\u8d39 / \u5c0f\u8d39" : "" });
+  }
+  d.cal = { month: new Date().getMonth() + 1, days: [] };
+  var usedDays = {};
+  for (var di = 0; di < 8; di++) {
+    var day = pcNum(rnd, 1, 28);
+    if (usedDays[day]) { day = ((day % 28) + 1); }
+    usedDays[day] = 1;
+    var ct = calTpl[Math.floor(rnd() * calTpl.length)];
+    d.cal.days.push({ date: day, title: ct.t, body: ct.b });
+  }
+  d.photos = [];
+  var pSeeds = ["pcA", "pcB", "pcC", "pcD", "pcE", "pcF", "pcG", "pcH"];
+  for (var phi = 0; phi < 8; phi++) d.photos.push("https://picsum.photos/seed/" + p.id + "_" + pSeeds[phi] + "/300/300");
   d.music = [];
-  for (var i = 0; i < 3 + Math.floor(rnd() * 3); i++) d.music.push(musics[Math.floor(rnd() * musics.length)]);
-  var buys = ["\u5976\u8336", "\u65E5\u7528\u54C1", "\u96F6\u98DF", "\u4E66", "\u6E38\u620F\u76AE\u80A4", "\u8863\u670D"];
+  for (var mi = 0; mi < 8; mi++) {
+    var sg = songs[Math.floor(rnd() * songs.length)];
+    d.music.push({ title: sg.t, artist: sg.a, dur: pcNum(rnd, 180, 320) });
+  }
   d.shop = [];
-  for (var i = 0; i < 3 + Math.floor(rnd() * 3); i++) d.shop.push(buys[Math.floor(rnd() * buys.length)]);
-  var health = ["\u6B65\u6570 " + Math.floor(2e3 + rnd() * 8e3), "\u7761\u7720 " + Math.floor(5 + rnd() * 5) + "\u5C0F\u65F6", "\u5FC3\u7387 " + Math.floor(60 + rnd() * 30) + "bpm", "\u4F53\u91CD " + Math.floor(45 + rnd() * 30) + "kg"];
-  d.health = health.slice(0, 3 + Math.floor(rnd() * 2));
-  d.contacts = (DB.personas || []).concat(DB.npcs || []).filter(function(x) {
-    return x.id !== p.id;
-  }).slice(0, 5);
+  var statuses = ["\u5f85\u53d1\u8d27", "\u8fd0\u8f93\u4e2d", "\u5df2\u7b7e\u6536", "\u9000\u6b3e\u4e2d"];
+  var addrs = ["\u6df1\u5733\u5e02\u5357\u5c71\u533a\u79d1\u6280\u56ed\u8def 88 \u53f7", "\u6df1\u5733\u5e02\u798f\u7530\u533a\u8346\u56e2\u5efa\u8bbe\u8def 26 \u53f7", "\u6df1\u5733\u5e02\u5b9d\u5b89\u533a\u4e2d\u5fc3\u533a 3 \u680b"];
+  for (var gi = 0; gi < 8; gi++) {
+    var gp = goodsPool[Math.floor(rnd() * goodsPool.length)];
+    d.shop.push({ goods: gp.g, price: gp.p, cat: gp.c, status: pcPick(rnd, statuses), time: pcTimeStr(rnd, Math.floor(rnd() * 9)), addr: pcPick(rnd, addrs), orderNo: "DD" + pcNum(rnd, 100000000, 999999999) });
+  }
+  d.health = { steps: pcNum(rnd, 6000, 15000), sleep: pcNum(rnd, 5, 9) + 0.5, heart: pcNum(rnd, 62, 92), weight: pcNum(rnd, 48, 72), kcal: pcNum(rnd, 350, 900), goal: 10000 };
+  d.weather = { city: city, temp: pcNum(rnd, 25, 33), desc: "\u6674", days: [] };
+  var wdescs = ["\u6674", "\u591a\u4e91", "\u9635\u96e8", "\u9634"];
+  for (var wi2 = 0; wi2 < 4; wi2++) d.weather.days.push({ w: "\u4eca\u5929\u660e\u5929\u540e\u5929\u5468\u56db".charAt(wi2), d: pcPick(rnd, wdescs), t: pcNum(rnd, 22, 33) });
+  d.news = [];
+  var newsTmp = newsTpl.slice();
+  for (var ni = 0; ni < 3; ni++) {
+    var nt = newsTmp.splice(Math.floor(rnd() * newsTmp.length), 1)[0] || newsTpl[Math.floor(rnd() * newsTpl.length)];
+    d.news.push({ tag: nt.tag, title: nt.t, desc: nt.d });
+  }
+  d.games = [
+    { id: "g2048", name: "\u6570\u5b57\u6d88\u6d88\u4e50", ico: "2\u00d74", desc: "\u8f7b\u89e6\u65b9\u5757\u5408\u5e76\u540c\u6570\u5b57" },
+    { id: "gcard", name: "\u8bb0\u5fc6\u7ffb\u724c", ico: "\ud83c\udfb2", desc: "\u627e\u51fa\u6240\u6709\u76f8\u540c\u7684\u724c\u5bf9" },
+    { id: "gtap", name: "\u5feb\u901f\u70b9\u51fb", ico: "\u26a1", desc: "30 \u79d2\u5185\u770b\u4f60\u80fd\u70b9\u591a\u5c11\u6b21" }
+  ];
+  d.device = { model: "iPhone 15 Pro", os: "iOS 17.5.1", storage: "512GB", used: pcNum(rnd, 120, 420), battery: pcNum(rnd, 40, 98), sn: "F2L" + pcNum(rnd, 100000, 999999) };
   return d;
 }
 __name(pcDataOf, "pcDataOf");
+function pcRefreshData() {
+  var list = personaList().concat(DB.npcs || []);
+  var p = list.filter(function(x) { return x.id === DB._pcTarget; })[0];
+  if (!p) return;
+  DB._pcGenN = (DB._pcGenN || 0) + 1;
+  DB._pcData = pcDataOf(p);
+  stopPcCarousel();
+  renderPcDesktop();
+  toast("\u5df2\u7528 API \u5237\u65b0\u5185\u5bb9");
+}
+__name(pcRefreshData, "pcRefreshData");
+
 function openPcPhone(id) {
   var list = personaList().concat(DB.npcs || []);
   var p = list.filter(function(x) {
