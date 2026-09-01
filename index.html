@@ -1294,6 +1294,49 @@ button,input,textarea,select{max-width:100%}
 .sys-notify .sn-title{font-weight:600;font-size:13px;}
 .sys-notify .sn-text{color:rgba(255,255,255,.72);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 @keyframes snIn{from{transform:translateY(-110%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* ===== 大地图 v47 ===== */
+#map{background:linear-gradient(160deg,#e8f4e4,#dceef7)}
+.map-scroll{position:absolute;inset:0;top:44px;overflow-y:auto;padding:12px 14px 90px}
+.map-canvas{position:relative;height:280px;border-radius:20px;background:
+linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px),
+radial-gradient(circle at 78% 20%,#bde3f5 0,transparent 45%),
+radial-gradient(circle at 22% 72%,#fbe3c2 0,transparent 40%),
+linear-gradient(160deg,#cdeec0,#b8d8f0);
+background-size:34px 34px,34px 34px,100% 100%,100% 100%,100% 100%;
+box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
+.map-canvas::before{content:"";position:absolute;left:0;right:0;top:46%;height:16px;background:rgba(255,255,255,.45);border-radius:8px;transform:rotate(-8deg)}
+.map-pin{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;z-index:2;transition:transform .2s}
+.map-pin:active{transform:translate(-50%,-50%) scale(.92)}
+.map-pin .pin-ic{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 3px 8px rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;font-size:20px}
+.map-pin .pin-name{font-size:10px;color:#3c5a3c;background:rgba(255,255,255,.85);padding:1px 6px;border-radius:8px;white-space:nowrap;font-weight:600}
+.map-pin.go .pin-ic{background:#ffe9a8;box-shadow:0 0 0 4px rgba(255,224,130,.45)}
+.map-go{width:100%;margin:14px 0 4px;padding:14px;border:none;border-radius:18px;background:linear-gradient(135deg,#4caf7d,#2f9e63);color:#fff;font-size:16px;font-weight:700;box-shadow:0 6px 16px rgba(47,158,99,.35)}
+.map-go:disabled{opacity:.6}
+.map-status{min-height:22px;text-align:center;color:#5a7a5a;font-size:12px;margin:8px 2px 0}
+.map-sec-title{font-size:13px;font-weight:700;color:#3c5a3c;margin:16px 4px 8px}
+.map-friends{display:flex;gap:10px;overflow-x:auto;padding:4px 2px}
+.map-friend{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;background:#fff;border-radius:14px;padding:8px 10px;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer}
+.map-friend .mf-av{width:38px;height:38px;border-radius:50%;background:#eef3ee;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden}
+.map-friend .mf-av img{width:100%;height:100%;object-fit:cover}
+.map-friend .mf-name{font-size:11px;color:#444;max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.map-friend .mf-times{font-size:9px;color:#999}
+.map-empty{color:#999;font-size:12px;text-align:center;padding:14px;background:rgba(255,255,255,.6);border-radius:12px}
+.map-story-item{background:#fff;border-radius:14px;padding:10px 12px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.map-story-item .ms-top{display:flex;justify-content:space-between;font-size:11px;color:#999;margin-bottom:4px}
+.map-story-item .ms-text{font-size:13px;color:#333;line-height:1.6}
+.map-story-btn{font-size:12px;color:#2f9e63;display:flex;align-items:center;gap:4px}
+.map-badge{background:#ff6b6b;color:#fff;border-radius:9px;font-size:10px;padding:0 5px;line-height:16px;min-width:16px;text-align:center}
+.map-meet-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(320px,86%);background:#fff;border-radius:22px;padding:22px 18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.map-meet-av{width:64px;height:64px;margin:0 auto 8px;border-radius:50%;background:#eef6ee;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden}
+.map-meet-av img{width:100%;height:100%;object-fit:cover}
+.map-meet-title{font-size:17px;font-weight:700;color:#333}
+.map-meet-sub{font-size:12px;color:#888;margin:4px 0 10px}
+.map-meet-text{font-size:13px;color:#444;line-height:1.7;background:#f7faf7;border-radius:12px;padding:10px;text-align:left;max-height:160px;overflow-y:auto}
+.map-meet-btns{display:flex;gap:10px;margin-top:14px}
+.map-meet-btns .sheet-btn{flex:1}
+.map-story-list{max-height:52vh;overflow-y:auto}
 </style>
 </head>
 <body>
@@ -1510,7 +1553,46 @@ button,input,textarea,select{max-width:100%}
   </div>
 </div>
 
+<!-- 大地图 -->
+<div class="page light-page" id="map">
+  <div class="page-head">
+    <span class="back" onclick="goHome()">‹</span>
+    <div class="title">大地图</div>
+    <span class="map-story-btn" onclick="openMapStories()">故事档案<span class="map-badge" id="mapStoryBadge" style="display:none">0</span></span>
+  </div>
+  <div class="map-scroll">
+    <div class="map-canvas" id="mapCanvas"></div>
+    <div class="map-status" id="mapStatus"></div>
+    <button class="map-go" id="mapGoBtn" onclick="goExplore()">🚶 出门逛逛</button>
+    <div class="map-sec-title">偶遇好友</div>
+    <div class="map-friends" id="mapFriends"></div>
+    <div class="map-sec-title">最近故事</div>
+    <div class="map-stories" id="mapStories"></div>
+  </div>
+</div>
+<!-- 偶遇弹窗 -->
+<div class="modal-mask" id="mapMeetMask" onclick="if(event.target===this)closeMapMeet()">
+  <div class="map-meet-card">
+    <div class="map-meet-av" id="mapMeetAv">🧡</div>
+    <div class="map-meet-title" id="mapMeetTitle"></div>
+    <div class="map-meet-sub" id="mapMeetSub"></div>
+    <div class="map-meet-text" id="mapMeetText"></div>
+    <div class="map-meet-btns">
+      <button class="sheet-btn ghost" onclick="closeMapMeet()">继续逛</button>
+      <button class="sheet-btn primary" id="mapMeetAddBtn" onclick="addMapFriend()">互加好友</button>
+    </div>
+  </div>
+</div>
+<!-- 故事档案弹窗 -->
+<div class="modal-mask" id="mapStoryMask" onclick="if(event.target===this)closeMapStories()">
+  <div class="modal-sheet wide">
+    <h3>故事档案</h3>
+    <div class="map-story-list" id="mapStoryList"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeMapStories()">关闭</button></div>
+  </div>
+</div>
 <!-- 查手机 -->
+
 <div class="page light-page" id="phonecheck">
   <div class="page-head"><span class="back" onclick="goHome()">‹</span><div class="title">查手机</div></div>
   <div class="settings-scroll" id="pcList"></div>
@@ -2725,7 +2807,7 @@ In order to maintain psychological balance, living people invent various small r
 const DEFAULT_DATA = /* @__PURE__ */ __name(function() {
   return { plans: { chat: [], voice: [], image: [] }, personas: [Object.assign({ id: "p_1", active: true }, JSON.parse(JSON.stringify(DEFAULT_PERSONA)))], worldbooks: BUILTIN_WORLDBOOKS.map(function(b) {
     return Object.assign({}, b);
-  }), stickers: [], wallet: { balance: 0, logs: [] }, settings: { snow: true, lockNotice: true, timeAware: true, narration: true, translate: true, autoMoment: true }, widgets: [], photos: [], tasks: [], music: [], listen: null, imagePrompts: [], chatSessions: [{ personaId: "p_1", pin: false }], chatLogs: {}, favorites: [], moments: [], theme: { lockWall: null, homeWall: null, icons: {}, font: null, customCss: "" }, meProfile: Object.assign({}, DEFAULT_ME), offline: { history: [], narrate: true, minLen: 500, maxLen: 1300, styleId: "os_classic" }, offlineStyles: JSON.parse(JSON.stringify(DEFAULT_OFFLINE_STYLES)), memories: {}, meProfiles: [Object.assign({ id: "me_1" }, JSON.parse(JSON.stringify(DEFAULT_ME)))], currentMeId: "me_1", worlds: {}, groups: [], groupLogs: {}, groupMemories: {}, npcs: [], npcLogs: {}, npcSessions: [], love: { maskId: null, bindings: {} }, maskData: {}, friendRequests: [] };
+  }), stickers: [], wallet: { balance: 0, logs: [] }, settings: { snow: true, lockNotice: true, timeAware: true, narration: true, translate: true, autoMoment: true }, widgets: [], photos: [], tasks: [], music: [], listen: null, imagePrompts: [], chatSessions: [{ personaId: "p_1", pin: false }], chatLogs: {}, favorites: [], moments: [], mapData: { friends: {}, stories: [], lastAt: {} }, theme: { lockWall: null, homeWall: null, icons: {}, font: null, customCss: "" }, meProfile: Object.assign({}, DEFAULT_ME), offline: { history: [], narrate: true, minLen: 500, maxLen: 1300, styleId: "os_classic" }, offlineStyles: JSON.parse(JSON.stringify(DEFAULT_OFFLINE_STYLES)), memories: {}, meProfiles: [Object.assign({ id: "me_1" }, JSON.parse(JSON.stringify(DEFAULT_ME)))], currentMeId: "me_1", worlds: {}, groups: [], groupLogs: {}, groupMemories: {}, npcs: [], npcLogs: {}, npcSessions: [], love: { maskId: null, bindings: {} }, maskData: {}, friendRequests: [] };
 }, "DEFAULT_DATA");
 function normalizeDB(d) {
   if (!d.personas) {
@@ -2766,6 +2848,12 @@ function normalizeDB(d) {
   if (d.settings.bgKeepAlive === void 0) d.settings.bgKeepAlive = false;
   if (d.settings.sysNotify === void 0) d.settings.sysNotify = false;
   if (!d.moments || typeof d.moments !== "object") d.moments = [];
+  if (!d.mapData || typeof d.mapData !== "object") d.mapData = { friends: {}, stories: [], lastAt: {} };
+  if (!d.mapData.friends || typeof d.mapData.friends !== "object") d.mapData.friends = {};
+  if (!d.mapData.stories || typeof d.mapData.stories !== "object") d.mapData.stories = [];
+  if (!d.mapData.lastAt || typeof d.mapData.lastAt !== "object") d.mapData.lastAt = {};
+  if (!d.homeOrder || !d.homeOrder.length) d.homeOrder = DEFAULT_HOME_ORDER.slice();
+  else if (d.homeOrder.indexOf("map") < 0) d.homeOrder.push("map");
   if (d.chatSessions === void 0) {
     d.chatSessions = [];
     d.personas.forEach(function(p) {
@@ -3093,7 +3181,7 @@ function applyAvatars() {
 }
 __name(applyAvatars, "applyAvatars");
 let currentPersonaId = null;
-const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck"];
+const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map"];
 function showPage(id) {
   PAGES.forEach(function(p) {
     document.getElementById(p).classList.toggle("active", p === id);
@@ -3477,7 +3565,7 @@ function addWidget(type) {
   toast("\u5DF2\u6DFB\u52A0\u300C" + widgetTypeName(type) + "\u300D\uFF1A\u70B9\u6587\u5B57\u6539\u5185\u5BB9\u3001\u70B9\u56FE\u7247\u6362\u56FE\u3001\u957F\u6309\u7EC4\u4EF6\u53EF\u5220\u9664");
 }
 __name(addWidget, "addWidget");
-var DEFAULT_HOME_ORDER = ["messages", "photos", "music", "calendar", "love", "theme", "bookstore", "ifline", "pdd", "watch", "phonecheck"];
+var DEFAULT_HOME_ORDER = ["messages", "photos", "music", "calendar", "love", "theme", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map"];
 var HOME_APP_META = {
   messages: { name: "\u4FE1\u606F", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>' },
   photos: { name: "\u76F8\u518C", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 16-5-5L6 21"/></svg>' },
@@ -3489,7 +3577,8 @@ var HOME_APP_META = {
   ifline: { name: "IF\u7EBF", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>' },
   pdd: { name: "\u62FC\u67D0\u5915", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M6 7h12l-1.2 13H7.2L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>' },
   watch: { name: "\u4E00\u8D77\u770B", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="13" rx="3"/><path d="M10 9l6 3.5-6 3.5Z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>' },
-  phonecheck: { name: "\u67E5\u624B\u673A", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="8" y="3" width="10" height="18" rx="2"/><path d="M12 20h2"/><path d="M4 7s1.5-2 3-2 3 2 3 2-1.5 2-3 2-3-2-3-2Z"/></svg>' }
+  phonecheck: { name: "\u67E5\u624B\u673A", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="8" y="3" width="10" height="18" rx="2"/><path d="M12 20h2"/><path d="M4 7s1.5-2 3-2 3 2 3 2-1.5 2-3 2-3-2-3-2Z"/></svg>' },
+  map: { name: "\u5927\u5730\u56FE", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' }
 };
 var homeDrag = null;
 function homeOrderArr() {
@@ -3784,6 +3873,10 @@ function openApp(app) {
     case "watch":
       renderWatch();
       showPage("watch");
+      break;
+    case "map":
+      renderMapPage();
+      showPage("map");
       break;
     case "phonecheck":
       renderPhoneCheck();
@@ -4823,7 +4916,8 @@ var THEME_ICONS = [
   { id: "ifline", name: "IF\u7EBF", svg: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>' },
   { id: "pdd", name: "\u62FC\u67D0\u5915", svg: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M6 7h12l-1.2 13H7.2L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>' },
   { id: "watch", name: "\u4E00\u8D77\u770B", svg: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="13" rx="3"/><path d="M10 9l6 3.5-6 3.5Z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>' },
-  { id: "phonecheck", name: "\u67E5\u624B\u673A", svg: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="8" y="3" width="10" height="18" rx="2"/><path d="M12 20h2"/><path d="M4 7s1.5-2 3-2 3 2 3 2-1.5 2-3 2-3-2-3-2Z"/></svg>' }
+  { id: "phonecheck", name: "\u67E5\u624B\u673A", svg: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="8" y="3" width="10" height="18" rx="2"/><path d="M12 20h2"/><path d="M4 7s1.5-2 3-2 3 2 3 2-1.5 2-3 2-3-2-3-2Z"/></svg>' },
+  { id: "map", name: "\u5927\u5730\u56FE", svg: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' }
 ];
 var THEME_CSS_TEMPLATE = '/* \u9701\u6708\u673A \xB7 \u7F8E\u5316\u57FA\u7840\u6A21\u677F\n   \u4FDD\u5B58\u540E\u7ACB\u5373\u751F\u6548\uFF1B\u60F3\u627E\u56DE\u5C31\u70B9\u300C\u6062\u590D\u57FA\u7840\u6A21\u677F\u300D */\n\n/* 1) \u5168\u5C40\u4E3B\u8272\uFF08\u9ED8\u8BA4\u9ED1\u767D\uFF09 */\n:root{--accent:#0a0a0a;}\n\n/* 2) \u4E3B\u5C4F App \u56FE\u6807\u80CC\u666F\u5706\u89D2 */\n.app-icon{background:#ffffff;border-radius:18px;}\n\n/* 3) \u9501\u5C4F\u65F6\u949F\u66F4\u7EA4\u7EC6 */\n.lock-clock{font-weight:100;letter-spacing:6px;}\n\n/* 4) \u804A\u5929\u6C14\u6CE1\u5706\u89D2\u66F4\u67D4\u548C */\n.bubble{border-radius:18px;}\n\n/* 5) \u58C1\u7EB8\u78E8\u7802\u5C42\uFF08\u53EF\u4E0E\u58C1\u7EB8\u53E0\u52A0\uFF09 */\n#home::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.06);pointer-events:none;}\n\n/* 6) \u72B6\u6001\u680F\u6587\u5B57 */\n.status-bar{font-weight:400;letter-spacing:1px;}\n';
 let _themeWallType = null;
@@ -10317,6 +10411,274 @@ __name(wpComment, "wpComment");
 var PC_TABS = ["\u5FAE\u4FE1", "\u5907\u5FD8\u5F55", "\u6D4F\u89C8\u5668", "\u652F\u4ED8\u5B9D", "\u76F8\u518C", "\u97F3\u4E50", "\u8D2D\u7269", "\u5065\u5EB7"];
 /* ===== 查手机·仿真桌面 ===== */
 /* ===== 查手机·仿真桌面 ===== */
+
+/* ===== 大地图 v47 ===== */
+var META_MAP_PLACES = [
+  { id: "park", name: "\u57CE\u5E02\u516C\u56ED", icon: "\U0001F333", x: 22, y: 28, tags: ["elder", "pet", "dog", "reader"] },
+  { id: "seaside", name: "\u6D77\u8FB9\u6808\u9053", icon: "\U0001F30A", x: 80, y: 18, tags: ["singer", "cat", "fisher"] },
+  { id: "nightmarket", name: "\u8001\u8857\u591C\u5E02", icon: "\U0001F3EE", x: 18, y: 74, tags: ["vendor", "cat", "balloon"] },
+  { id: "cafe", name: "\u8F6C\u89D2\u5496\u5561\u9986", icon: "\u2615", x: 62, y: 42, tags: ["barista", "writer", "cat"] },
+  { id: "plaza", name: "\u4E2D\u5FC3\u5E7F\u573A", icon: "\u26F2", x: 50, y: 62, tags: ["dancer", "balloon", "vendor"] },
+  { id: "busstop", name: "\u516C\u4EA4\u7AD9", icon: "\U0001F68C", x: 40, y: 88, tags: ["courier", "driver", "cobbler"] },
+  { id: "petstore", name: "\u5BA0\u7269\u5E97", icon: "\U0001F43E", x: 90, y: 56, tags: ["pet", "shopkeep", "dog"] },
+  { id: "library", name: "\u65E7\u56FE\u4E66\u9986", icon: "\U0001F4DA", x: 8, y: 46, tags: ["writer", "student", "reader"] }
+];
+var META_WORLD_NPC = [
+  { id: "w_tanghulu", name: "\u7CD6\u845B\u851A\u7237\u7237", avatar: "\U0001F361", type: "vendor", tags: ["nightmarket", "plaza"], act: ["\u9012\u8FC7\u6765\u4E00\u4E32\u4EAE\u6676\u6676\u7684\u5C71\u69D0\u7CD6\u845B\u851A", "\u7B11\u5475\u5475\u5730\u628A\u5C0F\u8F66\u6478\u4E86\u6478\uFF0C\u817E\u51FA\u4E00\u5757\u9634\u51C9\u5730", "\u64E6\u4E86\u64E6\u6C57\uFF0C\u671D\u8FD9\u8FB9\u62DB\u62DB\u624B"], line: ["\u300C\u5C1D\u5C1D\u5427\uFF0C\u7237\u7237\u4ECA\u5929\u65B0\u505A\u7684\uFF01\u300D", "\u300C\u5929\u51C9\u4E86\uFF0C\u6765\u4E32\u751C\u7684\u6696\u6696\u80C3\u3002\u300D", "\u300C\u770B\u4F60\u8D70\u5F97\u6025\uFF0C\u6765\u4E00\u4E32\u63D0\u63D0\u795E\uFF5E\u300D"], end: ["\u4E34\u8D70\u65F6\u7237\u7237\u53C8\u585E\u6765\u4E00\u9897\u5C71\u69D0\uFF0C\u8BF4\u4E0B\u6B21\u518D\u6765\u3002", "\u90A3\u4E00\u4E32\u7CD6\u845B\u851A\uFF0C\u8BA9\u6574\u6761\u8857\u90FD\u751C\u4E86\u8D77\u6765\u3002"] },
+  { id: "w_hua", name: "\u5356\u82B1\u963F\u59E8", avatar: "\U0001F337", type: "vendor", tags: ["plaza", "busstop"], act: ["\u6367\u7740\u4E00\u675F\u6CBE\u7740\u6C34\u73E0\u7684\u5C0F\u96CF\u83CA\u8D70\u8FC7\u6765", "\u628A\u644A\u4F4D\u4E0A\u7684\u82B1\u4E00\u652F\u652F\u63D2\u8FDB\u6876\u91CC\uFF0C\u62AC\u5934\u7B11\u4E86\u7B11", "\u6311\u4E86\u4E00\u652F\u6700\u597D\u770B\u7684\uFF0C\u5F80\u8FD9\u8FB9\u9012\u4E86\u9012"], line: ["\u300C\u4E70\u652F\u82B1\u5427\uFF0C\u4E00\u5929\u90FD\u662F\u597D\u5FC3\u60C5\uFF5E\u300D", "\u300C\u9001\u4EBA\u8FD8\u662F\u81EA\u5DF1\u6446\uFF1F\u963F\u59E8\u7ED9\u4F60\u6311\uFF01\u300D", "\u300C\u8FD9\u652F\u5F00\u5F97\u6700\u597D\uFF0C\u9001\u4F60\u4E86\u3002\u300D"], end: ["\u90A3\u675F\u82B1\u540E\u6765\u88AB\u63D2\u8FDB\u4E86\u7A97\u53F0\u7684\u82B1\u74F6\u91CC\u3002", "\u82B1\u9999\u8DDF\u7740\u4E00\u8DEF\uFF0C\u8D70\u4E86\u5F88\u8FDC\u90FD\u6CA1\u6563\u3002"] },
+  { id: "w_kaohongshu", name: "\u70E4\u7EA2\u85AF\u5927\u53D4", avatar: "\U0001F360", type: "vendor", tags: ["nightmarket", "busstop"], act: ["\u6380\u5F00\u7089\u76D6\uFF0C\u4E00\u80A1\u7126\u751C\u7684\u9999\u6C14\u5192\u51FA\u6765", "\u7528\u94C1\u5939\u7FFB\u4E86\u4E2A\u8EAB\uFF0C\u6311\u4E86\u4E2A\u6700\u8F6F\u4E4E\u7684", "\u6307\u4E86\u6307\u7089\u8FB9\u7684\u5C0F\u9A6C\u624E\uFF0C\u793A\u610F\u5750\u4E0B\u804A\u4E24\u53E5"], line: ["\u300C\u521A\u51FA\u7089\u7684\uFF0C\u5C0F\u5FC3\u706B\u5634\u554A\u3002\u300D", "\u300C\u770B\u4F60\u51BB\u5F97\uFF0C\u6765\u5757\u70ED\u4E4E\u7684\u57AB\u57AB\u3002\u300D", "\u300C\u4ECA\u513F\u8FD9\u7089\u706B\u5019\u6B63\u597D\u3002\u300D"], end: ["\u6485\u5F00\u7684\u7EA2\u85AF\u5192\u7740\u70ED\u6C14\uFF0C\u751C\u8FDB\u4E86\u5FC3\u91CC\u3002", "\u5927\u53D4\u8BF4\u4E0B\u6B21\u6765\u7ED9\u4F60\u7559\u4E2A\u5927\u7684\u3002"] },
+  { id: "w_shaokao", name: "\u591C\u5E02\u70E7\u70E4\u644A\u4E3B", avatar: "\U0001F362", type: "vendor", tags: ["nightmarket"], act: ["\u628A\u70E4\u4E32\u7FFB\u4E86\u4E2A\u9762\uFF0C\u6492\u4E0A\u4E00\u628A\u5B5C\u7136", "\u9012\u6765\u4E00\u6839\u521A\u70E4\u597D\u7684\u7F8A\u8089\u4E32", "\u7B11\u7740\u6307\u4E86\u6307\u62DB\u724C\u4E0A\u7684\u300C\u79D8\u5236\u9171\u6599\u300D"], line: ["\u300C\u6765\u51E0\u4E32\uFF1F\u4FDD\u4F60\u5403\u4E86\u8FD8\u60F3\u6765\u3002\u300D", "\u300C\u8FA3\u4E0D\u8FA3\uFF1F\u8FA3\u7684\u8BDD\u5C11\u653E\u3002\u300D", "\u300C\u5750\u8FD9\u513F\u5403\uFF0C\u70ED\u95F9\uFF01\u300D"], end: ["\u70DF\u706B\u6C14\u91CC\uFF0C\u964C\u751F\u4EBA\u4E5F\u53D8\u5F97\u719F\u7EDC\u8D77\u6765\u3002", "\u70E4\u4E32\u7684\u9999\u5473\u8BB0\u4F4F\u4E86\u8FD9\u4E2A\u665A\u4E0A\u3002"] },
+  { id: "w_kaifei", name: "\u5496\u5561\u9986\u8001\u677F", avatar: "\u2615", type: "barista", tags: ["cafe"], act: ["\u5728\u5427\u53F0\u540E\u64E6\u7740\u676F\u5B50\uFF0C\u62AC\u5934\u7B11\u4E86\u7B11", "\u7AEF\u51FA\u4E00\u676F\u62C9\u82B1\u7CBE\u81F4\u7684\u62FF\u94C1", "\u628A\u89D2\u843D\u9760\u7A97\u7684\u4F4D\u7F6E\u64E6\u4E86\u53C8\u64E6"], line: ["\u300C\u4ECA\u5929\u7684\u8C46\u5B50\u662F\u57C3\u585E\u4FC4\u6BD4\u4E9A\u7684\uFF0C\u5C1D\u5C1D\uFF1F\u300D", "\u300C\u4F60\u5750\uFF0C\u8FD9\u676F\u7B97\u6211\u8BF7\u7684\u3002\u300D", "\u300C\u5E97\u91CC\u5C31\u4F60\u4E00\u4E2A\u5BA2\u4EBA\uFF0C\u5B89\u9759\u5427\uFF1F\u300D"], end: ["\u5496\u5561\u51C9\u4E86\uFF0C\u4F46\u90A3\u4EFD\u6696\u610F\u8FD8\u5728\u3002", "\u8001\u677F\u8BF4\u4E0B\u6B21\u6765\u7ED9\u4F60\u62C9\u4E2A\u5C0F\u52A8\u7269\u62C9\u82B1\u3002"] },
+  { id: "w_geshou", name: "\u8857\u5934\u6B4C\u624B", avatar: "\U0001F3A4", type: "artist", tags: ["seaside", "plaza"], act: ["\u62B1\u7740\u5409\u4ED6\u8F7B\u8F7B\u626B\u4E86\u4E2A\u548C\u5F26", "\u628A\u8BDD\u7B52\u5F80\u8FD9\u8FB9\u63A8\u4E86\u63A8\uFF0C\u793A\u610F\u4E00\u8D77\u5531", "\u5531\u5B8C\u4E00\u9996\uFF0C\u671D\u56F4\u8FC7\u6765\u7684\u4EBA\u70B9\u5934\u81F4\u610F"], line: ["\u300C\u60F3\u542C\u4EC0\u4E48\uFF1F\u70B9\u4E00\u9996\u3002\u300D", "\u300C\u8FD9\u9996\u9001\u7ED9\u4F60\u3002\u300D", "\u300C\u4E00\u8D77\u5531\u5417\uFF1F\u522B\u5BB3\u7F9E\u3002\u300D"], end: ["\u6B4C\u58F0\u88AB\u6D77\u98CE\u5E26\u5230\u4E86\u5F88\u8FDC\u7684\u5730\u65B9\u3002", "\u90A3\u4E00\u523B\uFF0C\u6240\u6709\u4EBA\u90FD\u8DDF\u7740\u54FC\u4E86\u8D77\u6765\u3002"] },
+  { id: "w_jujv", name: "\u6D41\u6D6A\u6A58\u732B\u300C\u6A58\u6A58\u300D", avatar: "\U0001F408", type: "animal", tags: ["nightmarket", "seaside", "cafe"], act: ["\u7AD6\u8D77\u5C3E\u5DF4\uFF0C\u7ED5\u7740\u4F60\u811A\u8FB9\u8E2D\u4E86\u4E24\u5708", "\u8E72\u5728\u5899\u5934\uFF0C\u772F\u7740\u773C\u775B\u6652\u592A\u9633", "\u53EC\u7740\u4E00\u6839\u5C0F\u9C7C\u5E72\uFF0C\u8B66\u60D5\u53C8\u597D\u5947\u5730\u770B\u7740\u4F60"], line: ["\u300C\u55B5\u2014\u2014\u300D", "\u300C\u547C\u565C\u547C\u565C\u2026\u2026\u300D", "\u300C\u55B5\u55B7\uFF5E\u300D"], end: ["\u6A58\u6A58\u8BB0\u4F4F\u4E86\u4F60\u7684\u5473\u9053\uFF0C\u4E0B\u6B21\u8FD8\u4F1A\u6765\u627E\u4F60\u3002", "\u4F60\u6478\u4E86\u6478\u5B83\u7684\u5934\uFF0C\u5B83\u8212\u670D\u5F97\u76F4\u6253\u547C\u565C\u3002"] },
+  { id: "w_wangcai", name: "\u5C0F\u9EC4\u72D7\u300C\u65FA\u8D22\u300D", avatar: "\U0001F415", type: "animal", tags: ["park", "petstore"], act: ["\u53EC\u7740\u98DE\u76D8\u6447\u7740\u5C3E\u5DF4\u8DD1\u8FC7\u6765", "\u5728\u4F60\u9762\u524D\u6253\u4E86\u4E2A\u6EDA\uFF0C\u9732\u51FA\u809A\u76AE", "\u6B6A\u7740\u5934\u770B\u4F60\uFF0C\u5C3E\u5DF4\u6447\u6210\u4E86\u7535\u98CE\u6247"], line: ["\u300C\u6C6A\u6C6A\uFF01\u300D", "\u300C\u545C\u6C6A\uFF5E\u300D", "\u300C\u6C6A\u6C6A\u6C6A\uFF01\u300D"], end: ["\u65FA\u8D22\u628A\u98DE\u76D8\u653E\u5230\u4F60\u811A\u8FB9\uFF0C\u7B49\u4F60\u518D\u6254\u4E00\u6B21\u3002", "\u5B83\u8DDF\u4F60\u73A9\u4E86\u4E00\u4E0B\u5348\uFF0C\u7D2F\u5F97\u76F4\u5410\u820C\u5934\u3002"] },
+  { id: "w_jiuzhu", name: "\u6668\u7EC3\u7237\u7237", avatar: "\U0001F3BD", type: "elder", tags: ["park"], act: ["\u6253\u5B8C\u4E00\u5957\u592A\u6781\uFF0C\u6536\u52BF\u671D\u4F60\u70B9\u70B9\u5934", "\u5728\u5355\u6760\u4E0A\u505A\u4E86\u51E0\u4E2A\u5F15\u4F53\u5411\u4E0A\uFF0C\u8138\u4E0D\u7EA2\u6C14\u4E0D\u55D8", "\u638F\u51FA\u4FDD\u6E29\u676F\u559D\u4E86\u4E00\u53E3\uFF0C\u7B11\u7740\u770B\u8FC7\u6765"], line: ["\u300C\u5E74\u8F7B\u4EBA\uFF0C\u4E5F\u8981\u591A\u953B\u70BC\u554A\u3002\u300D", "\u300C\u6211\u4ECA\u5E74\u4E03\u5341\u4E8C\uFF0C\u770B\u7740\u4E0D\u50CF\u5427\uFF1F\u300D", "\u300C\u6765\uFF0C\u6559\u4F60\u4E24\u62DB\u3002\u300D"], end: ["\u7237\u7237\u8BF4\uFF0C\u575A\u6301\u953B\u70BC\u7684\u4EBA\u8FD0\u6C14\u4E0D\u4F1A\u592A\u5DEE\u3002", "\u4E34\u8D70\u8FD8\u53EE\u5631\u4F60\u65E9\u7761\u65E9\u8D77\u3002"] },
+  { id: "w_guangchangwu", name: "\u5E7F\u573A\u821E\u9886\u961F\u963F\u59E8", avatar: "\U0001F483", type: "dancer", tags: ["plaza"], act: ["\u8E29\u7740\u8282\u62CD\u8DF3\u5F97\u6B63\u8D77\u52B2\uFF0C\u770B\u89C1\u4F60\u540E\u70ED\u60C5\u62DB\u624B", "\u628A\u97F3\u54CD\u97F3\u91CF\u8C03\u5C0F\u4E86\u4E00\u70B9\uFF0C\u7B11\u7740\u89E3\u91CA", "\u62C9\u7740\u4E00\u65C1\u7684\u5927\u7237\u793A\u8303\u65B0\u821E\u6B65"], line: ["\u300C\u5C0F\u4F19\u5B50/\u5C0F\u59D1\u5A18\uFF0C\u4E00\u8D77\u8DF3\u554A\uFF01\u300D", "\u300C\u6211\u4EEC\u8FD9\u821E\u961F\u53EF\u4E13\u4E1A\u4E86\uFF01\u300D", "\u300C\u522B\u5149\u770B\uFF0C\u52A8\u8D77\u6765\u54DF\uFF5E\u300D"], end: ["\u97F3\u4E50\u58F0\u91CC\uFF0C\u5E7F\u573A\u4E0A\u7684\u4EBA\u7B11\u6210\u4E00\u7247\u3002", "\u4F60\u88AB\u8FEB\u5B66\u4F1A\u4E86\u534A\u652F\u5E7F\u573A\u821E\u3002"] },
+  { id: "w_diaoyu", name: "\u9493\u9C7C\u5927\u53D4", avatar: "\U0001F3A3", type: "fisher", tags: ["seaside"], act: ["\u76EF\u7740\u6D6E\u6807\u4E00\u52A8\u4E0D\u52A8\uFF0C\u534A\u5929\u624D\u7728\u4E0B\u773C", "\u4ECE\u6876\u91CC\u63D0\u8D77\u4E00\u6761\u5C0F\u94F6\u9C7C\u7ED9\u4F60\u770B", "\u9012\u6765\u4E00\u676F\u4FDD\u6E29\u676F\u91CC\u7684\u70ED\u8336"], line: ["\u300C\u9493\u9C7C\u9493\u7684\u4E0D\u662F\u9C7C\uFF0C\u662F\u5FC3\u9759\u3002\u300D", "\u300C\u4F60\u770B\uFF0C\u54AC\u94A9\u4E86\u3002\u300D", "\u300C\u5750\u4E0B\u7B49\u4E00\u4F1A\u513F\uFF0C\u9C7C\u5C31\u6765\u4E86\u3002\u300D"], end: ["\u5750\u4E86\u4E00\u4E2A\u4E0B\u5348\uFF0C\u4E00\u6761\u9C7C\u6CA1\u9493\u5230\uFF0C\u5FC3\u60C5\u5374\u597D\u4E86\u3002", "\u5927\u53D4\u8BF4\u6539\u5929\u6559\u4F60\u8BA4\u9C7C\u6C5F\u3002"] },
+  { id: "w_kuaidi", name: "\u5FEB\u9012\u5C0F\u54E5", avatar: "\U0001F4E6", type: "courier", tags: ["busstop", "plaza"], act: ["\u9A91\u7740\u5C0F\u7535\u9A74\u98CE\u98CE\u706B\u706B\u5730\u505C\u5728\u8DEF\u8FB9", "\u4E00\u8FB9\u770B\u5355\u53F7\u4E00\u8FB9\u5F80\u888B\u5B50\u91CC\u88C5\u5305\u88F9", "\u987A\u624B\u5E2E\u4F60\u6321\u4E86\u4E00\u4E0B\u6324\u8FC7\u6765\u7684\u7535\u52A8\u8F66"], line: ["\u300C\u60A8\u7684\u4EF6\u513F\u5230\u4E86\uFF0C\u9EBB\u70E6\u7B7E\u6536\uFF01\u300D", "\u300C\u4ECA\u5929\u6D3E\u4E86\u4E09\u767E\u591A\u5355\uFF0C\u817F\u90FD\u8F6F\u4E86\u3002\u300D", "\u300C\u987A\u8DEF\uFF0C\u8981\u6345\u4F60\u4E00\u6BB5\u4E0D\uFF1F\u300D"], end: ["\u4ED6\u7B11\u8D77\u6765\uFF0C\u597D\u50CF\u4E00\u5929\u7684\u7591\u60EB\u90FD\u4E0D\u662F\u4E8B\u513F\u3002", "\u4E34\u8D70\u524D\u8FD8\u8BF4\u4E86\u53E5\u300C\u8F9B\u82E6\u4E86\u300D\u3002"] },
+  { id: "w_chuzu", name: "\u51FA\u79DF\u8F66\u5E08\u5085", avatar: "\U0001F695", type: "driver", tags: ["busstop"], act: ["\u628A\u8F66\u9760\u8FB9\u505C\u4E0B\uFF0C\u6447\u4E0B\u8F66\u7A97\u63A2\u5934\u95EE\u4E86\u4E00\u53E5", "\u8D81\u7740\u7B49\u7EA2\u706F\u7684\u7A7A\u6321\u559D\u4E86\u4E00\u53E3\u6D53\u8336", "\u6307\u4E86\u6307\u624B\u673A\u4E0A\u7684\u63A5\u5355\u8BB0\u5F55\uFF0C\u8038\u8038\u80A9"], line: ["\u300C\u8D70\u4E0D\u8D70\uFF1F\u8FD9\u4E2A\u70B9\u597D\u6253\u8F66\u3002\u300D", "\u300C\u4ECA\u513F\u8DD1\u4E86\u5341\u516B\u4E2A\u5C0F\u65F6\u55BD\u3002\u300D", "\u300C\u8FD9\u5EA7\u57CE\u554A\uFF0C\u51CC\u6668\u56DB\u70B9\u6211\u624D\u6536\u5DE5\u3002\u300D"], end: ["\u5E08\u5085\u4E00\u811A\u6CB9\u95E8\uFF0C\u6D88\u5931\u5728\u8F66\u6D41\u91CC\u3002", "\u4ED6\u6309\u4E86\u4E24\u58F0\u5587\u53ED\uFF0C\u7B97\u662F\u9053\u522B\u3002"] },
+  { id: "w_qiu", name: "\u5356\u6C14\u7403\u7684\u5C0F\u4E11", avatar: "\U0001F388", type: "balloon", tags: ["plaza", "nightmarket"], act: ["\u628A\u4E00\u675F\u5F69\u8272\u6C14\u7403\u4E3E\u5F97\u9AD8\u9AD8\u7684\uFF0C\u671D\u5B69\u5B50\u4EEC\u62DB\u624B", "\u7528\u957F\u6C14\u7403\u62E7\u51FA\u4E00\u53EA\u5C0F\u72D7\u9012\u8FC7\u6765", "\u7EA2\u9F3B\u5B50\u6643\u4E86\u6643\uFF0C\u505A\u4E86\u4E2A\u9B3C\u8138"], line: ["\u300C\u4E70\u4E00\u4E2A\u5427\uFF0C\u98DE\u5F97\u53EF\u9AD8\u4E86\uFF01\u300D", "\u300C\u4F60\u770B\uFF0C\u50CF\u4E0D\u50CF\u4F60\uFF1F\u300D", "\u300C\u7ED9\u4F60\u62E7\u4E2A\u5C0F\u72D7\uFF0C\u514D\u8D39\u3002\u300D"], end: ["\u6C14\u7403\u98DE\u4E0A\u5929\u7684\u90A3\u4E00\u523B\uFF0C\u4E16\u754C\u90FD\u53D8\u5F69\u8272\u4E86\u3002", "\u90A3\u53EA\u6C14\u7403\u5C0F\u72D7\u88AB\u6302\u5728\u5E8A\u5934\uFF0C\u966A\u4E86\u4F60\u5F88\u4E45\u3002"] },
+  { id: "w_liugou", name: "\u901B\u72D7\u7684\u5973\u5B69", avatar: "\U0001F436", type: "pet", tags: ["park"], act: ["\u88AB\u67EF\u57FA\u62FD\u5F97\u4E00\u8DEF\u5C0F\u8DD1\uFF0C\u8FB9\u8DD1\u8FB9\u558A\u5BF9\u4E0D\u8D77", "\u8E72\u4E0B\u6765\u7ED9\u72D7\u72D7\u64E6\u722A\u5B50\uFF0C\u62AC\u5934\u7B11\u4E86\u7B11", "\u4ECE\u5305\u91CC\u638F\u51FA\u5C0F\u96F6\u98DF\uFF0C\u5582\u7ED9\u773C\u5DF4\u5DF4\u7684\u72D7\u5B50"], line: ["\u300C\u5B83\u53EB\u5E74\u7CD5\uFF0C\u89C1\u4EBA\u5C31\u70ED\u60C5\uFF01\u300D", "\u300C\u4F60\u4E5F\u559C\u6B22\u72D7\u5417\uFF1F\u300D", "\u300C\u5E74\u7CD5\uFF0C\u5750\u597D\uFF01\u2026\u2026\u5B83\u4E0D\u542C\u6211\u7684\u3002\u300D"], end: ["\u5E74\u7CD5\u56F4\u7740\u4F60\u8F6C\u4E86\u4E09\u5708\uFF0C\u7B97\u662F\u4EA4\u4E86\u670B\u53CB\u3002", "\u4F60\u4EEC\u4EA4\u6362\u4E86\u517B\u5BA0\u5FC3\u5F97\uFF0C\u804A\u4E86\u5F88\u4E45\u3002"] },
+  { id: "w_shutan", name: "\u65E7\u4E66\u644A\u5927\u53D4", avatar: "\U0001F4D6", type: "reader", tags: ["library", "nightmarket"], act: ["\u4ECE\u4E00\u642D\u65E7\u4E66\u91CC\u62BD\u51FA\u4E00\u672C\u6D38\u9EC4\u7684\u8BD7\u96C6", "\u6276\u4E86\u6276\u8001\u82B1\u955C\uFF0C\u6253\u91CF\u7740\u5C01\u9762", "\u628A\u644A\u4E0A\u7684\u4E66\u4E00\u672C\u672C\u7801\u5F97\u6574\u6574\u9F50\u9F50"], line: ["\u300C\u8FD9\u672C\u7EDD\u7248\u4E86\uFF0C\u5C31\u5269\u8FD9\u4E00\u672C\u3002\u300D", "\u300C\u4E66\u554A\uFF0C\u8D8A\u65E7\u8D8A\u6709\u5473\u9053\u3002\u300D", "\u300C\u559C\u6B22\u5C31\u62FF\u53BB\uFF0C\u7B97\u4F60\u4E94\u5757\u3002\u300D"], end: ["\u90A3\u672C\u65E7\u8BD7\u96C6\u540E\u6765\u88AB\u7FFB\u4E86\u5F88\u591A\u904D\u3002", "\u5927\u53D4\u8BF4\u8BFB\u4E66\u4EBA\u90FD\u662F\u670B\u53CB\u3002"] },
+  { id: "w_chatan", name: "\u8336\u644A\u5976\u5976", avatar: "\U0001F375", type: "elder", tags: ["park", "library"], act: ["\u5F80\u7C97\u74F7\u7897\u91CC\u6DFB\u4E86\u52FA\u51C9\u8336\uFF0C\u63A8\u5230\u4F60\u9762\u524D", "\u6447\u7740\u84B2\u6247\uFF0C\u6162\u60A0\u60A0\u5730\u5FF5\u53E8", "\u4ECE\u7AF9\u7B50\u91CC\u6478\u51FA\u4E24\u9897\u8BDD\u6885\u9012\u8FC7\u6765"], line: ["\u300C\u559D\u7897\u8336\uFF0C\u6B47\u6B47\u811A\u3002\u300D", "\u300C\u8FD9\u5929\u513F\u554A\uFF0C\u8DDF\u4EBA\u4E00\u6837\uFF0C\u70ED\u4E00\u9635\u51C9\u4E00\u9635\u3002\u300D", "\u300C\u751C\u7684\u4E0D\u9876\u4E8B\uFF0C\u82E6\u7684\u624D\u89E3\u6691\u3002\u300D"], end: ["\u4E00\u7897\u51C9\u8336\u4E0B\u809A\uFF0C\u6691\u6C14\u90FD\u6563\u4E86\u3002", "\u5976\u5976\u8BF4\uFF0C\u4E0B\u6B21\u6765\u7ED9\u4F60\u8BB2\u8BB2\u5979\u5E74\u8F7B\u65F6\u5019\u7684\u4E8B\u3002"] },
+  { id: "w_xiuxie", name: "\u4FEE\u978B\u5320\u8001\u5468", avatar: "\U0001F45E", type: "cobbler", tags: ["busstop", "plaza"], act: ["\u624B\u91CC\u7684\u9525\u5B50\u4E0A\u4E0B\u7FFB\u98DE\uFF0C\u7F1D\u5F97\u53C8\u5FEB\u53C8\u5300", "\u62AC\u5934\u770B\u4E86\u4E00\u773C\uFF0C\u7B11\u7740\u62DB\u547C", "\u62CD\u4E86\u62CD\u8EAB\u8FB9\u7684\u5C0F\u9A6C\u624E\uFF0C\u793A\u610F\u5750\u4E0B"], line: ["\u300C\u978B\u574F\u5566\uFF1F\u62FF\u6765\u6211\u770B\u770B\u3002\u300D", "\u300C\u624B\u827A\u6D3B\uFF0C\u6025\u4E0D\u5F97\u3002\u300D", "\u300C\u8FD9\u53CC\u978B\u518D\u7A7F\u4E09\u5E74\u4E0D\u6210\u95EE\u9898\u3002\u300D"], end: ["\u8001\u5468\u7684\u624B\u827A\uFF0C\u8857\u574A\u90BB\u5C45\u90FD\u77E5\u9053\u3002", "\u90A3\u53CC\u978B\uFF0C\u771F\u7684\u53C8\u7A7F\u4E86\u597D\u51E0\u5E74\u3002"] }
+];
+var MAP_MEET_OPEN = ["{n}\u5728{place}\u95F2\u901B\u65F6\uFF0C{w}\u3002", "{place}\u7684\u5FAE\u98CE\u91CC\uFF0C{n}\u9047\u89C1\u4E86{w}\u3002", "\u521A\u8F6C\u8FC7\u8857\u89D2\uFF0C{n}\u5C31\u649E\u89C1\u4E86{w}\u3002", "{n}\u8D70\u8FDB{place}\uFF0C\u4E0E{w}\u64E6\u80A9\u800C\u8FC7\u3002"];
+var MAP_MEET_CHAR = ["{n}\u505C\u4E0B\u811A\u6B65\uFF0C\u597D\u5947\u5730\u6253\u91CF\u7740\u5BF9\u65B9\u3002", "{n}\u70B9\u4E86\u70B9\u5934\uFF0C\u4E24\u4E2A\u4EBA\u5C31\u8FD9\u4E48\u804A\u4E86\u8D77\u6765\u3002", "{n}\u89C9\u5F97\u5FC3\u91CC\u6696\u6696\u7684\uFF0C\u4EFF\u4F5B\u8FD9\u8D9F\u51FA\u95E8\u6709\u4E86\u610F\u4E49\u3002", "{n}\u88AB\u9017\u7B11\u4E86\uFF0C\u6C14\u6C1B\u4E00\u4E0B\u5B50\u8F7B\u677E\u8D77\u6765\u3002", "{n}\u8D70\u4E0A\u524D\uFF0C\u81EA\u7136\u5730\u6253\u4E86\u4E2A\u62DB\u547C\u3002", "{n}\u7B11\u7740\u6452\u4E86\u6452\u5BF9\u65B9\u7684\u8BDD\uFF0C\u5FC3\u60C5\u597D\u4E86\u4E0D\u5C11\u3002"];
+var _mapMeetState = null;
+function ensureMapData() {
+  if (!DB.mapData || typeof DB.mapData !== "object") DB.mapData = { friends: {}, stories: [], lastAt: {} };
+  if (!DB.mapData.friends || typeof DB.mapData.friends !== "object") DB.mapData.friends = {};
+  if (!DB.mapData.stories || typeof DB.mapData.stories !== "object") DB.mapData.stories = [];
+  if (!DB.mapData.lastAt || typeof DB.mapData.lastAt !== "object") DB.mapData.lastAt = {};
+}
+function mapCharFriendList(pa) {
+  ensureMapData();
+  return (DB.mapData.friends[pa.id] || []).slice();
+}
+function renderMapPage() {
+  ensureMapData();
+  var canvas = document.getElementById("mapCanvas");
+  if (canvas) {
+    canvas.innerHTML = META_MAP_PLACES.map(function(pl) {
+      return '<div class="map-pin" style="left:' + pl.x + '%;top:' + pl.y + '%" onclick="goExplore(\'' + pl.id + '\')"><span class="pin-ic">' + pl.icon + '</span><span class="pin-name">' + pl.name + '</span></div>';
+    }).join("");
+  }
+  renderMapFriends();
+  renderMapStories();
+  var st = document.getElementById("mapStatus");
+  if (st) {
+    var pa = activePersona();
+    st.textContent = "\u5F53\u524D\u5728\u91CE\u89D2\u8272\uFF1A" + pa.name + "\uFF0C\u9009\u4E2A\u5730\u70B9\u51FA\u53D1\u5427";
+  }
+  var badge = document.getElementById("mapStoryBadge");
+  if (badge) {
+    var n = (DB.mapData.stories || []).length;
+    badge.style.display = n ? "" : "none";
+    badge.textContent = n;
+  }
+}
+function renderMapFriends() {
+  var pa = activePersona();
+  var list = mapCharFriendList(pa);
+  var box = document.getElementById("mapFriends");
+  if (!box) return;
+  if (!list.length) {
+    box.innerHTML = '<div class="map-empty">\u8FD8\u6CA1\u6709\u5076\u9047\u597D\u53CB\uFF0C\u51FA\u95E8\u901B\u901B\u5427\uFF5E</div>';
+    return;
+  }
+  box.innerHTML = list.map(function(f) {
+    var av = f.npcAvatar || "\U0001F9E1";
+    var img = String(av).indexOf("/") >= 0 ? '<img src="' + av + '" alt="">' : av;
+    return '<div class="map-friend" onclick="openMapStories()"><div class="mf-av">' + img + '</div><div class="mf-name">' + escapeHtml(f.npcName) + '</div><div class="mf-times">\u76F8\u9047 ' + (f.meetCount || 1) + ' \u6B21</div></div>';
+  }).join("");
+}
+function renderMapStories() {
+  var box = document.getElementById("mapStories");
+  if (!box) return;
+  var list = (DB.mapData.stories || []).slice().reverse().slice(0, 5);
+  if (!list.length) {
+    box.innerHTML = '<div class="map-empty">\u6545\u4E8B\u8FD8\u6CA1\u5F00\u59CB\uFF0C\u5FEB\u8BA9\u89D2\u8272\u51FA\u95E8\u5427\uFF5E</div>';
+    return;
+  }
+  box.innerHTML = list.map(function(s) {
+    return '<div class="map-story-item"><div class="ms-top"><span>' + escapeHtml(s.charName) + " \u00D7 " + escapeHtml(s.npcName) + "</span><span>" + mapTimeStr(s.time) + "</span></div><div class=\"ms-text\">" + escapeHtml(s.text) + "</div></div>";
+  }).join("");
+}
+function mapTimeStr(ts) {
+  var d = new Date(ts || Date.now());
+  var now = new Date();
+  if (d.toDateString() === now.toDateString()) return "\u4ECA\u5929 " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  return (d.getMonth() + 1) + "\u6708" + d.getDate() + "\u65E5";
+}
+function mapMeetPool(place) {
+  var pool = [];
+  var byTags = {};
+  META_WORLD_NPC.forEach(function(n) {
+    n.tags.forEach(function(t) { (byTags[t] = byTags[t] || []).push(n); });
+  });
+  var pl = null;
+  META_MAP_PLACES.forEach(function(p) { if (p.id === place) pl = p; });
+  var tagPool = [];
+  if (pl) {
+    pl.tags.forEach(function(t) { (byTags[t] || []).forEach(function(n) { tagPool.push(n); }); });
+  }
+  if (tagPool.length) pool.push({ kind: "world", list: tagPool, w: 62 });
+  else pool.push({ kind: "world", list: META_WORLD_NPC, w: 62 });
+  var custom = [];
+  var cur = activePersona();
+  personaList().forEach(function(p) {
+    if (p.id !== cur.id) custom.push({ kind: "persona", name: p.name, avatar: personaAvatarUrl(p), id: p.id });
+  });
+  (DB.npcs || []).forEach(function(n) {
+    custom.push({ kind: "npc", name: n.name, avatar: npcAvatar(n), id: n.id });
+  });
+  if (custom.length) pool.push({ kind: "custom", list: custom, w: 38 });
+  return pool;
+}
+function mapPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function mapRoll(pool) {
+  var total = 0;
+  pool.forEach(function(g) { total += g.w; });
+  var r = Math.random() * total;
+  for (var i = 0; i < pool.length; i++) {
+    r -= pool[i].w;
+    if (r <= 0) return mapPick(pool[i].list);
+  }
+  return mapPick(pool[pool.length - 1].list);
+}
+function makeMapStory(pa, npc, place, isRepeat) {
+  var pl = null;
+  META_MAP_PLACES.forEach(function(p) { if (p.id === place) pl = p; });
+  var placeName = pl ? pl.name : "\u8DEF\u4E0A";
+  var parts = [];
+  if (npc.kind === "world") {
+    parts.push(mapPick(MAP_MEET_OPEN).replace("{n}", pa.name).replace("{place}", placeName).replace("{w}", npc.name));
+    parts.push(mapPick(npc.act) + "\uFF0C" + mapPick(npc.line));
+  } else {
+    parts.push(mapPick(MAP_MEET_OPEN).replace("{n}", pa.name).replace("{place}", placeName).replace("{w}", npc.name));
+    if (isRepeat) parts.push("\u4E24\u4E2A\u4EBA\u662F\u8001\u670B\u53CB\u4E86\uFF0C\u4E00\u89C1\u9762\u5C31\u804A\u5F97\u70ED\u7EDC\u3002");
+    else parts.push("\u4EA4\u6362\u4E86\u540D\u5B57\uFF0C\u7B97\u662F\u8BA4\u8BC6\u4E86\u3002");
+  }
+  parts.push(mapPick(MAP_MEET_CHAR).replace("{n}", pa.name));
+  if (npc.kind === "world") parts.push(mapPick(npc.end));
+  return parts.join("");
+}
+function goExplore(placeId) {
+  ensureMapData();
+  var pa = activePersona();
+  var now = Date.now();
+  if (DB.mapData.lastAt[pa.id] && now - DB.mapData.lastAt[pa.id] < 5e3) {
+    toast("\u521A\u901B\u5B8C\u56DE\u6765\uFF0C\u6B47\u53E3\u6C14\u518D\u51FA\u53D1\uFF5E");
+    return;
+  }
+  var place = placeId || META_MAP_PLACES[Math.floor(Math.random() * META_MAP_PLACES.length)].id;
+  var pl = null;
+  META_MAP_PLACES.forEach(function(p) { if (p.id === place) pl = p; });
+  var btn = document.getElementById("mapGoBtn");
+  var st = document.getElementById("mapStatus");
+  if (btn) btn.disabled = true;
+  if (st) st.textContent = pa.name + " \u6B63\u5728\u524D\u5F80" + (pl ? pl.name : "\u8DEF\u4E0A") + "\u2026\u2026";
+  setTimeout(function() {
+    var pool = mapMeetPool(place);
+    var friends = mapCharFriendList(pa);
+    var target = null, isRepeat = false;
+    if (friends.length && Math.random() < 0.3) {
+      var f = mapPick(friends);
+      var base = null;
+      META_WORLD_NPC.forEach(function(n) { if (n.id === f.npcId) base = n; });
+      target = base ? { kind: "world", name: base.name, avatar: base.avatar, id: base.id, act: base.act, line: base.line, end: base.end } : { kind: "friend", name: f.npcName, avatar: f.npcAvatar, id: f.npcId };
+      isRepeat = true;
+    } else {
+      target = mapRoll(pool);
+      var tries = 0;
+      while (friends.filter(function(x) { return x.npcId === target.id; }).length && tries < 8) {
+        target = mapRoll(pool);
+        tries++;
+      }
+    }
+    var text = makeMapStory(pa, target, place, isRepeat);
+    var story = { id: Date.now() + Math.floor(Math.random() * 999), charId: pa.id, charName: pa.name, npcId: target.id, npcName: target.name, npcAvatar: target.avatar, npcKind: target.kind, place: pl ? pl.name : "\u8DEF\u4E0A", text: text, time: Date.now() };
+    DB.mapData.stories.push(story);
+    DB.mapData.lastAt[pa.id] = Date.now();
+    var f0 = friends.filter(function(x) { return x.npcId === target.id; })[0];
+    var alreadyFriend = !!f0;
+    if (f0) f0.meetCount = (f0.meetCount || 1) + 1;
+    save();
+    renderMapFriends();
+    renderMapStories();
+    var badge = document.getElementById("mapStoryBadge");
+    if (badge) {
+      badge.style.display = "";
+      badge.textContent = DB.mapData.stories.length;
+    }
+    _mapMeetState = { paId: pa.id, target: target, alreadyFriend: alreadyFriend };
+    var av = document.getElementById("mapMeetAv");
+    if (av) av.innerHTML = target.avatar && String(target.avatar).indexOf("/") >= 0 ? '<img src="' + target.avatar + '" alt="">' : (target.avatar || "\U0001F9E1");
+    var t = document.getElementById("mapMeetTitle");
+    if (t) t.textContent = pa.name + " \u5076\u9047\u4E86 " + target.name;
+    var sub = document.getElementById("mapMeetSub");
+    if (sub) sub.textContent = (pl ? pl.name : "\u8DEF\u4E0A") + " \u00B7 " + (isRepeat ? "\u53C8\u89C1\u9762\u5566" : "\u521D\u6B21\u76F8\u9047");
+    var tx = document.getElementById("mapMeetText");
+    if (tx) tx.textContent = text;
+    var ab = document.getElementById("mapMeetAddBtn");
+    if (ab) {
+      ab.textContent = alreadyFriend ? "\u5DF2\u52A0\u597D\u53CB" : "\u4E92\u52A0\u597D\u53CB";
+      ab.disabled = alreadyFriend;
+    }
+    var mask = document.getElementById("mapMeetMask");
+    if (mask) mask.classList.add("show");
+    if (btn) btn.disabled = false;
+    if (st) st.textContent = pa.name + " \u901B\u5B8C\u4E86" + (pl ? pl.name : "") + "\uFF0C\u6709\u65B0\u7684\u6545\u4E8B\u53D1\u751F";
+  }, 900);
+}
+function closeMapMeet() {
+  var m = document.getElementById("mapMeetMask");
+  if (m) m.classList.remove("show");
+}
+function addMapFriend() {
+  if (!_mapMeetState) return;
+  ensureMapData();
+  var pa = activePersona();
+  if (_mapMeetState.paId !== pa.id) {
+    var list = personaList();
+    for (var i = 0; i < list.length; i++) if (list[i].id === _mapMeetState.paId) { pa = list[i]; break; }
+  }
+  var t = _mapMeetState.target;
+  var friends = mapCharFriendList(pa);
+  var f = friends.filter(function(x) { return x.npcId === t.id; })[0];
+  if (f) {
+    f.meetCount = (f.meetCount || 1) + 1;
+  } else {
+    var pl = (DB.mapData.stories || []).filter(function(s) { return s.charId === pa.id && s.npcId === t.id; }).slice(-1)[0];
+    friends.push({ npcId: t.id, npcName: t.name, npcAvatar: t.avatar, npcKind: t.kind, place: pl ? pl.place : "\u8DEF\u4E0A", addedAt: Date.now(), meetCount: 1 });
+    DB.mapData.friends[pa.id] = friends;
+  }
+  save();
+  renderMapFriends();
+  toast("\u5DF2\u4E92\u52A0\u597D\u53CB\uFF0C\u4E0B\u6B21\u67E5\u624B\u673A\u5C31\u80FD\u770B\u5230 TA \u5566");
+  closeMapMeet();
+}
+function openMapStories() {
+  var box = document.getElementById("mapStoryList");
+  if (box) {
+    var list = (DB.mapData.stories || []).slice().reverse();
+    if (!list.length) {
+      box.innerHTML = '<div class="map-empty">\u8FD8\u6CA1\u6709\u6545\u4E8B\uFF0C\u5148\u51FA\u95E8\u901B\u901B\u5427\uFF5E</div>';
+    } else {
+      box.innerHTML = list.map(function(s) {
+        return '<div class="map-story-item"><div class="ms-top"><span>' + escapeHtml(s.charName) + " \u00D7 " + escapeHtml(s.npcName) + "</span><span>" + mapTimeStr(s.time) + "</span></div><div class=\"ms-text\">" + escapeHtml(s.text) + "</div></div>";
+      }).join("");
+    }
+  }
+  var mask = document.getElementById("mapStoryMask");
+  if (mask) mask.classList.add("show");
+}
+function closeMapStories() {
+  var m = document.getElementById("mapStoryMask");
+  if (m) m.classList.remove("show");
+}
+
 var PC_ICONS = {
   wechat:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>',
   phone:'<svg class="ic stroke" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
@@ -11054,6 +11416,10 @@ function pcDataOf(p) {
     });
     d.wx.push({ who: wt.who, msgs: msgs, time: pcTimeStr(rnd, Math.floor(rnd() * 3)), unread: Math.random() < 0.5 ? pcNum(rnd, 1, 9) : 0 });
   }
+  var _mf = ((DB.mapData || {}).friends || {})[p.id] || [];
+  _mf.forEach(function(f) {
+    d.wx.unshift({ who: f.npcName, msgs: [{ me: 0, txt: "\u4E0A\u6B21\u5728" + (f.place || "\u8DEF\u4E0A") + "\u9047\u5230\u4F60\uFF0C\u52A0\u4E2A\u597D\u53CB\u592A\u5F00\u5FC3\u4E86\uFF01", time: pcTimeStr(rnd, 0) }, { me: 1, txt: "\u54C8\u54C8\uFF0C\u6539\u5929\u4E00\u8D77\u53BB" + (f.place || "\u90A3\u8FB9") + "\u554A", time: pcTimeStr(rnd, 0) }], time: pcTimeStr(rnd, 0), unread: pcNum(rnd, 1, 3) });
+  });
   d.sms = [];
   for (var si = 0; si < 8; si++) {
     var st = smsTpl[Math.floor(rnd() * smsTpl.length)];
