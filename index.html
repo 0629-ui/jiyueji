@@ -9833,7 +9833,7 @@ function renderMomentsInto(feed) {
     }).join("") + "</div>" : "";
     var el = document.createElement("div");
     el.className = "moment";
-    el.innerHTML = '<div class="m-head"><img class="avatar" src="' + (m.avatar || personaAvatarUrl(activePersona())) + '" alt=""><div><div class="m-name">' + escapeHtml(m.user) + '</div><div class="m-time">' + m.time + '</div></div><button class="m-del" onclick="delMoment(' + m.id + ')" title="\u5220\u9664"><svg class="ic sm stroke" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div><div class="m-text">' + escapeHtml(m.text) + "</div>" + mediaHtml + '<div class="m-actions"><button class="' + (m.liked ? "liked" : "") + '" onclick="toggleLike(' + m.id + ')">' + (m.liked ? '<svg class="ic sm stroke" viewBox="0 0 24 24"><path d="M12 21C5 15 2 10.5 2 7a4.5 4.5 0 0 1 8-3 4.5 4.5 0 0 1 8 3c0 3.5-3 8-10 14Z" fill="currentColor" stroke="none"/></svg>' : '<svg class="ic sm stroke" viewBox="0 0 24 24"><path d="M12 21C5 15 2 10.5 2 7a4.5 4.5 0 0 1 8-3 4.5 4.5 0 0 1 8 3c0 3.5-3 8-10 14Z"/></svg>') + "<b>" + m.likes + '</b></button><button onclick="focusCmt(' + m.id + ')"><svg class="ic sm stroke" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg> <b>' + m.comments.length + '</b></button><span class="src">\u9701\u6708\u673A \xB7 AI \u6846\u67B6</span></div>' + cmtHtml + '<div class="m-cmt-input"><input id="cmt-' + m.id + '" type="text" placeholder="\u8BC4\u8BBA\u2026"><button onclick="addComment(' + m.id + ')">\u53D1\u9001</button></div>';
+    el.innerHTML = '<div class="m-head"><img class="avatar" src="' + (m.avatar || (m.isMe || m.user === meProfile().nickname ? meAvatarUrl() : personaAvatarUrl(activePersona()))) + '" alt=""><div><div class="m-name">' + escapeHtml(m.user) + '</div><div class="m-time">' + m.time + '</div></div><button class="m-del" onclick="delMoment(' + m.id + ')" title="\u5220\u9664"><svg class="ic sm stroke" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div><div class="m-text">' + escapeHtml(m.text) + "</div>" + mediaHtml + '<div class="m-actions"><button class="' + (m.liked ? "liked" : "") + '" onclick="toggleLike(' + m.id + ')">' + (m.liked ? '<svg class="ic sm stroke" viewBox="0 0 24 24"><path d="M12 21C5 15 2 10.5 2 7a4.5 4.5 0 0 1 8-3 4.5 4.5 0 0 1 8 3c0 3.5-3 8-10 14Z" fill="currentColor" stroke="none"/></svg>' : '<svg class="ic sm stroke" viewBox="0 0 24 24"><path d="M12 21C5 15 2 10.5 2 7a4.5 4.5 0 0 1 8-3 4.5 4.5 0 0 1 8 3c0 3.5-3 8-10 14Z"/></svg>') + "<b>" + m.likes + '</b></button><button onclick="focusCmt(' + m.id + ')"><svg class="ic sm stroke" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg> <b>' + m.comments.length + '</b></button><span class="src">\u9701\u6708\u673A \xB7 AI \u6846\u67B6</span></div>' + cmtHtml + '<div class="m-cmt-input"><input id="cmt-' + m.id + '" type="text" placeholder="\u8BC4\u8BBA\u2026"><button onclick="addComment(' + m.id + ')">\u53D1\u9001</button></div>';
     feed.appendChild(el);
   });
 }
@@ -9897,7 +9897,7 @@ function aiPostMoment() {
       toast("\u89D2\u8272\u6CA1\u60F3\u597D\u53D1\u4EC0\u4E48\uFF0C\u518D\u8BD5\u4E00\u6B21\u5427");
       return;
     }
-    addMoment({ id: Date.now(), user: pa.name, time: "\u521A\u521A", text, media: [], liked: false, likes: 0, comments: [] });
+    addMoment({ id: Date.now(), user: pa.name, avatar: personaAvatarUrl(pa), time: "\u521A\u521A", text, media: [], liked: false, likes: 0, comments: [] });
     toast(pa.name + " \u53D1\u4E86\u4E00\u6761\u670B\u53CB\u5708");
   }).catch(function(err) {
     toast("AI \u53D1\u670B\u53CB\u5708\u5931\u8D25\uFF1A" + (err && err.message ? err.message : "\u672A\u77E5\u9519\u8BEF"));
@@ -9987,8 +9987,7 @@ function activeSendMoment(t) {
   var text = t.kind === "group" ? name + "\uFF1A" + aiPick(ACTIVE_MOMENT_POOL) : aiPick(ACTIVE_MOMENT_POOL);
   var media = [];
   if (Math.random() < 0.7) media = [aiPick(ACTIVE_MOMENT_IMGS)];
-  var m = { id: Date.now() + Math.floor(Math.random() * 999), user: name, time: "\u521A\u521A", text, media, liked: false, likes: Math.floor(Math.random() * 30), comments: [] };
-  if (avatar) m.avatar = avatar;
+  var m = { id: Date.now() + Math.floor(Math.random() * 999), user: name, avatar: avatar || personaAvatarUrl(t.obj), time: "\u521A\u521A", text, media, liked: false, likes: Math.floor(Math.random() * 30), comments: [] };
   MOMENTS.unshift(m);
   DB.moments = MOMENTS;
   save();
@@ -10018,7 +10017,7 @@ function activeReverseCheck(t) {
   if (side < 0.35) {
     var ft = pickTagText("\uFF08" + name + "\u7528\u4F60\u7684\u624B\u673A\u53D1\u4E86\u4E00\u6761\u670B\u53CB\u5708\uFF09");
     var mtext = aiPick(["\u4ECA\u5929\u5929\u6C14\u771F\u597D\uFF0C\u5FC3\u60C5\u4E0D\u9519", "\u6709\u4EBA\u5728\u770B\u6211\u624B\u673A\uFF0C\u597D\u5BB3\u7F9E", "\u6700\u8FD1\u5F88\u5FD9\uFF0C\u4F46\u5F88\u5FEB\u4E50", "\u8FD9\u624B\u673A\u4E3B\u4EBA\u6709\u70B9\u610F\u601D"]);
-    var m = { id: Date.now() + Math.floor(Math.random() * 999), user: "\u6211", time: "\u521A\u521A", text: mtext, media: Math.random() < 0.5 ? [aiPick(ACTIVE_MOMENT_IMGS)] : [], liked: false, likes: Math.floor(Math.random() * 20), comments: [] };
+    var m = { id: Date.now() + Math.floor(Math.random() * 999), user: "\u6211", avatar: meAvatarUrl(), isMe: true, time: "\u521A\u521A", text: mtext, media: Math.random() < 0.5 ? [aiPick(ACTIVE_MOMENT_IMGS)] : [], liked: false, likes: Math.floor(Math.random() * 20), comments: [] };
     MOMENTS.unshift(m);
     DB.moments = MOMENTS;
     log[log.length - 1].content += " " + ft;
@@ -10112,7 +10111,8 @@ function submitPublish() {
     toast("\u5199\u70B9\u4EC0\u4E48\u518D\u53D1\u5427\uFF5E");
     return;
   }
-  var moment = { id: Date.now(), user: activePersona().name, time: "\u521A\u521A", text: t, media: [], liked: false, likes: 0, comments: [] };
+  var mp = meProfile();
+  var moment = { id: Date.now(), user: mp.nickname || "\u6211", avatar: meAvatarUrl(), isMe: true, time: "\u521A\u521A", text: t, media: [], liked: false, likes: 0, comments: [] };
   if (imgPrompt) {
     if (!isConnected("image")) {
       toast("\u672A\u63A5\u5165\u751F\u56FE\u6A21\u578B\uFF0C\u52A8\u6001\u5148\u4E0D\u914D\u56FE");
