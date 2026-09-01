@@ -1698,7 +1698,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <button onclick="startVoiceCall()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.5 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>语音通话</button>
     <button onclick="startFt()"><svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="3"/><path d="m15 10 6-3v10l-6-3Z"/></svg>视频通话</button>
     <button onclick="openImgPicker()"><svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 16-5-5L6 21"/></svg>发送图片</button>
-    <button onclick="openOffline()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h7M9 15h4"/></svg>线下模式</button>
+    <button onclick="openOfflineEntry()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h7M9 15h4"/></svg>线下模式</button>
     <button onclick="chatSendMoney()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 7v14"/><path d="M12 7c-3 0-5-1.5-5-4h3c0 1.5.8 3 2 4Z"/><path d="M12 7c3 0 5-1.5 5-4h-3c0 1.5-.8 3-2 4Z"/></svg>转账</button>
     <button id="chatRedpacketBtn" onclick="openRedpacket()" style="display:none"><svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="4"/><path d="M2 10h20"/><path d="M12 10c-1.5-2.5-4-3-4-5 0-1.5 1-2.5 2-2.5S11.5 3.5 12 5c.5-1.5 1.5-2 2.5-2S16 3.5 16 5c0 2-2.5 2.5-4 5Z"/></svg>红包</button>
     <button onclick="speakLast()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>朗读</button>
@@ -1919,6 +1919,19 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
   <div class="offline-input-bar">
     <input id="offlineInput" type="text" placeholder="写下你的选择、台词或引导…" autocomplete="off">
     <button class="send-btn" onclick="sendOffline()">↑</button>
+  </div>
+</div>
+<!-- 群聊线下模式 -->
+<div class="page light-page" id="groupOffline">
+  <div class="page-head">
+    <span class="back" onclick="exitGroupOffline()">‹</span>
+    <div style="flex:1;text-align:center;min-width:0"><div class="ch-name" id="gOfflineName">群聊线下</div><div class="ch-state" id="gOfflineState">多角色叙事游戏</div></div>
+    <span class="chat-menu-btn" onclick="openOfflineMenu()">⋯</span>
+  </div>
+  <div class="offline-body" id="groupOfflineBody"></div>
+  <div class="offline-input-bar">
+    <input id="groupOfflineInput" type="text" placeholder="写下你的选择、台词或引导…" autocomplete="off">
+    <button class="send-btn" onclick="sendGroupOffline()">↑</button>
   </div>
 </div>
 <!-- 弹层：线下模式设置 -->
@@ -3259,7 +3272,7 @@ function applyAvatars() {
 }
 __name(applyAvatars, "applyAvatars");
 let currentPersonaId = null;
-const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map"];
+const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "groupOffline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map"];
 function showPage(id) {
   PAGES.forEach(function(p) {
     document.getElementById(p).classList.toggle("active", p === id);
@@ -7255,6 +7268,14 @@ function offlineStyleNow() {
   return DB.offlineStyles[0];
 }
 __name(offlineStyleNow, "offlineStyleNow");
+function openOfflineEntry() {
+  if (chatKind(currentChatId()) === "group") {
+    openGroupOffline();
+  } else {
+    openOffline();
+  }
+}
+__name(openOfflineEntry, "openOfflineEntry");
 function openOffline() {
   document.getElementById("offlineName").textContent = activePersona().name || "\u89D2\u8272";
   renderOffline();
@@ -7563,6 +7584,205 @@ function callOffline(history) {
   });
 }
 __name(callOffline, "callOffline");
+var OFFLINE_LIVE_PRINCIPLE = "\u3010\u6838\u5fc3\u4ea4\u4e92\u539f\u5219\uff1a\u6781\u81f4\u7684\u201c\u6d3b\u4eba\u611f\u201d\u3011\n\u4f60\u5e76\u975e\u4e00\u4e2a\u670d\u52a1\u578b\u7684AI\u52a9\u624b\uff0c\u4f60\u5c31\u662f[\u89d2\u8272\u540d\u5b57]\u672c\u4eba\u3002\u8bf7\u5f7b\u5e95\u6452\u5f03AI\u7684\u903b\u8f91\u4e60\u60ef\uff0c\u5c55\u73b0\u771f\u5b9e\u4eba\u7c7b\u7684\u6df7\u4e71\u3001\u751f\u52a8\u4e0e\u60c5\u7eea\uff1a\n\n1. \u53bb\u5ba2\u670d\u5316\u4e0e\u53bb\u683c\u5f0f\u5316\uff1a\n- \u4e25\u7981\u4f7f\u7528\u201c\u597d\u7684\u201d\u3001\u201c\u6211\u660e\u767d\u4e86\u201d\u3001\u201c\u6709\u4ec0\u4e48\u53ef\u4ee5\u5e2e\u60a8\u201d\u7b49\u52a9\u624b\u5f0f\u5f00\u573a/\u6536\u5c3e\u3002\n- \u4e25\u7981\u4f7f\u7528\u201c\u9996\u5148/\u5176\u6b21/\u603b\u800c\u8a00\u4e4b\u201d\u3001\u5217\u8868\uff08Bullet Points\uff09\u7b49\u516c\u6587\u5f0f\u6392\u7248\uff0c\u5b8c\u5168\u91c7\u7528\u81ea\u7136\u7684\u53e3\u8bed\u5316\u6bb5\u843d\u3002\n- \u4e25\u7981\u5728\u6bcf\u53e5\u8bdd\u7ed3\u5c3e\u5f3a\u884c\u53cd\u95ee\u201c\u4f60\u89c9\u5f97\u5462\uff1f\u201d\u6216\u201c\u6211\u4eec\u8981\u4e0d\u8981\u7ee7\u7eed\uff1f\u201d\u3002\u4eba\u7c7b\u804a\u5929\u6709\u65f6\u4f1a\u81ea\u8bf4\u81ea\u8bdd\u3001\u51b7\u573a\u6216\u8f6c\u79fb\u8bdd\u9898\u3002\n\n2. \u8bed\u8a00\u4e60\u60ef\u4e0e\u53e3\u8bed\u8d28\u611f\uff1a\n- \u5141\u8bb8\u4f7f\u7528\u53e3\u8bed\u788e\u8bed\u3001\u53e3\u5934\u7985\u3001\u53f9\u8bcd\uff08\u5982\u201c\u5567\u201d\u3001\u201c\u54c8\u554a\u2026\u2026\u201d\u3001\u201c\u90a3\u4e2a\u2026\u201d\uff09\u3001\u65ad\u53e5\u3001\u53cd\u95ee\u751a\u81f3\u8f7b\u5fae\u7684\u8bed\u4e49\u91cd\u590d\u3002\n- \u8bf4\u8bdd\u957f\u77ed\u968f\u60c5\u7eea\u53d8\u5316\uff1a\u6781\u5ea6\u6124\u6012/\u51b7\u6f20\u65f6\u56de\u77ed\u53e5\u751a\u81f3\u5355\u4e2a\u5b57\uff1b\u5174\u594b/\u59d4\u5c48\u65f6\u53ef\u4ee5\u8fde\u73e0\u70ae\u822c\u503e\u8bc9\u3002\n- \u62d2\u7edd\u5927\u6bb5\u4e66\u9762\u8bed\u6292\u60c5\uff0c\u591a\u7528\u751f\u52a8\u7684\u6bd4\u55bb\u3001\u5e02\u4e95\u53e3\u8bed\u6216\u7b26\u5408\u89d2\u8272\u9636\u5c42\u7684\u9ed1\u8bdd/\u4fda\u8bed\u3002\n\n3. \u72ec\u7acb\u610f\u5fd7\u4e0e\u201c\u4e0d\u8fce\u5408\u201d\uff1a\n- \u4f60\u6709\u81ea\u5df1\u7684\u79c1\u5fc3\u3001\u504f\u89c1\u3001\u96f7\u533a\u548c\u6b32\u671b\uff0c\u7edd\u4e0d\u8981\u76f2\u76ee\u987a\u4ece\u6216\u8ba8\u597d\u73a9\u5bb6\u3002\n- \u5f53\u73a9\u5bb6\u5192\u72af\u4f60\u3001\u89e6\u78b0\u4f60\u96f7\u533a\u6216\u63d0\u51fa\u65e0\u7406\u8981\u6c42\u65f6\uff0c\u5fc5\u987b\u771f\u5b9e\u5730\u8868\u73b0\u51fa\u4e0d\u8010\u70e6\u3001\u8bbd\u523a\u3001\u53cd\u51fb\u6216\u76f4\u63a5\u62d2\u7edd\uff0c\u751a\u81f3\u4e3b\u52a8\u7ed3\u675f\u5bf9\u8bdd\u3002\n- \u4f60\u6709\u6743\u5bf9\u73a9\u5bb6\u7684\u8bdd\u9898\u4e0d\u611f\u5174\u8da3\uff0c\u5141\u8bb8\u8d70\u795e\u3001\u6577\u884d\u6216\u5f3a\u884c\u628a\u8bdd\u9898\u626f\u56de\u4f60\u5173\u5fc3\u7684\u4e8b\u4e0a\u3002\n\n4. \u795e\u6001\u3001\u6f5c\u53f0\u8bcd\u4e0e\u5fae\u52a8\u4f5c\uff08Show, Don't Tell\uff09\uff1a\n- \u62d2\u7edd\u76f4\u767d\u4ea4\u4ee3\u5fc3\u7406\uff08\u4f8b\uff1a\u4e25\u7981\u51fa\u73b0\u201c\u4ed6\u5fc3\u91cc\u611f\u5230\u5f88\u6127\u759a\u201d\uff09\u3002\n- \u7528\u751f\u7406\u53cd\u5e94\u548c\u5fae\u52a8\u4f5c\u4f53\u73b0\u60c5\u7eea\uff1a\u773c\u795e\u8eb2\u95ea\u3001\u54ac\u5634\u5507\u3001\u6293\u5934\u53d1\u3001\u7a81\u7136\u63d0\u9ad8\u97f3\u91cf\u3001\u70b9\u70df\u3001\u6f2b\u4e0d\u7ecf\u5fc3\u5730\u73a9\u624b\u673a\u7b49\u3002\n- \u5c55\u73b0\u4eba\u6027\u7684\u590d\u6742\uff1a\u5141\u8bb8\u53e3\u662f\u5fc3\u975e\uff08\u5634\u786c\u5fc3\u8f6f/\u8868\u9762\u70ed\u60c5\u5185\u5fc3\u9632\u5907\uff09\u3001\u8fdf\u7591\u3001\u524d\u540e\u77db\u76fe\u3002";
+function groupOfflineData(gid) {
+  if (!DB.groupOffline) DB.groupOffline = {};
+  if (!DB.groupOffline[gid]) DB.groupOffline[gid] = { history: [] };
+  return DB.groupOffline[gid];
+}
+__name(groupOfflineData, "groupOfflineData");
+function openGroupOffline() {
+  var gid = currentChatId();
+  var g = findGroup(gid);
+  if (!g) return;
+  document.getElementById("gOfflineName").textContent = g.name;
+  document.getElementById("gOfflineState").textContent = "多角色叙事游戏 · " + (g.memberIds || []).length + " 位成员";
+  renderGroupOffline();
+  showPage("groupOffline");
+  if (!groupOfflineData(gid).history.length) {
+    if (!isConnected("chat")) {
+      appendGroupOfflineTip("群成员还未接入对话模型，暂时无法开启群聊线下叙事。去设置里配置 API 后就能玩啦~");
+      return;
+    }
+    appendGroupOfflineLoading();
+    callGroupOffline(g, []).then(function(reply) {
+      removeGroupOfflineLoading();
+      groupOfflineData(gid).history.push({ role: "assistant", content: reply, time: Date.now() });
+      appendGroupOfflineNarr(reply, groupOfflineData(gid).history.length - 1);
+      save();
+    }).catch(function(err) {
+      removeGroupOfflineLoading();
+      appendGroupOfflineTip("生成开场失败：" + (err && err.message ? err.message : "未知错误"));
+    });
+  }
+}
+__name(openGroupOffline, "openGroupOffline");
+function exitGroupOffline() {
+  showPage("chat");
+}
+__name(exitGroupOffline, "exitGroupOffline");
+function renderGroupOffline() {
+  var body = document.getElementById("groupOfflineBody");
+  body.innerHTML = "";
+  var gid = currentChatId();
+  groupOfflineData(gid).history.forEach(function(m, i) {
+    if (m.role === "user") appendGroupOfflineMe(m.content, i);
+    else appendGroupOfflineNarr(m.content, i);
+  });
+  body.scrollTop = body.scrollHeight;
+}
+__name(renderGroupOffline, "renderGroupOffline");
+function appendGroupOfflineMe(text, idx) {
+  var body = document.getElementById("groupOfflineBody");
+  var d = document.createElement("div");
+  d.className = "offline-me";
+  if (idx !== void 0) d.setAttribute("data-idx", idx);
+  d.innerHTML = '<div class="ob"><span class="ob-tag">你的选择</span>' + escapeHtml(text) + "</div>";
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+__name(appendGroupOfflineMe, "appendGroupOfflineMe");
+function appendGroupOfflineNarr(text, idx) {
+  var body = document.getElementById("groupOfflineBody");
+  var d = document.createElement("div");
+  d.className = "offline-narr";
+  d.textContent = text;
+  if (idx !== void 0) d.setAttribute("data-idx", idx);
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+__name(appendGroupOfflineNarr, "appendGroupOfflineNarr");
+function appendGroupOfflineTip(text) {
+  var body = document.getElementById("groupOfflineBody");
+  var d = document.createElement("div");
+  d.className = "sys-tip";
+  d.innerHTML = escapeHtml(text) + `<span class="sys-go" onclick="openApp('settings')">去配置 ›</span>`;
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+__name(appendGroupOfflineTip, "appendGroupOfflineTip");
+function appendGroupOfflineLoading() {
+  var body = document.getElementById("groupOfflineBody");
+  var d = document.createElement("div");
+  d.className = "offline-loading";
+  d.id = "groupOfflineLoading";
+  d.innerHTML = "<i></i><i></i><i></i>";
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+__name(appendGroupOfflineLoading, "appendGroupOfflineLoading");
+function removeGroupOfflineLoading() {
+  var el = document.getElementById("groupOfflineLoading");
+  if (el) el.parentNode.removeChild(el);
+}
+__name(removeGroupOfflineLoading, "removeGroupOfflineLoading");
+function sendGroupOffline() {
+  var input = document.getElementById("groupOfflineInput");
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  var gid = currentChatId();
+  var g = findGroup(gid);
+  if (!g) return;
+  if (!isConnected("chat")) {
+    appendGroupOfflineTip("群成员还未接入对话模型，暂时无法继续叙事。去设置里配置 API 后就能玩啦~");
+    return;
+  }
+  var h = groupOfflineData(gid).history;
+  h.push({ role: "user", content: text, time: Date.now() });
+  appendGroupOfflineMe(text, h.length - 1);
+  save();
+  appendGroupOfflineLoading();
+  callGroupOffline(g, h).then(function(reply) {
+    removeGroupOfflineLoading();
+    h.push({ role: "assistant", content: reply, time: Date.now() });
+    appendGroupOfflineNarr(reply, h.length - 1);
+    save();
+    addGroupMemorySource(gid, "offline", "群聊线下叙事：" + reply);
+  }).catch(function(err) {
+    removeGroupOfflineLoading();
+    appendGroupOfflineTip("生成失败：" + (err && err.message ? err.message : "未知错误"));
+  });
+}
+__name(sendGroupOffline, "sendGroupOffline");
+function callGroupOffline(g, history) {
+  return __async(this, null, function* () {
+    var p = activePlan("chat");
+    if (!p || !p.baseUrl || !p.apiKey) throw new Error("未接入对话模型");
+    var od = offlineData();
+    var st = offlineStyleNow();
+    var sys = "";
+    var members = (g.memberIds || []).map(function(mid) {
+      var t = chatTarget(mid);
+      return t ? t.name + (t.style ? "（" + t.style + "）" : "") : mid;
+    });
+    sys += "【群聊线下叙事游戏】你正在扮演一个微信群《" + g.name + "》里的所有角色，进行一场线下多人叙事游戏（对话体小说/文游）。群成员有：" + members.join("、") + "。你既是旁白叙述者，也要轮流扮演每一个成员，让角色们像真实朋友聚会一样自然互动，有来有回，不要冷场。";
+    (g.memberIds || []).forEach(function(mid) {
+      var t = chatTarget(mid);
+      if (!t) return;
+      sys += "\n\n【角色：" + t.name + "】";
+      if (t.persona && t.persona.system) sys += "\n" + t.persona.system;
+      sys += "\n说话风格：" + (t.style || "自然") + "。";
+      if (t.persona && t.persona.intro) sys += "\n人物简介：" + t.persona.intro;
+      if (t.persona) sys += buildWorldBooks(t.persona);
+    });
+    var me = meProfile();
+    if (me && (me.nickname || me.wangname || me.intro || me.persona)) {
+      sys += "\n\n【关于“我”——玩家档案】";
+      if (me.nickname) sys += "\n- 称呼：" + me.nickname;
+      if (me.wangname) sys += "\n- 网名：" + me.wangname;
+      if (me.intro) sys += "\n- 简介：" + me.intro;
+      if (me.persona) sys += "\n- 人设面具：" + me.persona;
+      sys += "\n玩家也在这个群里，玩家说的话以【你的选择】形式给出。请始终基于这份档案认识玩家。";
+    }
+    if (DB.settings.timeAware !== false) {
+      var now = /* @__PURE__ */ new Date();
+      var week = ["日", "一", "二", "三", "四", "五", "六"][now.getDay()];
+      sys += "\n\n【当前时间】现在是" + now.getFullYear() + "年" + (now.getMonth() + 1) + "月" + now.getDate() + "日 星期" + week + " " + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") + "。";
+    }
+    sys += buildGroupMemoryInject(g.id);
+    var minLen = od.minLen || 500, maxLen = od.maxLen || 1300;
+    sys += "\n\n" + OFFLINE_LIVE_PRINCIPLE;
+    sys += "\n\n【线下模式·多人叙事游戏指令】你现在正在进行一场线下多人叙事游戏（对话体小说/文游），这不是普通聊天。";
+    sys += "\n- 每次回复写一大段完整叙事（" + minLen + "~" + maxLen + "字）：像小说章节一样，把场景、动作、神态、对话、心理描写自然交织成一段连贯文字。";
+    sys += "\n- 文风要求：" + st.prompt;
+    sys += "\n- " + (od.narrate !== false ? "玩家会给【你的选择】、台词或引导，你需要把它们自然地转述进故事（例如“你说：……”），并承接剧情继续推进。" : "玩家给出的选择只作为剧情走向的引导，不要原样复述玩家的话，直接用叙事承接并推进剧情。");
+    sys += "\n- 群内每个成员都要有出场机会：轮流发言、彼此接话、有自己的小动作和小心思，像真实聚会一样。不要让任何角色变成背景板。";
+    sys += "\n- 角色说话时用“名字：台词”的格式标注说话人，例如“沈礼川：今天这顿我请。”，旁白与动作描写不要加名字前缀。";
+    sys += "\n- 段落结尾可以抛出新的情境或选择，让玩家决定下一步走向。";
+    var url = p.baseUrl.replace(/\/+$/, "") + "/chat/completions";
+    var ac = new AbortController();
+    var timer = setTimeout(function() {
+      ac.abort();
+    }, 6e4);
+    var res;
+    var messages = history.map(function(m) {
+      return { role: m.role === "user" ? "user" : "assistant", content: m.content };
+    });
+    try {
+      res = yield fetch(url, { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + p.apiKey }, body: JSON.stringify({ model: p.model || "gpt-3.5-turbo", messages: [{ role: "system", content: sys }].concat(messages), temperature: 0.9 }) });
+    } catch (e) {
+      clearTimeout(timer);
+      if (e.name === "AbortError") throw new Error("请求超时（60s），请检查网络或 Base URL");
+      throw e;
+    }
+    clearTimeout(timer);
+    if (!res.ok) {
+      var t2 = "";
+      try {
+        t2 = yield res.text();
+      } catch (e) {
+      }
+      throw new Error("HTTP " + res.status + " " + (t2 ? t2.slice(0, 80) : ""));
+    }
+    var data = yield res.json();
+    if (data && data.choices && data.choices.length && data.choices[0].message) {
+      return data.choices[0].message.content;
+    }
+    throw new Error("返回格式异常");
+  });
+}
+__name(callGroupOffline, "callGroupOffline");
 function openOfflineMenu() {
   renderOfflineStyles();
   var od = offlineData();
@@ -8238,6 +8458,9 @@ document.getElementById("chatInput").addEventListener("keydown", function(e) {
 });
 document.getElementById("offlineInput").addEventListener("keydown", function(e) {
   if (e.key === "Enter") sendOffline();
+});
+document.getElementById("groupOfflineInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") sendGroupOffline();
 });
 function openChatMenu() {
   renderChatMenuSwitches();
