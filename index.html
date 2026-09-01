@@ -7610,6 +7610,7 @@ function openGroupOffline() {
       groupOfflineData(gid).history.push({ role: "assistant", content: reply, time: Date.now() });
       appendGroupOfflineNarr(reply, groupOfflineData(gid).history.length - 1);
       save();
+      persistGroupOfflineMemory(gid, reply);
     }).catch(function(err) {
       removeGroupOfflineLoading();
       appendGroupOfflineTip("生成开场失败：" + (err && err.message ? err.message : "未知错误"));
@@ -7676,6 +7677,21 @@ function removeGroupOfflineLoading() {
   if (el) el.parentNode.removeChild(el);
 }
 __name(removeGroupOfflineLoading, "removeGroupOfflineLoading");
+function persistGroupOfflineMemory(gid, reply) {
+  addGroupMemorySource(gid, "offline", "群聊线下叙事：" + reply);
+  var g = findGroup(gid);
+  if (!g) return;
+  (g.memberIds || []).forEach(function(mid) {
+    var t = chatTarget(mid);
+    var pa = null;
+    if (t && t.persona) pa = t.persona;
+    else if (t && t.originPersonaId) pa = findPersona(t.originPersonaId);
+    if (pa && pa.groupSync && pa.groupSync.enabled && pa.groupSync.groupIds && pa.groupSync.groupIds.indexOf(gid) > -1) {
+      addMemorySourceFor(pa, "offline", "群聊线下叙事（" + g.name + "）：" + reply);
+    }
+  });
+}
+__name(persistGroupOfflineMemory, "persistGroupOfflineMemory");
 function sendGroupOffline() {
   var input = document.getElementById("groupOfflineInput");
   var text = input.value.trim();
@@ -7698,7 +7714,7 @@ function sendGroupOffline() {
     h.push({ role: "assistant", content: reply, time: Date.now() });
     appendGroupOfflineNarr(reply, h.length - 1);
     save();
-    addGroupMemorySource(gid, "offline", "群聊线下叙事：" + reply);
+    persistGroupOfflineMemory(gid, reply);
   }).catch(function(err) {
     removeGroupOfflineLoading();
     appendGroupOfflineTip("生成失败：" + (err && err.message ? err.message : "未知错误"));
