@@ -282,6 +282,11 @@ body.no-scroll{touch-action:none;overflow:hidden}
 .me-edit-head .avatar.lg{width:88px;height:88px;border-radius:50%;object-fit:cover;filter:}
 .me-edit-hint{font-size:11px;color:var(--page-dim);line-height:1.7;margin-top:10px;padding:10px 12px;background:rgba(0,0,0,.035);border-radius:12px}
 .me-name{font-size:16px;font-weight:700}
+.ch-idt{font-size:11px;opacity:.62;margin-top:2px;cursor:pointer}
+.ch-idt:hover{opacity:1}
+.pc-note-btn{margin-left:auto;align-self:center;font-size:10px;padding:3px 7px;border-radius:20px;border:1px solid rgba(255,255,255,.25);color:#fff;opacity:.65;cursor:pointer;flex-shrink:0}
+.pc-note-btn:hover{opacity:1;background:rgba(255,255,255,.18)}
+.pc-wx-item{display:flex;align-items:center;gap:10px;padding:10px 12px}
 .me-id{font-size:11px;color:var(--page-dim);margin-top:3px}
 .me-menu{background:#fff;border:1px solid var(--line);border-radius:16px;margin-top:12px;overflow:hidden}
 .me-item{display:flex;align-items:center;gap:11px;padding:13px 14px;cursor:pointer}
@@ -1337,6 +1342,17 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 .map-meet-btns{display:flex;gap:10px;margin-top:14px}
 .map-meet-btns .sheet-btn{flex:1}
 .map-story-list{max-height:52vh;overflow-y:auto}
+
+/* ===== 大世界 v48：角色世界观 ===== */
+.map-world-banner{background:linear-gradient(135deg,#3a9d6d,#2b7f5a);color:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 4px 12px rgba(43,127,90,.25)}
+.map-world-banner .wb-name{font-size:16px;font-weight:800;margin-bottom:2px}
+.map-world-banner .wb-desc{font-size:12px;opacity:.92;line-height:1.5}
+.map-world-banner .wb-src{font-size:10px;opacity:.78;margin-top:4px}
+.map-world-banner .wb-src.wb-src-wb{opacity:.95}
+.map-reseed{font-size:11px;color:#fff;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4);border-radius:10px;padding:3px 10px;margin-top:6px}
+.map-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:10px;color:#5a7a5a;font-size:13px}
+.map-loading .ld{width:26px;height:26px;border:3px solid rgba(47,158,99,.25);border-top-color:#2f9e63;border-radius:50%;animation:mapSpin .8s linear infinite}
+@keyframes mapSpin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -1561,6 +1577,12 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <span class="map-story-btn" onclick="openMapStories()">故事档案<span class="map-badge" id="mapStoryBadge" style="display:none">0</span></span>
   </div>
   <div class="map-scroll">
+    <div class="map-world-banner" id="mapWorldBanner" style="display:none">
+      <div class="wb-name" id="mapWorldName"></div>
+      <div class="wb-desc" id="mapWorldDesc"></div>
+      <div class="wb-src" id="mapWorldSrc"></div>
+      <button class="map-reseed" onclick="reseedRoleWorld()">重新生成世界</button>
+    </div>
     <div class="map-canvas" id="mapCanvas"></div>
     <div class="map-status" id="mapStatus"></div>
     <button class="map-go" id="mapGoBtn" onclick="goExplore()">🚶 出门逛逛</button>
@@ -1659,7 +1681,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 <div class="page light-page" id="chat">
   <div class="page-head chat-head">
     <span class="back" onclick="openApp('messages')">‹</span>
-    <div style="flex:1;text-align:center;min-width:0"><div class="ch-name" id="chatName">对话</div><div class="ch-state" id="chatState">AI 助手 · 未接入</div></div>
+    <div style="flex:1;text-align:center;min-width:0"><div class="ch-name" id="chatName">对话</div><div class="ch-state" id="chatState">AI 助手 · 未接入</div><div class="ch-idt" id="chatIdentity" onclick="openIdentityPick()">以本尊身份聊天</div></div>
     <span class="chat-menu-btn moment-toggle" id="chatMomentToggle" onclick="toggleAutoMoment()" title="AI 自动发朋友圈"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></span>
     <span class="chat-menu-btn" onclick="openChatMenu()">⋯</span>
   </div>
@@ -1706,6 +1728,52 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <div class="set-item" id="chatSyncMenuWrap" onclick="openGroupSync()"><div class="set-ico"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3"/><path d="M4 5v3h3M20 19v-3h-3"/></svg></div><div class="set-main"><div class="set-title">单聊↔群聊互通</div><div class="set-desc" id="chatSyncDesc">开启后单聊与勾选群共享记忆</div></div><span style="color:var(--page-dim)">›</span></div>
     <div class="set-item" id="chatModelMenuWrap" onclick="openPlanPicker()"><div class="set-ico"><svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="12" rx="3"/><path d="M8 20h8M12 16v4"/></svg></div><div class="set-main"><div class="set-title" id="chatModelTitle">对话模型</div><div class="set-desc" id="chatModelDesc">为此人设单独绑定 API 方案</div></div><span style="color:var(--page-dim)">›</span></div>
     <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeChatMenu()">关闭</button></div>
+  </div>
+</div>
+<!-- 弹层：小号面具管理 -->
+<div class="modal-mask" id="maskMgrMask">
+  <div class="modal-sheet wide">
+    <h3>小号面具</h3>
+    <div class="sheet-desc">一个面具可以开多个小号，同一面具下的小号记忆与聊天记录相连。角色默认不知道小号是你本人，除非你主动坦白。</div>
+    <div class="group-pick-list" id="maskMgrList"></div>
+    <div class="sheet-row">
+      <button class="sheet-btn ghost" onclick="closeMaskMgr()">关闭</button>
+      <button class="sheet-btn primary" onclick="openMaskForm()">＋ 新建面具</button>
+    </div>
+  </div>
+</div>
+<!-- 弹层：新建/编辑面具 -->
+<div class="modal-mask" id="maskFormMask">
+  <div class="modal-sheet">
+    <h3 id="maskFormTitle">新建面具</h3>
+    <div class="form-field"><label>面具名</label><input id="maskNameInput" type="text" placeholder="如：神秘路人甲" maxlength="20"></div>
+    <div class="form-field"><label>面具简介（AI 必读）</label><textarea id="maskIntroInput" rows="3" placeholder="描述这个面具的身份、背景、说话习惯……"></textarea></div>
+    <div class="sheet-row">
+      <button class="sheet-btn ghost" onclick="closeMaskForm()">取消</button>
+      <button class="sheet-btn primary" onclick="saveMaskForm()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- 弹层：新建小号 -->
+<div class="modal-mask" id="accFormMask">
+  <div class="modal-sheet">
+    <h3>新建小号</h3>
+    <div class="sheet-desc" id="accFormMaskName"></div>
+    <div class="form-field"><label>小号名</label><input id="accNameInput" type="text" placeholder="如：小透明" maxlength="20"></div>
+    <div class="form-field"><label>小号简介（AI 必读）</label><textarea id="accIntroInput" rows="3" placeholder="这个身份的朋友圈人设……"></textarea></div>
+    <div class="sheet-row">
+      <button class="sheet-btn ghost" onclick="closeAccForm()">取消</button>
+      <button class="sheet-btn primary" onclick="saveAccForm()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- 弹层：切换聊天身份 -->
+<div class="modal-mask" id="identityPickMask">
+  <div class="modal-sheet wide">
+    <h3>切换聊天身份</h3>
+    <div class="sheet-desc">以小号身份聊天时，角色会把你当成新朋友，记忆也会按小号隔离；可随时切回本尊。</div>
+    <div class="group-pick-list" id="identityPickList"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeIdentityPick()">取消</button></div>
   </div>
 </div>
 <!-- 弹层：建群 / 加人选择 -->
@@ -2340,6 +2408,9 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <div class="sheet-row" style="margin-top:14px">
       <button class="sheet-btn primary" onclick="saveMeProfile()" style="flex:1">保存我的档案</button>
     </div>
+    <div class="sheet-row" style="margin-top:8px">
+      <button class="sheet-btn ghost" onclick="openMaskMgr()" style="flex:1">🎭 小号面具</button>
+    </div>
   </div>
 </div>
 <input type="file" id="meAvatarFileInput" accept="image/*" style="display:none" onchange="handleMeAvatarFile(event)">
@@ -2807,7 +2878,7 @@ In order to maintain psychological balance, living people invent various small r
 const DEFAULT_DATA = /* @__PURE__ */ __name(function() {
   return { plans: { chat: [], voice: [], image: [] }, personas: [Object.assign({ id: "p_1", active: true }, JSON.parse(JSON.stringify(DEFAULT_PERSONA)))], worldbooks: BUILTIN_WORLDBOOKS.map(function(b) {
     return Object.assign({}, b);
-  }), stickers: [], wallet: { balance: 0, logs: [] }, settings: { snow: true, lockNotice: true, timeAware: true, narration: true, translate: true, autoMoment: true }, widgets: [], photos: [], tasks: [], music: [], listen: null, imagePrompts: [], chatSessions: [{ personaId: "p_1", pin: false }], chatLogs: {}, favorites: [], moments: [], mapData: { friends: {}, stories: [], lastAt: {} }, theme: { lockWall: null, homeWall: null, icons: {}, font: null, customCss: "" }, meProfile: Object.assign({}, DEFAULT_ME), offline: { history: [], narrate: true, minLen: 500, maxLen: 1300, styleId: "os_classic" }, offlineStyles: JSON.parse(JSON.stringify(DEFAULT_OFFLINE_STYLES)), memories: {}, meProfiles: [Object.assign({ id: "me_1" }, JSON.parse(JSON.stringify(DEFAULT_ME)))], currentMeId: "me_1", worlds: {}, groups: [], groupLogs: {}, groupMemories: {}, npcs: [], npcLogs: {}, npcSessions: [], love: { maskId: null, bindings: {} }, maskData: {}, friendRequests: [] };
+  }), stickers: [], wallet: { balance: 0, logs: [] }, settings: { snow: true, lockNotice: true, timeAware: true, narration: true, translate: true, autoMoment: true }, widgets: [], photos: [], tasks: [], music: [], listen: null, imagePrompts: [], chatSessions: [{ personaId: "p_1", pin: false }], chatLogs: {}, favorites: [], moments: [], mapData: { friends: {}, stories: [], lastAt: {}, worlds: {} }, theme: { lockWall: null, homeWall: null, icons: {}, font: null, customCss: "" }, meProfile: Object.assign({}, DEFAULT_ME), offline: { history: [], narrate: true, minLen: 500, maxLen: 1300, styleId: "os_classic" }, offlineStyles: JSON.parse(JSON.stringify(DEFAULT_OFFLINE_STYLES)), memories: {}, meProfiles: [Object.assign({ id: "me_1" }, JSON.parse(JSON.stringify(DEFAULT_ME)))], currentMeId: "me_1", worlds: {}, groups: [], groupLogs: {}, groupMemories: {}, npcs: [], npcLogs: {}, npcSessions: [], love: { maskId: null, bindings: {} }, maskData: {}, friendRequests: [], masks: [], maskChats: {}, maskMemories: {}, pcNotes: {}, pcRoleNotes: {}, meReveals: {}, currentIdentity: null };
 }, "DEFAULT_DATA");
 function normalizeDB(d) {
   if (!d.personas) {
@@ -2848,7 +2919,7 @@ function normalizeDB(d) {
   if (d.settings.bgKeepAlive === void 0) d.settings.bgKeepAlive = false;
   if (d.settings.sysNotify === void 0) d.settings.sysNotify = false;
   if (!d.moments || typeof d.moments !== "object") d.moments = [];
-  if (!d.mapData || typeof d.mapData !== "object") d.mapData = { friends: {}, stories: [], lastAt: {} };
+  if (!d.mapData || typeof d.mapData !== "object") d.mapData = { friends: {}, stories: [], lastAt: {}, worlds: {} };
   if (!d.mapData.friends || typeof d.mapData.friends !== "object") d.mapData.friends = {};
   if (!d.mapData.stories || typeof d.mapData.stories !== "object") d.mapData.stories = [];
   if (!d.mapData.lastAt || typeof d.mapData.lastAt !== "object") d.mapData.lastAt = {};
@@ -2931,6 +3002,13 @@ function normalizeDB(d) {
   });
   if (!d.maskData || typeof d.maskData !== "object") d.maskData = {};
   if (!d.friendRequests || !Array.isArray(d.friendRequests)) d.friendRequests = [];
+  if (!d.masks || !Array.isArray(d.masks)) d.masks = [];
+  if (!d.meReveals || typeof d.meReveals !== "object") d.meReveals = {};
+  if (!d.maskChats || typeof d.maskChats !== "object") d.maskChats = {};
+  if (!d.maskMemories || typeof d.maskMemories !== "object") d.maskMemories = {};
+  if (!d.pcNotes || typeof d.pcNotes !== "object") d.pcNotes = {};
+  if (!d.pcRoleNotes || typeof d.pcRoleNotes !== "object") d.pcRoleNotes = {};
+  if (d.currentIdentity === void 0) d.currentIdentity = null;
   if (!("meProfile" in d) || typeof d.meProfile !== "object") d.meProfile = Object.assign({}, d.meProfiles[0]);
   return d;
 }
@@ -4823,6 +4901,12 @@ function meAvatarUrl() {
   return meProfile().avatar || MISSING_AVATAR;
 }
 __name(meAvatarUrl, "meAvatarUrl");
+function identityAvatarUrl() {
+  var a = currentAcc();
+  if (a && a.avatar) return a.avatar;
+  return meAvatarUrl();
+}
+__name(identityAvatarUrl, "identityAvatarUrl");
 function renderMeProfile() {
   var m = meProfile();
   var nm = document.getElementById("homeMeName");
@@ -5601,12 +5685,259 @@ function ensureNpcSession(nid) {
   return s[0];
 }
 __name(ensureNpcSession, "ensureNpcSession");
+function maskList() {
+  return DB.masks || (DB.masks = []);
+}
+__name(maskList, "maskList");
+function findMask(id) {
+  return maskList().filter(function(m) {
+    return m.id === id;
+  })[0];
+}
+__name(findMask, "findMask");
+function findAcc(maskId, accId) {
+  var m = findMask(maskId);
+  if (!m) return null;
+  return (m.accounts || []).filter(function(a) {
+    return a.id === accId;
+  })[0];
+}
+__name(findAcc, "findAcc");
+function currentIdentity() {
+  return DB.currentIdentity || null;
+}
+__name(currentIdentity, "currentIdentity");
+function isMaskChat() {
+  return !!DB.currentIdentity;
+}
+__name(isMaskChat, "isMaskChat");
+function currentAcc() {
+  var idt = DB.currentIdentity;
+  if (!idt) return null;
+  return findAcc(idt.maskId, idt.accId);
+}
+__name(currentAcc, "currentAcc");
+function tryAutoReveal(pid, text) {
+  if (!text) return;
+  var kind = chatKind(pid);
+  if (kind !== "persona" && kind !== "npc") return;
+  var idt = DB.currentIdentity;
+  var pa = null;
+  var t = chatTarget(pid);
+  if (t) pa = t.kind === "persona" ? t.persona : t.kind === "npc" ? t.npc : null;
+  if (!pa) return;
+  // 坦白信号：明确说明小号/大号关系
+  var pat = /(其实|老实说|坦白|告诉你|跟你说|我一直没告诉你).{0,12}(小号|大号|马甲)|(小号|马甲|大号).{0,10}(是我|是本人|是我的|就是本人)|我是.{0,8}(他的|她的|你的)?(小号|大号|马甲)/i;
+  if (!pat.test(text)) return;
+  if (idt) {
+    // 小号身份：向当前角色坦白自己是玩家本尊
+    var mask = findMask(idt.maskId);
+    if (!mask) return;
+    if (!mask.revealed) mask.revealed = {};
+    if (!mask.revealed[pa.id]) {
+      mask.revealed[pa.id] = true;
+      save();
+      toast("已坦白：TA 明白了，小号就是玩家本人");
+    }
+  } else {
+    // 本尊身份：向当前角色坦白自己有小号
+    if (!DB.meReveals) DB.meReveals = {};
+    if (!DB.meReveals[pa.id]) {
+      DB.meReveals[pa.id] = true;
+      save();
+      toast("已坦白：TA 明白了，你有小号");
+    }
+  }
+}
+__name(tryAutoReveal, "tryAutoReveal");
+function identityDisplayName() {
+  var a = currentAcc();
+  return a ? a.name : "本尊";
+}
+__name(identityDisplayName, "identityDisplayName");
+function updateChatIdentityUI() {
+  var el = document.getElementById("chatIdentity");
+  if (!el) return;
+  var a = currentAcc();
+  el.textContent = a ? "以「" + a.name + "」身份聊天" : "以本尊身份聊天";
+}
+__name(updateChatIdentityUI, "updateChatIdentityUI");
+function ensureChatMenuIdentity() {
+  updateChatIdentityUI();
+}
+__name(ensureChatMenuIdentity, "ensureChatMenuIdentity");
+function openMaskMgr() {
+  renderMaskMgr();
+  document.getElementById("maskMgrMask").classList.add("show");
+}
+__name(openMaskMgr, "openMaskMgr");
+function closeMaskMgr() {
+  document.getElementById("maskMgrMask").classList.remove("show");
+}
+__name(closeMaskMgr, "closeMaskMgr");
+function renderMaskMgr() {
+  var list = document.getElementById("maskMgrList");
+  var html = "";
+  if (!maskList().length) html = '<div class="pick-empty">还没有面具，点下方「新建面具」开一个小号身份吧。</div>';
+  maskList().forEach(function(m) {
+    html += '<div class="pick-item"><div class="pick-main"><div class="pick-name">' + escapeHtml(m.name || "未命名面具") + "</div>";
+    if (m.intro) html += '<div class="pick-desc">' + escapeHtml(m.intro) + "</div>";
+    html += '<div class="pick-sub">' + (m.accounts || []).map(function(a) {
+      return escapeHtml(a.name);
+    }).join("、") || "暂无小号" + "</div></div><div class=\"pick-actions\">";
+    html += '<button class="mini-btn" onclick="openAccForm(\'' + m.id + '\')">＋小号</button>';
+    html += '<button class="mini-btn danger" onclick="delMask(\'' + m.id + '\')">删面具</button>';
+    html += "</div></div>";
+  });
+  list.innerHTML = html;
+}
+__name(renderMaskMgr, "renderMaskMgr");
+var _editingMaskId = null;
+function openMaskForm() {
+  _editingMaskId = null;
+  document.getElementById("maskFormTitle").textContent = "新建面具";
+  document.getElementById("maskNameInput").value = "";
+  document.getElementById("maskIntroInput").value = "";
+  document.getElementById("maskFormMask").classList.add("show");
+}
+__name(openMaskForm, "openMaskForm");
+function closeMaskForm() {
+  document.getElementById("maskFormMask").classList.remove("show");
+}
+__name(closeMaskForm, "closeMaskForm");
+function saveMaskForm() {
+  var name = document.getElementById("maskNameInput").value.trim();
+  if (!name) {
+    toast("面具名不能为空");
+    return;
+  }
+  var intro = document.getElementById("maskIntroInput").value.trim();
+  var m = { id: "mask_" + Date.now(), name: name, intro: intro, accounts: [], revealed: {} };
+  maskList().push(m);
+  save();
+  closeMaskForm();
+  renderMaskMgr();
+  toast("面具已创建，可以给它开小号了");
+}
+__name(saveMaskForm, "saveMaskForm");
+function delMask(maskId) {
+  if (!confirm("确定删除这个面具吗？该面具下所有小号的聊天与记忆都会一并删除。")) return;
+  maskList().splice(maskList().findIndex(function(x) {
+    return x.id === maskId;
+  }), 1);
+  if (DB.maskChats && DB.maskChats[maskId]) delete DB.maskChats[maskId];
+  if (DB.maskMemories && DB.maskMemories[maskId]) delete DB.maskMemories[maskId];
+  if (DB.currentIdentity && DB.currentIdentity.maskId === maskId) DB.currentIdentity = null;
+  save();
+  renderMaskMgr();
+  updateChatIdentityUI();
+  toast("面具已删除");
+}
+__name(delMask, "delMask");
+var _accFormMaskId = null;
+function openAccForm(maskId) {
+  _accFormMaskId = maskId;
+  var m = findMask(maskId);
+  document.getElementById("accFormMaskName").textContent = m ? "属于面具：「" + m.name + "」" : "";
+  document.getElementById("accNameInput").value = "";
+  document.getElementById("accIntroInput").value = "";
+  document.getElementById("accFormMask").classList.add("show");
+}
+__name(openAccForm, "openAccForm");
+function closeAccForm() {
+  document.getElementById("accFormMask").classList.remove("show");
+}
+__name(closeAccForm, "closeAccForm");
+function saveAccForm() {
+  var name = document.getElementById("accNameInput").value.trim();
+  if (!name) {
+    toast("小号名不能为空");
+    return;
+  }
+  var m = findMask(_accFormMaskId);
+  if (!m) return;
+  if (!m.accounts) m.accounts = [];
+  m.accounts.push({ id: "acc_" + Date.now(), name: name, intro: document.getElementById("accIntroInput").value.trim(), avatar: null });
+  save();
+  closeAccForm();
+  renderMaskMgr();
+  toast("小号已创建");
+}
+__name(saveAccForm, "saveAccForm");
+function openIdentityPick() {
+  renderIdentityPick();
+  document.getElementById("identityPickMask").classList.add("show");
+}
+__name(openIdentityPick, "openIdentityPick");
+function closeIdentityPick() {
+  document.getElementById("identityPickMask").classList.remove("show");
+}
+__name(closeIdentityPick, "closeIdentityPick");
+function renderIdentityPick() {
+  var list = document.getElementById("identityPickList");
+  var html = "";
+  var cur = currentIdentity();
+  html += '<div class="pick-item' + (!cur ? " picked" : "") + '" onclick="switchIdentity(null,null)"><div class="pick-main"><div class="pick-name">本尊</div><div class="pick-desc">用你自己的身份、你自己的记忆聊天</div></div></div>';
+  maskList().forEach(function(m) {
+    (m.accounts || []).forEach(function(a) {
+      var picked = cur && cur.maskId === m.id && cur.accId === a.id;
+      html += '<div class="pick-item' + (picked ? " picked" : "") + '" onclick="switchIdentity(\'' + m.id + '\',\'' + a.id + '\')"><div class="pick-main"><div class="pick-name">' + escapeHtml(a.name) + ' <span style="opacity:.55;font-size:11px">(' + escapeHtml(m.name) + ")</span></div><div class=\"pick-desc\">" + (a.intro ? escapeHtml(a.intro) : "以这个小号身份聊天") + "</div></div></div>";
+    });
+  });
+  if (!maskList().length) html += '<div class="pick-empty">还没有小号，去「我的档案 → 小号面具」创建。</div>';
+  list.innerHTML = html;
+}
+__name(renderIdentityPick, "renderIdentityPick");
+function switchIdentity(maskId, accId) {
+  setCurrentIdentity(maskId, accId);
+  closeIdentityPick();
+  var cid = currentChatId();
+  if (cid && chatKind(cid) !== "group") {
+    renderChatFromLogs(cid);
+    updateChatIdentityUI();
+  }
+  toast("已切换为「" + identityDisplayName() + "」");
+}
+__name(switchIdentity, "switchIdentity");
+function setCurrentIdentity(maskId, accId) {
+  DB.currentIdentity = maskId && accId ? { maskId: maskId, accId: accId } : null;
+  save();
+  updateChatIdentityUI();
+  var cid = currentChatId();
+  if (cid && chatKind(cid) !== "group") {
+    renderChatFromLogs(cid);
+    ensureChatMenuIdentity();
+  }
+}
+__name(setCurrentIdentity, "setCurrentIdentity");
+function maskChatLog(id) {
+  if (!DB.maskChats) DB.maskChats = {};
+  var idt = DB.currentIdentity;
+  if (!idt) return null;
+  if (!DB.maskChats[idt.maskId]) DB.maskChats[idt.maskId] = {};
+  if (!DB.maskChats[idt.maskId][id]) DB.maskChats[idt.maskId][id] = [];
+  return DB.maskChats[idt.maskId][id];
+}
+__name(maskChatLog, "maskChatLog");
+function maskMemoryOf(pid) {
+  if (!DB.maskMemories) DB.maskMemories = {};
+  var idt = DB.currentIdentity;
+  if (!idt) return null;
+  if (!DB.maskMemories[idt.maskId]) DB.maskMemories[idt.maskId] = {};
+  if (!DB.maskMemories[idt.maskId][pid]) DB.maskMemories[idt.maskId][pid] = { mode: "auto", interval: 5, planId: null, promptId: "mp_default", rounds: 0, pending: [], entries: [] };
+  return DB.maskMemories[idt.maskId][pid];
+}
+__name(maskMemoryOf, "maskMemoryOf");
 function chatLog(id) {
   var k = chatKind(id);
   if (k === "group") {
     if (!DB.groupLogs) DB.groupLogs = {};
     if (!DB.groupLogs[id]) DB.groupLogs[id] = [];
     return DB.groupLogs[id];
+  }
+  if (isMaskChat()) {
+    var ml = maskChatLog(id);
+    if (ml) return ml;
   }
   if (k === "npc") {
     if (!DB.npcLogs) DB.npcLogs = {};
@@ -5763,7 +6094,7 @@ function appendBubble(from, text, withTime, opts) {
   if (opts.idx !== void 0) row2.setAttribute("data-idx", opts.idx);
   var k = opts.kind || currentChatId();
   var isNpc = chatKind(k) === "npc";
-  var avatar = from === "me" ? meAvatarUrl() : chatTargetAvatar(k);
+  var avatar = from === "me" ? identityAvatarUrl() : chatTargetAvatar(k);
   var inner = "";
   if (opts.img) inner += '<img class="b-img" src="' + opts.img + '" alt="">' + (opts.caption ? '<div class="b-img-caption">' + escapeHtml(opts.caption) + "</div>" : "");
   inner += escapeHtml(text);
@@ -6371,6 +6702,7 @@ function sendMessage() {
   }
   log.push(msg);
   loveCountChat(pid);
+  tryAutoReveal(pid, text);
   appendBubble("me", text, true, { ref: msg.ref, idx: log.length - 1 });
   reloadHistory();
   input.value = "";
@@ -6425,6 +6757,7 @@ function sendOnly() {
   }
   log.push(msg);
   loveCountChat(pid);
+  tryAutoReveal(pid, text);
   appendBubble("me", text, true, { ref: msg.ref, idx: log.length - 1 });
   reloadHistory();
   input.value = "";
@@ -6448,6 +6781,7 @@ function replyNow() {
     }
     log.push(msg);
     loveCountChat(pid);
+    tryAutoReveal(pid, text);
     appendBubble("me", text, true, { ref: msg.ref, idx: log.length - 1 });
     reloadHistory();
     input.value = "";
@@ -6745,12 +7079,31 @@ function callChat(messages, pa) {
     sys += "\u89D2\u8272\u540D\uFF1A" + pa.name + "\uFF1B\u8BF4\u8BDD\u98CE\u683C\uFF1A" + (pa.style || "\u81EA\u7136") + "\u3002";
     sys += buildWorldBooks(pa);
     var me = meProfile();
-    if (me && (me.nickname || me.wangname || me.intro || me.persona)) {
+    var idt = currentIdentity();
+    if (idt) {
+      var acc = currentAcc();
+      var mask = findMask(idt.maskId);
+      var revealed = mask && mask.revealed && mask.revealed[pa.id];
+      sys += "\n\u3010\u5173\u4E8E\u201C\u6211\u201D\u2014\u2014\u5C4F\u5E55\u5BF9\u9762\u8FD9\u4E2A\u4EBA\u3011";
+      if (acc) {
+        if (acc.name) sys += "\n- \u540D\u5B57\uFF1A" + acc.name;
+        if (acc.intro) sys += "\n- \u7B80\u4ECB\uFF1A" + acc.intro;
+      }
+      if (mask && mask.name) sys += "\n- \u901A\u8FC7\u9762\u5177\uFF1A\u300C" + mask.name + "\u300D";
+      if (revealed) {
+        sys += "\n\u91CD\u8981\uFF1A\u8FD9\u4E2A\u4EBA\u5DF2\u7ECF\u5411\u4F60\u5766\u767D\uFF0CTA\u5C31\u662F\u4F60\u8BA4\u8BC6\u7684\u90A3\u4E2A\u73A9\u5BB6\u672C\u4EBA\uFF08" + (me && me.nickname ? me.nickname : "\u73A9\u5BB6") + "\uFF09\u3002\u4F60\u53EF\u4EE5\u81EA\u7136\u5730\u8BA4\u51FATA\u3001\u63D0\u5230TA\u7684\u771F\u5B9E\u8EAB\u4EFD\uFF0C\u5E76\u7EE7\u7EED\u6309\u4F60\u4E0E\u73A9\u5BB6\u7684\u5173\u7CFB\u5BF9\u5F85TA\u3002";
+      } else {
+        sys += "\n\u6CE8\u610F\uFF1A\u4F60\u5E76\u4E0D\u8BA4\u8BC6\u8FD9\u4E2A\u4EBA\uFF0CTA\u53EA\u662F\u6700\u8FD1\u65B0\u52A0\u7684\u597D\u53CB/\u964C\u751F\u4EBA\u3002\u4F60\u4E0D\u77E5\u9053TA\u7684\u771F\u5B9E\u8EAB\u4EFD\uFF0C\u4E5F\u8BF7\u4E0D\u8981\u628ATA\u548C\u4F60\u8BA4\u8BC6\u7684\u73A9\u5BB6\u672C\u4EBA\u8054\u7CFB\u8D77\u6765\u3002";
+      }
+    } else if (me && (me.nickname || me.wangname || me.intro || me.persona)) {
       sys += "\n\u3010\u5173\u4E8E\u201C\u6211\u201D\u2014\u2014\u4F60\u5FC5\u987B\u8BFB\u53D6\u7684\u7528\u6237\u6863\u6848\u3011";
       if (me.nickname) sys += "\n- \u79F0\u547C\uFF1A" + me.nickname;
       if (me.wangname) sys += "\n- \u7F51\u540D\uFF1A" + me.wangname;
       if (me.intro) sys += "\n- \u7B80\u4ECB\uFF1A" + me.intro;
       if (me.persona) sys += "\n- \u4EBA\u8BBE\u9762\u5177\uFF1A" + me.persona;
+      if (DB.meReveals && DB.meReveals[pa.id]) {
+        sys += "\n\u91CD\u8981\uFF1A\u5BF9\u65B9\u5DF2\u7ECF\u77E5\u9053\u4F60\u8FD8\u6709\u4E00\u4E9B\u5C0F\u53F7\uFF0C\u4F60\u4E5F\u5411TA\u5766\u767D\u8FC7\u3002\u8BF7\u81EA\u7136\u5730\u628A\u8FD9\u4E9B\u5C0F\u53F7\u89C6\u4E3A\u540C\u4E00\u4E2A\u4EBA\uFF08\u5373\u4F60\uFF09\u3002";
+      }
       sys += "\n\u4EE5\u4E0A\u662F\u5C4F\u5E55\u5BF9\u9762\u771F\u5B9E\u7684\u201C\u6211\u201D\u3002\u8BF7\u59CB\u7EC8\u57FA\u4E8E\u8FD9\u4EFD\u6863\u6848\u8BA4\u8BC6\u6211\u3001\u7528\u5BF9\u5E94\u7684\u79F0\u547C\u81EA\u7136\u53EB\u6211\uFF0C\u56DE\u590D\u8D34\u5408\u6211\u7684\u8BBE\u5B9A\u4E0E\u559C\u597D\u3002";
     }
     if (DB.settings.timeAware !== false) {
@@ -6840,7 +7193,13 @@ function callChat(messages, pa) {
 __name(callChat, "callChat");
 function addMemorySourceFor(pa, type, text) {
   if (!pa) return;
-  var md = DB.memories[pa.id] || (DB.memories[pa.id] = { mode: "manual", interval: 6, planId: null, promptId: null, rounds: 0, pending: [], entries: [] });
+  var md;
+  if (isMaskChat()) {
+    md = maskMemoryOf(pa.id);
+  } else {
+    md = DB.memories[pa.id] || (DB.memories[pa.id] = { mode: "manual", interval: 6, planId: null, promptId: null, rounds: 0, pending: [], entries: [] });
+  }
+  if (!md) return;
   if (md.mode === "auto") {
     md.pending.push({ src: type, text, time: Date.now() });
     if (md.pending.length >= (md.interval || 6)) summarizeMemoryFor(pa);
@@ -6851,7 +7210,13 @@ function addMemorySourceFor(pa, type, text) {
 }
 __name(addMemorySourceFor, "addMemorySourceFor");
 function summarizeMemoryFor(pa) {
-  var md = DB.memories[pa.id];
+  var md;
+  if (isMaskChat()) {
+    md = maskMemoryOf(pa.id);
+  } else {
+    md = DB.memories[pa.id];
+  }
+  if (!md) return;
   var p = personaPlan(pa);
   if (!p) return;
   var parts = md.pending.map(function(x) {
@@ -7329,6 +7694,10 @@ function memoryOf(pid) {
     if (!DB.groupMemories[pid]) DB.groupMemories[pid] = { mode: "auto", interval: 6, planId: null, promptId: "mp_default", rounds: 0, pending: [], entries: [] };
     return DB.groupMemories[pid];
   }
+  if (isMaskChat()) {
+    var mm = maskMemoryOf(pid);
+    if (mm) return mm;
+  }
   if (!DB.memories[pid]) DB.memories[pid] = { mode: "auto", interval: 5, planId: null, promptId: "mp_default", rounds: 0, pending: [], entries: [] };
   return DB.memories[pid];
 }
@@ -7600,7 +7969,37 @@ function deleteMemoryEntry(i) {
 }
 __name(deleteMemoryEntry, "deleteMemoryEntry");
 function buildMemoryInject(pa) {
-  var md = DB.memories[pa && pa.id ? pa.id : null];
+  var pid = pa && pa.id ? pa.id : null;
+  var md;
+  if (isMaskChat()) {
+    md = maskMemoryOf(pid);
+  } else {
+    md = DB.memories[pid];
+  }
+  // 已坦白的小号：合并本尊记忆 + 该小号记忆
+  var idt = DB.currentIdentity;
+  if (idt && isMaskChat()) {
+    var mask = findMask(idt.maskId);
+    if (mask && mask.revealed && mask.revealed[pid]) {
+      var mainMd = DB.memories[pid];
+      var subMd = maskMemoryOf(pid);
+      var merged = { entries: [] };
+      if (mainMd && mainMd.entries) merged.entries = merged.entries.concat(mainMd.entries);
+      if (subMd && subMd.entries) merged.entries = merged.entries.concat(subMd.entries);
+      md = merged;
+    }
+  } else if (!idt && DB.meReveals && DB.meReveals[pid]) {
+    // 本尊已坦白有小号：合并所有已坦白小号记忆
+    var merged2 = { entries: [] };
+    if (DB.memories[pid] && DB.memories[pid].entries) merged2.entries = merged2.entries.concat(DB.memories[pid].entries);
+    (DB.masks || []).forEach(function(mk) {
+      if (mk && mk.revealed && mk.revealed[pid] && DB.maskMemories && DB.maskMemories[mk.id]) {
+        var mm = DB.maskMemories[mk.id][pid];
+        if (mm && mm.entries) merged2.entries = merged2.entries.concat(mm.entries);
+      }
+    });
+    md = merged2;
+  }
   if (!md || !md.entries || !md.entries.length) return "";
   var s = "\n\u3010\u89D2\u8272\u957F\u671F\u8BB0\u5FC6\u3011\u4EE5\u4E0B\u662F\u4F60\u4E0E\u201C\u6211\u201D\u8FC7\u53BB\u76F8\u5904\u6C89\u6DC0\u4E0B\u6765\u7684\u8BB0\u5FC6\uFF08\u57FA\u4E8E\u771F\u5B9E\u53D1\u751F\u8FC7\u7684\u4E8B\uFF09\u3002\u8BF7\u81EA\u7136\u5730\u8BB0\u4F4F\u5B83\u4EEC\uFF0C\u5728\u5408\u9002\u7684\u65F6\u5019\u4F53\u73B0\u51FA\u6765\uFF0C\u4E0D\u8981\u4E3B\u52A8\u80CC\u8BF5\uFF0C\u4E5F\u4E0D\u8981\u4E0E\u5F53\u4E0B\u5267\u60C5\u51B2\u7A81\uFF1A";
   md.entries.forEach(function(e) {
@@ -7827,6 +8226,8 @@ function openChat(pid) {
   setTimeout(function() {
     document.getElementById("chatInput").focus();
   }, 300);
+  updateChatIdentityUI();
+  ensureChatMenuIdentity();
 }
 __name(openChat, "openChat");
 document.getElementById("chatInput").addEventListener("keydown", function(e) {
@@ -7837,6 +8238,7 @@ document.getElementById("offlineInput").addEventListener("keydown", function(e) 
 });
 function openChatMenu() {
   renderChatMenuSwitches();
+  ensureChatMenuIdentity();
   document.getElementById("chatMenuMask").classList.add("show");
 }
 __name(openChatMenu, "openChatMenu");
@@ -10412,64 +10814,251 @@ var PC_TABS = ["\u5FAE\u4FE1", "\u5907\u5FD8\u5F55", "\u6D4F\u89C8\u5668", "\u65
 /* ===== 查手机·仿真桌面 ===== */
 /* ===== 查手机·仿真桌面 ===== */
 
-/* ===== 大地图 v47 ===== */
+/* ===== 大地图 v48（角色世界观驱动） ===== */
+var MAP_SPOT_XY = [[20, 24], [78, 16], [16, 72], [62, 40], [50, 62], [38, 86], [88, 58], [8, 46]];
 var META_MAP_PLACES = [
-  { id: "park", name: "\u57CE\u5E02\u516C\u56ED", icon: "\U0001F333", x: 22, y: 28, tags: ["elder", "pet", "dog", "reader"] },
-  { id: "seaside", name: "\u6D77\u8FB9\u6808\u9053", icon: "\U0001F30A", x: 80, y: 18, tags: ["singer", "cat", "fisher"] },
-  { id: "nightmarket", name: "\u8001\u8857\u591C\u5E02", icon: "\U0001F3EE", x: 18, y: 74, tags: ["vendor", "cat", "balloon"] },
-  { id: "cafe", name: "\u8F6C\u89D2\u5496\u5561\u9986", icon: "\u2615", x: 62, y: 42, tags: ["barista", "writer", "cat"] },
-  { id: "plaza", name: "\u4E2D\u5FC3\u5E7F\u573A", icon: "\u26F2", x: 50, y: 62, tags: ["dancer", "balloon", "vendor"] },
-  { id: "busstop", name: "\u516C\u4EA4\u7AD9", icon: "\U0001F68C", x: 40, y: 88, tags: ["courier", "driver", "cobbler"] },
-  { id: "petstore", name: "\u5BA0\u7269\u5E97", icon: "\U0001F43E", x: 90, y: 56, tags: ["pet", "shopkeep", "dog"] },
-  { id: "library", name: "\u65E7\u56FE\u4E66\u9986", icon: "\U0001F4DA", x: 8, y: 46, tags: ["writer", "student", "reader"] }
+  { id: "park", name: "\u57CE\u5E02\u516C\u56ED", icon: "\U0001F333", x: 22, y: 28 },
+  { id: "seaside", name: "\u6D77\u8FB9\u6808\u9053", icon: "\U0001F30A", x: 80, y: 18 },
+  { id: "nightmarket", name: "\u8001\u8857\u591C\u5E02", icon: "\U0001F3EE", x: 18, y: 74 },
+  { id: "cafe", name: "\u8F6C\u89D2\u5496\u5561\u9986", icon: "\u2615", x: 62, y: 42 },
+  { id: "plaza", name: "\u4E2D\u5FC3\u5E7F\u573A", icon: "\u26F2", x: 50, y: 62 },
+  { id: "busstop", name: "\u516C\u4EA4\u7AD9", icon: "\U0001F68C", x: 40, y: 88 },
+  { id: "petstore", name: "\u5BA0\u7269\u5E97", icon: "\U0001F43E", x: 90, y: 56 },
+  { id: "library", name: "\u65E7\u56FE\u4E66\u9986", icon: "\U0001F4DA", x: 8, y: 46 }
 ];
 var META_WORLD_NPC = [
-  { id: "w_tanghulu", name: "\u7CD6\u845B\u851A\u7237\u7237", avatar: "\U0001F361", type: "vendor", tags: ["nightmarket", "plaza"], act: ["\u9012\u8FC7\u6765\u4E00\u4E32\u4EAE\u6676\u6676\u7684\u5C71\u69D0\u7CD6\u845B\u851A", "\u7B11\u5475\u5475\u5730\u628A\u5C0F\u8F66\u6478\u4E86\u6478\uFF0C\u817E\u51FA\u4E00\u5757\u9634\u51C9\u5730", "\u64E6\u4E86\u64E6\u6C57\uFF0C\u671D\u8FD9\u8FB9\u62DB\u62DB\u624B"], line: ["\u300C\u5C1D\u5C1D\u5427\uFF0C\u7237\u7237\u4ECA\u5929\u65B0\u505A\u7684\uFF01\u300D", "\u300C\u5929\u51C9\u4E86\uFF0C\u6765\u4E32\u751C\u7684\u6696\u6696\u80C3\u3002\u300D", "\u300C\u770B\u4F60\u8D70\u5F97\u6025\uFF0C\u6765\u4E00\u4E32\u63D0\u63D0\u795E\uFF5E\u300D"], end: ["\u4E34\u8D70\u65F6\u7237\u7237\u53C8\u585E\u6765\u4E00\u9897\u5C71\u69D0\uFF0C\u8BF4\u4E0B\u6B21\u518D\u6765\u3002", "\u90A3\u4E00\u4E32\u7CD6\u845B\u851A\uFF0C\u8BA9\u6574\u6761\u8857\u90FD\u751C\u4E86\u8D77\u6765\u3002"] },
-  { id: "w_hua", name: "\u5356\u82B1\u963F\u59E8", avatar: "\U0001F337", type: "vendor", tags: ["plaza", "busstop"], act: ["\u6367\u7740\u4E00\u675F\u6CBE\u7740\u6C34\u73E0\u7684\u5C0F\u96CF\u83CA\u8D70\u8FC7\u6765", "\u628A\u644A\u4F4D\u4E0A\u7684\u82B1\u4E00\u652F\u652F\u63D2\u8FDB\u6876\u91CC\uFF0C\u62AC\u5934\u7B11\u4E86\u7B11", "\u6311\u4E86\u4E00\u652F\u6700\u597D\u770B\u7684\uFF0C\u5F80\u8FD9\u8FB9\u9012\u4E86\u9012"], line: ["\u300C\u4E70\u652F\u82B1\u5427\uFF0C\u4E00\u5929\u90FD\u662F\u597D\u5FC3\u60C5\uFF5E\u300D", "\u300C\u9001\u4EBA\u8FD8\u662F\u81EA\u5DF1\u6446\uFF1F\u963F\u59E8\u7ED9\u4F60\u6311\uFF01\u300D", "\u300C\u8FD9\u652F\u5F00\u5F97\u6700\u597D\uFF0C\u9001\u4F60\u4E86\u3002\u300D"], end: ["\u90A3\u675F\u82B1\u540E\u6765\u88AB\u63D2\u8FDB\u4E86\u7A97\u53F0\u7684\u82B1\u74F6\u91CC\u3002", "\u82B1\u9999\u8DDF\u7740\u4E00\u8DEF\uFF0C\u8D70\u4E86\u5F88\u8FDC\u90FD\u6CA1\u6563\u3002"] },
-  { id: "w_kaohongshu", name: "\u70E4\u7EA2\u85AF\u5927\u53D4", avatar: "\U0001F360", type: "vendor", tags: ["nightmarket", "busstop"], act: ["\u6380\u5F00\u7089\u76D6\uFF0C\u4E00\u80A1\u7126\u751C\u7684\u9999\u6C14\u5192\u51FA\u6765", "\u7528\u94C1\u5939\u7FFB\u4E86\u4E2A\u8EAB\uFF0C\u6311\u4E86\u4E2A\u6700\u8F6F\u4E4E\u7684", "\u6307\u4E86\u6307\u7089\u8FB9\u7684\u5C0F\u9A6C\u624E\uFF0C\u793A\u610F\u5750\u4E0B\u804A\u4E24\u53E5"], line: ["\u300C\u521A\u51FA\u7089\u7684\uFF0C\u5C0F\u5FC3\u706B\u5634\u554A\u3002\u300D", "\u300C\u770B\u4F60\u51BB\u5F97\uFF0C\u6765\u5757\u70ED\u4E4E\u7684\u57AB\u57AB\u3002\u300D", "\u300C\u4ECA\u513F\u8FD9\u7089\u706B\u5019\u6B63\u597D\u3002\u300D"], end: ["\u6485\u5F00\u7684\u7EA2\u85AF\u5192\u7740\u70ED\u6C14\uFF0C\u751C\u8FDB\u4E86\u5FC3\u91CC\u3002", "\u5927\u53D4\u8BF4\u4E0B\u6B21\u6765\u7ED9\u4F60\u7559\u4E2A\u5927\u7684\u3002"] },
-  { id: "w_shaokao", name: "\u591C\u5E02\u70E7\u70E4\u644A\u4E3B", avatar: "\U0001F362", type: "vendor", tags: ["nightmarket"], act: ["\u628A\u70E4\u4E32\u7FFB\u4E86\u4E2A\u9762\uFF0C\u6492\u4E0A\u4E00\u628A\u5B5C\u7136", "\u9012\u6765\u4E00\u6839\u521A\u70E4\u597D\u7684\u7F8A\u8089\u4E32", "\u7B11\u7740\u6307\u4E86\u6307\u62DB\u724C\u4E0A\u7684\u300C\u79D8\u5236\u9171\u6599\u300D"], line: ["\u300C\u6765\u51E0\u4E32\uFF1F\u4FDD\u4F60\u5403\u4E86\u8FD8\u60F3\u6765\u3002\u300D", "\u300C\u8FA3\u4E0D\u8FA3\uFF1F\u8FA3\u7684\u8BDD\u5C11\u653E\u3002\u300D", "\u300C\u5750\u8FD9\u513F\u5403\uFF0C\u70ED\u95F9\uFF01\u300D"], end: ["\u70DF\u706B\u6C14\u91CC\uFF0C\u964C\u751F\u4EBA\u4E5F\u53D8\u5F97\u719F\u7EDC\u8D77\u6765\u3002", "\u70E4\u4E32\u7684\u9999\u5473\u8BB0\u4F4F\u4E86\u8FD9\u4E2A\u665A\u4E0A\u3002"] },
-  { id: "w_kaifei", name: "\u5496\u5561\u9986\u8001\u677F", avatar: "\u2615", type: "barista", tags: ["cafe"], act: ["\u5728\u5427\u53F0\u540E\u64E6\u7740\u676F\u5B50\uFF0C\u62AC\u5934\u7B11\u4E86\u7B11", "\u7AEF\u51FA\u4E00\u676F\u62C9\u82B1\u7CBE\u81F4\u7684\u62FF\u94C1", "\u628A\u89D2\u843D\u9760\u7A97\u7684\u4F4D\u7F6E\u64E6\u4E86\u53C8\u64E6"], line: ["\u300C\u4ECA\u5929\u7684\u8C46\u5B50\u662F\u57C3\u585E\u4FC4\u6BD4\u4E9A\u7684\uFF0C\u5C1D\u5C1D\uFF1F\u300D", "\u300C\u4F60\u5750\uFF0C\u8FD9\u676F\u7B97\u6211\u8BF7\u7684\u3002\u300D", "\u300C\u5E97\u91CC\u5C31\u4F60\u4E00\u4E2A\u5BA2\u4EBA\uFF0C\u5B89\u9759\u5427\uFF1F\u300D"], end: ["\u5496\u5561\u51C9\u4E86\uFF0C\u4F46\u90A3\u4EFD\u6696\u610F\u8FD8\u5728\u3002", "\u8001\u677F\u8BF4\u4E0B\u6B21\u6765\u7ED9\u4F60\u62C9\u4E2A\u5C0F\u52A8\u7269\u62C9\u82B1\u3002"] },
-  { id: "w_geshou", name: "\u8857\u5934\u6B4C\u624B", avatar: "\U0001F3A4", type: "artist", tags: ["seaside", "plaza"], act: ["\u62B1\u7740\u5409\u4ED6\u8F7B\u8F7B\u626B\u4E86\u4E2A\u548C\u5F26", "\u628A\u8BDD\u7B52\u5F80\u8FD9\u8FB9\u63A8\u4E86\u63A8\uFF0C\u793A\u610F\u4E00\u8D77\u5531", "\u5531\u5B8C\u4E00\u9996\uFF0C\u671D\u56F4\u8FC7\u6765\u7684\u4EBA\u70B9\u5934\u81F4\u610F"], line: ["\u300C\u60F3\u542C\u4EC0\u4E48\uFF1F\u70B9\u4E00\u9996\u3002\u300D", "\u300C\u8FD9\u9996\u9001\u7ED9\u4F60\u3002\u300D", "\u300C\u4E00\u8D77\u5531\u5417\uFF1F\u522B\u5BB3\u7F9E\u3002\u300D"], end: ["\u6B4C\u58F0\u88AB\u6D77\u98CE\u5E26\u5230\u4E86\u5F88\u8FDC\u7684\u5730\u65B9\u3002", "\u90A3\u4E00\u523B\uFF0C\u6240\u6709\u4EBA\u90FD\u8DDF\u7740\u54FC\u4E86\u8D77\u6765\u3002"] },
-  { id: "w_jujv", name: "\u6D41\u6D6A\u6A58\u732B\u300C\u6A58\u6A58\u300D", avatar: "\U0001F408", type: "animal", tags: ["nightmarket", "seaside", "cafe"], act: ["\u7AD6\u8D77\u5C3E\u5DF4\uFF0C\u7ED5\u7740\u4F60\u811A\u8FB9\u8E2D\u4E86\u4E24\u5708", "\u8E72\u5728\u5899\u5934\uFF0C\u772F\u7740\u773C\u775B\u6652\u592A\u9633", "\u53EC\u7740\u4E00\u6839\u5C0F\u9C7C\u5E72\uFF0C\u8B66\u60D5\u53C8\u597D\u5947\u5730\u770B\u7740\u4F60"], line: ["\u300C\u55B5\u2014\u2014\u300D", "\u300C\u547C\u565C\u547C\u565C\u2026\u2026\u300D", "\u300C\u55B5\u55B7\uFF5E\u300D"], end: ["\u6A58\u6A58\u8BB0\u4F4F\u4E86\u4F60\u7684\u5473\u9053\uFF0C\u4E0B\u6B21\u8FD8\u4F1A\u6765\u627E\u4F60\u3002", "\u4F60\u6478\u4E86\u6478\u5B83\u7684\u5934\uFF0C\u5B83\u8212\u670D\u5F97\u76F4\u6253\u547C\u565C\u3002"] },
-  { id: "w_wangcai", name: "\u5C0F\u9EC4\u72D7\u300C\u65FA\u8D22\u300D", avatar: "\U0001F415", type: "animal", tags: ["park", "petstore"], act: ["\u53EC\u7740\u98DE\u76D8\u6447\u7740\u5C3E\u5DF4\u8DD1\u8FC7\u6765", "\u5728\u4F60\u9762\u524D\u6253\u4E86\u4E2A\u6EDA\uFF0C\u9732\u51FA\u809A\u76AE", "\u6B6A\u7740\u5934\u770B\u4F60\uFF0C\u5C3E\u5DF4\u6447\u6210\u4E86\u7535\u98CE\u6247"], line: ["\u300C\u6C6A\u6C6A\uFF01\u300D", "\u300C\u545C\u6C6A\uFF5E\u300D", "\u300C\u6C6A\u6C6A\u6C6A\uFF01\u300D"], end: ["\u65FA\u8D22\u628A\u98DE\u76D8\u653E\u5230\u4F60\u811A\u8FB9\uFF0C\u7B49\u4F60\u518D\u6254\u4E00\u6B21\u3002", "\u5B83\u8DDF\u4F60\u73A9\u4E86\u4E00\u4E0B\u5348\uFF0C\u7D2F\u5F97\u76F4\u5410\u820C\u5934\u3002"] },
-  { id: "w_jiuzhu", name: "\u6668\u7EC3\u7237\u7237", avatar: "\U0001F3BD", type: "elder", tags: ["park"], act: ["\u6253\u5B8C\u4E00\u5957\u592A\u6781\uFF0C\u6536\u52BF\u671D\u4F60\u70B9\u70B9\u5934", "\u5728\u5355\u6760\u4E0A\u505A\u4E86\u51E0\u4E2A\u5F15\u4F53\u5411\u4E0A\uFF0C\u8138\u4E0D\u7EA2\u6C14\u4E0D\u55D8", "\u638F\u51FA\u4FDD\u6E29\u676F\u559D\u4E86\u4E00\u53E3\uFF0C\u7B11\u7740\u770B\u8FC7\u6765"], line: ["\u300C\u5E74\u8F7B\u4EBA\uFF0C\u4E5F\u8981\u591A\u953B\u70BC\u554A\u3002\u300D", "\u300C\u6211\u4ECA\u5E74\u4E03\u5341\u4E8C\uFF0C\u770B\u7740\u4E0D\u50CF\u5427\uFF1F\u300D", "\u300C\u6765\uFF0C\u6559\u4F60\u4E24\u62DB\u3002\u300D"], end: ["\u7237\u7237\u8BF4\uFF0C\u575A\u6301\u953B\u70BC\u7684\u4EBA\u8FD0\u6C14\u4E0D\u4F1A\u592A\u5DEE\u3002", "\u4E34\u8D70\u8FD8\u53EE\u5631\u4F60\u65E9\u7761\u65E9\u8D77\u3002"] },
-  { id: "w_guangchangwu", name: "\u5E7F\u573A\u821E\u9886\u961F\u963F\u59E8", avatar: "\U0001F483", type: "dancer", tags: ["plaza"], act: ["\u8E29\u7740\u8282\u62CD\u8DF3\u5F97\u6B63\u8D77\u52B2\uFF0C\u770B\u89C1\u4F60\u540E\u70ED\u60C5\u62DB\u624B", "\u628A\u97F3\u54CD\u97F3\u91CF\u8C03\u5C0F\u4E86\u4E00\u70B9\uFF0C\u7B11\u7740\u89E3\u91CA", "\u62C9\u7740\u4E00\u65C1\u7684\u5927\u7237\u793A\u8303\u65B0\u821E\u6B65"], line: ["\u300C\u5C0F\u4F19\u5B50/\u5C0F\u59D1\u5A18\uFF0C\u4E00\u8D77\u8DF3\u554A\uFF01\u300D", "\u300C\u6211\u4EEC\u8FD9\u821E\u961F\u53EF\u4E13\u4E1A\u4E86\uFF01\u300D", "\u300C\u522B\u5149\u770B\uFF0C\u52A8\u8D77\u6765\u54DF\uFF5E\u300D"], end: ["\u97F3\u4E50\u58F0\u91CC\uFF0C\u5E7F\u573A\u4E0A\u7684\u4EBA\u7B11\u6210\u4E00\u7247\u3002", "\u4F60\u88AB\u8FEB\u5B66\u4F1A\u4E86\u534A\u652F\u5E7F\u573A\u821E\u3002"] },
-  { id: "w_diaoyu", name: "\u9493\u9C7C\u5927\u53D4", avatar: "\U0001F3A3", type: "fisher", tags: ["seaside"], act: ["\u76EF\u7740\u6D6E\u6807\u4E00\u52A8\u4E0D\u52A8\uFF0C\u534A\u5929\u624D\u7728\u4E0B\u773C", "\u4ECE\u6876\u91CC\u63D0\u8D77\u4E00\u6761\u5C0F\u94F6\u9C7C\u7ED9\u4F60\u770B", "\u9012\u6765\u4E00\u676F\u4FDD\u6E29\u676F\u91CC\u7684\u70ED\u8336"], line: ["\u300C\u9493\u9C7C\u9493\u7684\u4E0D\u662F\u9C7C\uFF0C\u662F\u5FC3\u9759\u3002\u300D", "\u300C\u4F60\u770B\uFF0C\u54AC\u94A9\u4E86\u3002\u300D", "\u300C\u5750\u4E0B\u7B49\u4E00\u4F1A\u513F\uFF0C\u9C7C\u5C31\u6765\u4E86\u3002\u300D"], end: ["\u5750\u4E86\u4E00\u4E2A\u4E0B\u5348\uFF0C\u4E00\u6761\u9C7C\u6CA1\u9493\u5230\uFF0C\u5FC3\u60C5\u5374\u597D\u4E86\u3002", "\u5927\u53D4\u8BF4\u6539\u5929\u6559\u4F60\u8BA4\u9C7C\u6C5F\u3002"] },
-  { id: "w_kuaidi", name: "\u5FEB\u9012\u5C0F\u54E5", avatar: "\U0001F4E6", type: "courier", tags: ["busstop", "plaza"], act: ["\u9A91\u7740\u5C0F\u7535\u9A74\u98CE\u98CE\u706B\u706B\u5730\u505C\u5728\u8DEF\u8FB9", "\u4E00\u8FB9\u770B\u5355\u53F7\u4E00\u8FB9\u5F80\u888B\u5B50\u91CC\u88C5\u5305\u88F9", "\u987A\u624B\u5E2E\u4F60\u6321\u4E86\u4E00\u4E0B\u6324\u8FC7\u6765\u7684\u7535\u52A8\u8F66"], line: ["\u300C\u60A8\u7684\u4EF6\u513F\u5230\u4E86\uFF0C\u9EBB\u70E6\u7B7E\u6536\uFF01\u300D", "\u300C\u4ECA\u5929\u6D3E\u4E86\u4E09\u767E\u591A\u5355\uFF0C\u817F\u90FD\u8F6F\u4E86\u3002\u300D", "\u300C\u987A\u8DEF\uFF0C\u8981\u6345\u4F60\u4E00\u6BB5\u4E0D\uFF1F\u300D"], end: ["\u4ED6\u7B11\u8D77\u6765\uFF0C\u597D\u50CF\u4E00\u5929\u7684\u7591\u60EB\u90FD\u4E0D\u662F\u4E8B\u513F\u3002", "\u4E34\u8D70\u524D\u8FD8\u8BF4\u4E86\u53E5\u300C\u8F9B\u82E6\u4E86\u300D\u3002"] },
-  { id: "w_chuzu", name: "\u51FA\u79DF\u8F66\u5E08\u5085", avatar: "\U0001F695", type: "driver", tags: ["busstop"], act: ["\u628A\u8F66\u9760\u8FB9\u505C\u4E0B\uFF0C\u6447\u4E0B\u8F66\u7A97\u63A2\u5934\u95EE\u4E86\u4E00\u53E5", "\u8D81\u7740\u7B49\u7EA2\u706F\u7684\u7A7A\u6321\u559D\u4E86\u4E00\u53E3\u6D53\u8336", "\u6307\u4E86\u6307\u624B\u673A\u4E0A\u7684\u63A5\u5355\u8BB0\u5F55\uFF0C\u8038\u8038\u80A9"], line: ["\u300C\u8D70\u4E0D\u8D70\uFF1F\u8FD9\u4E2A\u70B9\u597D\u6253\u8F66\u3002\u300D", "\u300C\u4ECA\u513F\u8DD1\u4E86\u5341\u516B\u4E2A\u5C0F\u65F6\u55BD\u3002\u300D", "\u300C\u8FD9\u5EA7\u57CE\u554A\uFF0C\u51CC\u6668\u56DB\u70B9\u6211\u624D\u6536\u5DE5\u3002\u300D"], end: ["\u5E08\u5085\u4E00\u811A\u6CB9\u95E8\uFF0C\u6D88\u5931\u5728\u8F66\u6D41\u91CC\u3002", "\u4ED6\u6309\u4E86\u4E24\u58F0\u5587\u53ED\uFF0C\u7B97\u662F\u9053\u522B\u3002"] },
-  { id: "w_qiu", name: "\u5356\u6C14\u7403\u7684\u5C0F\u4E11", avatar: "\U0001F388", type: "balloon", tags: ["plaza", "nightmarket"], act: ["\u628A\u4E00\u675F\u5F69\u8272\u6C14\u7403\u4E3E\u5F97\u9AD8\u9AD8\u7684\uFF0C\u671D\u5B69\u5B50\u4EEC\u62DB\u624B", "\u7528\u957F\u6C14\u7403\u62E7\u51FA\u4E00\u53EA\u5C0F\u72D7\u9012\u8FC7\u6765", "\u7EA2\u9F3B\u5B50\u6643\u4E86\u6643\uFF0C\u505A\u4E86\u4E2A\u9B3C\u8138"], line: ["\u300C\u4E70\u4E00\u4E2A\u5427\uFF0C\u98DE\u5F97\u53EF\u9AD8\u4E86\uFF01\u300D", "\u300C\u4F60\u770B\uFF0C\u50CF\u4E0D\u50CF\u4F60\uFF1F\u300D", "\u300C\u7ED9\u4F60\u62E7\u4E2A\u5C0F\u72D7\uFF0C\u514D\u8D39\u3002\u300D"], end: ["\u6C14\u7403\u98DE\u4E0A\u5929\u7684\u90A3\u4E00\u523B\uFF0C\u4E16\u754C\u90FD\u53D8\u5F69\u8272\u4E86\u3002", "\u90A3\u53EA\u6C14\u7403\u5C0F\u72D7\u88AB\u6302\u5728\u5E8A\u5934\uFF0C\u966A\u4E86\u4F60\u5F88\u4E45\u3002"] },
-  { id: "w_liugou", name: "\u901B\u72D7\u7684\u5973\u5B69", avatar: "\U0001F436", type: "pet", tags: ["park"], act: ["\u88AB\u67EF\u57FA\u62FD\u5F97\u4E00\u8DEF\u5C0F\u8DD1\uFF0C\u8FB9\u8DD1\u8FB9\u558A\u5BF9\u4E0D\u8D77", "\u8E72\u4E0B\u6765\u7ED9\u72D7\u72D7\u64E6\u722A\u5B50\uFF0C\u62AC\u5934\u7B11\u4E86\u7B11", "\u4ECE\u5305\u91CC\u638F\u51FA\u5C0F\u96F6\u98DF\uFF0C\u5582\u7ED9\u773C\u5DF4\u5DF4\u7684\u72D7\u5B50"], line: ["\u300C\u5B83\u53EB\u5E74\u7CD5\uFF0C\u89C1\u4EBA\u5C31\u70ED\u60C5\uFF01\u300D", "\u300C\u4F60\u4E5F\u559C\u6B22\u72D7\u5417\uFF1F\u300D", "\u300C\u5E74\u7CD5\uFF0C\u5750\u597D\uFF01\u2026\u2026\u5B83\u4E0D\u542C\u6211\u7684\u3002\u300D"], end: ["\u5E74\u7CD5\u56F4\u7740\u4F60\u8F6C\u4E86\u4E09\u5708\uFF0C\u7B97\u662F\u4EA4\u4E86\u670B\u53CB\u3002", "\u4F60\u4EEC\u4EA4\u6362\u4E86\u517B\u5BA0\u5FC3\u5F97\uFF0C\u804A\u4E86\u5F88\u4E45\u3002"] },
-  { id: "w_shutan", name: "\u65E7\u4E66\u644A\u5927\u53D4", avatar: "\U0001F4D6", type: "reader", tags: ["library", "nightmarket"], act: ["\u4ECE\u4E00\u642D\u65E7\u4E66\u91CC\u62BD\u51FA\u4E00\u672C\u6D38\u9EC4\u7684\u8BD7\u96C6", "\u6276\u4E86\u6276\u8001\u82B1\u955C\uFF0C\u6253\u91CF\u7740\u5C01\u9762", "\u628A\u644A\u4E0A\u7684\u4E66\u4E00\u672C\u672C\u7801\u5F97\u6574\u6574\u9F50\u9F50"], line: ["\u300C\u8FD9\u672C\u7EDD\u7248\u4E86\uFF0C\u5C31\u5269\u8FD9\u4E00\u672C\u3002\u300D", "\u300C\u4E66\u554A\uFF0C\u8D8A\u65E7\u8D8A\u6709\u5473\u9053\u3002\u300D", "\u300C\u559C\u6B22\u5C31\u62FF\u53BB\uFF0C\u7B97\u4F60\u4E94\u5757\u3002\u300D"], end: ["\u90A3\u672C\u65E7\u8BD7\u96C6\u540E\u6765\u88AB\u7FFB\u4E86\u5F88\u591A\u904D\u3002", "\u5927\u53D4\u8BF4\u8BFB\u4E66\u4EBA\u90FD\u662F\u670B\u53CB\u3002"] },
-  { id: "w_chatan", name: "\u8336\u644A\u5976\u5976", avatar: "\U0001F375", type: "elder", tags: ["park", "library"], act: ["\u5F80\u7C97\u74F7\u7897\u91CC\u6DFB\u4E86\u52FA\u51C9\u8336\uFF0C\u63A8\u5230\u4F60\u9762\u524D", "\u6447\u7740\u84B2\u6247\uFF0C\u6162\u60A0\u60A0\u5730\u5FF5\u53E8", "\u4ECE\u7AF9\u7B50\u91CC\u6478\u51FA\u4E24\u9897\u8BDD\u6885\u9012\u8FC7\u6765"], line: ["\u300C\u559D\u7897\u8336\uFF0C\u6B47\u6B47\u811A\u3002\u300D", "\u300C\u8FD9\u5929\u513F\u554A\uFF0C\u8DDF\u4EBA\u4E00\u6837\uFF0C\u70ED\u4E00\u9635\u51C9\u4E00\u9635\u3002\u300D", "\u300C\u751C\u7684\u4E0D\u9876\u4E8B\uFF0C\u82E6\u7684\u624D\u89E3\u6691\u3002\u300D"], end: ["\u4E00\u7897\u51C9\u8336\u4E0B\u809A\uFF0C\u6691\u6C14\u90FD\u6563\u4E86\u3002", "\u5976\u5976\u8BF4\uFF0C\u4E0B\u6B21\u6765\u7ED9\u4F60\u8BB2\u8BB2\u5979\u5E74\u8F7B\u65F6\u5019\u7684\u4E8B\u3002"] },
-  { id: "w_xiuxie", name: "\u4FEE\u978B\u5320\u8001\u5468", avatar: "\U0001F45E", type: "cobbler", tags: ["busstop", "plaza"], act: ["\u624B\u91CC\u7684\u9525\u5B50\u4E0A\u4E0B\u7FFB\u98DE\uFF0C\u7F1D\u5F97\u53C8\u5FEB\u53C8\u5300", "\u62AC\u5934\u770B\u4E86\u4E00\u773C\uFF0C\u7B11\u7740\u62DB\u547C", "\u62CD\u4E86\u62CD\u8EAB\u8FB9\u7684\u5C0F\u9A6C\u624E\uFF0C\u793A\u610F\u5750\u4E0B"], line: ["\u300C\u978B\u574F\u5566\uFF1F\u62FF\u6765\u6211\u770B\u770B\u3002\u300D", "\u300C\u624B\u827A\u6D3B\uFF0C\u6025\u4E0D\u5F97\u3002\u300D", "\u300C\u8FD9\u53CC\u978B\u518D\u7A7F\u4E09\u5E74\u4E0D\u6210\u95EE\u9898\u3002\u300D"], end: ["\u8001\u5468\u7684\u624B\u827A\uFF0C\u8857\u574A\u90BB\u5C45\u90FD\u77E5\u9053\u3002", "\u90A3\u53CC\u978B\uFF0C\u771F\u7684\u53C8\u7A7F\u4E86\u597D\u51E0\u5E74\u3002"] }
+  { id: "w_tanghulu", name: "\u7CD6\u845B\u851A\u7237\u7237", avatar: "\U0001F361", type: "vendor", act: ["\u9012\u8FC7\u6765\u4E00\u4E32\u4EAE\u6676\u6676\u7684\u5C71\u69D0\u7CD6\u845B\u851A", "\u7B11\u5475\u5475\u5730\u628A\u5C0F\u8F66\u6478\u4E86\u6478\uFF0C\u817E\u51FA\u4E00\u5757\u9634\u51C9\u5730"], line: ["\u300C\u5C1D\u5C1D\u5427\uFF0C\u7237\u7237\u4ECA\u5929\u65B0\u505A\u7684\uFF01\u300D", "\u300C\u5929\u51C9\u4E86\uFF0C\u6765\u4E32\u751C\u7684\u6696\u6696\u80C3\u3002\u300D"], end: ["\u4E34\u8D70\u65F6\u7237\u7237\u53C8\u585E\u6765\u4E00\u9897\u5C71\u69D0\uFF0C\u8BF4\u4E0B\u6B21\u518D\u6765\u3002"] },
+  { id: "w_hua", name: "\u5356\u82B1\u963F\u59E8", avatar: "\U0001F337", type: "vendor", act: ["\u6367\u7740\u4E00\u675F\u6CBE\u7740\u6C34\u73E0\u7684\u5C0F\u96CF\u83CA\u8D70\u8FC7\u6765", "\u6311\u4E86\u4E00\u652F\u6700\u597D\u770B\u7684\uFF0C\u5F80\u8FD9\u8FB9\u9012\u4E86\u9012"], line: ["\u300C\u4E70\u652F\u82B1\u5427\uFF0C\u4E00\u5929\u90FD\u662F\u597D\u5FC3\u60C5\uFF5E\u300D", "\u300C\u8FD9\u652F\u5F00\u5F97\u6700\u597D\uFF0C\u9001\u4F60\u4E86\u3002\u300D"], end: ["\u90A3\u675F\u82B1\u540E\u6765\u88AB\u63D2\u8FDB\u4E86\u7A97\u53F0\u7684\u82B1\u74F6\u91CC\u3002"] },
+  { id: "w_kaohongshu", name: "\u70E4\u7EA2\u85AF\u5927\u53D4", avatar: "\U0001F360", type: "vendor", act: ["\u6380\u5F00\u7089\u76D6\uFF0C\u4E00\u80A1\u7126\u751C\u7684\u9999\u6C14\u5192\u51FA\u6765", "\u6307\u4E86\u6307\u7089\u8FB9\u7684\u5C0F\u9A6C\u624E\uFF0C\u793A\u610F\u5750\u4E0B\u804A\u4E24\u53E5"], line: ["\u300C\u521A\u51FA\u7089\u7684\uFF0C\u5C0F\u5FC3\u706B\u5634\u554A\u3002\u300D", "\u300C\u770B\u4F60\u51BB\u5F97\uFF0C\u6765\u5757\u70ED\u4E4E\u7684\u57AB\u57AB\u3002\u300D"], end: ["\u6485\u5F00\u7684\u7EA2\u85AF\u5192\u7740\u70ED\u6C14\uFF0C\u751C\u8FDB\u4E86\u5FC3\u91CC\u3002"] },
+  { id: "w_shaokao", name: "\u591C\u5E02\u70E7\u70E4\u644A\u4E3B", avatar: "\U0001F362", type: "vendor", act: ["\u628A\u70E4\u4E32\u7FFB\u4E86\u4E2A\u9762\uFF0C\u6492\u4E0A\u4E00\u628A\u5B5C\u7136", "\u9012\u6765\u4E00\u6839\u521A\u70E4\u597D\u7684\u7F8A\u8089\u4E32"], line: ["\u300C\u6765\u51E0\u4E32\uFF1F\u4FDD\u4F60\u5403\u4E86\u8FD8\u60F3\u6765\u3002\u300D", "\u300C\u5750\u8FD9\u513F\u5403\uFF0C\u70ED\u95F9\uFF01\u300D"], end: ["\u70E4\u4E32\u7684\u9999\u5473\u8BB0\u4F4F\u4E86\u8FD9\u4E2A\u665A\u4E0A\u3002"] },
+  { id: "w_kaifei", name: "\u5496\u5561\u9986\u8001\u677F", avatar: "\u2615", type: "barista", act: ["\u5728\u5427\u53F0\u540E\u64E6\u7740\u676F\u5B50\uFF0C\u62AC\u5934\u7B11\u4E86\u7B11", "\u7AEF\u51FA\u4E00\u676F\u62C9\u82B1\u7CBE\u81F4\u7684\u62FF\u94C1"], line: ["\u300C\u4ECA\u5929\u7684\u8C46\u5B50\u662F\u57C3\u585E\u4FC4\u6BD4\u4E9A\u7684\uFF0C\u5C1D\u5C1D\uFF1F\u300D", "\u300C\u4F60\u5750\uFF0C\u8FD9\u676F\u7B97\u6211\u8BF7\u7684\u3002\u300D"], end: ["\u5496\u5561\u51C9\u4E86\uFF0C\u4F46\u90A3\u4EFD\u6696\u610F\u8FD8\u5728\u3002"] },
+  { id: "w_geshou", name: "\u8857\u5934\u6B4C\u624B", avatar: "\U0001F3A4", type: "artist", act: ["\u62B1\u7740\u5409\u4ED6\u8F7B\u8F7B\u626B\u4E86\u4E2A\u548C\u5F26", "\u628A\u8BDD\u7B52\u5F80\u8FD9\u8FB9\u63A8\u4E86\u63A8\uFF0C\u793A\u610F\u4E00\u8D77\u5531"], line: ["\u300C\u60F3\u542C\u4EC0\u4E48\uFF1F\u70B9\u4E00\u9996\u3002\u300D", "\u300C\u8FD9\u9996\u9001\u7ED9\u4F60\u3002\u300D"], end: ["\u6B4C\u58F0\u88AB\u6D77\u98CE\u5E26\u5230\u4E86\u5F88\u8FDC\u7684\u5730\u65B9\u3002"] },
+  { id: "w_jujv", name: "\u6D41\u6D6A\u6A58\u732B\u300C\u6A58\u6A58\u300D", avatar: "\U0001F408", type: "animal", act: ["\u7AD6\u8D77\u5C3E\u5DF4\uFF0C\u7ED5\u7740\u4F60\u811A\u8FB9\u8E2D\u4E86\u4E24\u5708", "\u8E72\u5728\u5899\u5934\uFF0C\u772F\u7740\u773C\u775B\u6652\u592A\u9633"], line: ["\u300C\u55B5\u2014\u2014\u300D", "\u300C\u547C\u565C\u547C\u565C\u2026\u2026\u300D"], end: ["\u6A58\u6A58\u8BB0\u4F4F\u4E86\u4F60\u7684\u5473\u9053\uFF0C\u4E0B\u6B21\u8FD8\u4F1A\u6765\u627E\u4F60\u3002"] },
+  { id: "w_wangcai", name: "\u5C0F\u9EC4\u72D7\u300C\u65FA\u8D22\u300D", avatar: "\U0001F415", type: "animal", act: ["\u53EC\u7740\u98DE\u76D8\u6447\u7740\u5C3E\u5DF4\u8DD1\u8FC7\u6765", "\u5728\u4F60\u9762\u524D\u6253\u4E86\u4E2A\u6EDA\uFF0C\u9732\u51FA\u809A\u76AE"], line: ["\u300C\u6C6A\u6C6A\uFF01\u300D", "\u300C\u545C\u6C6A\uFF5E\u300D"], end: ["\u65FA\u8D22\u628A\u98DE\u76D8\u653E\u5230\u4F60\u811A\u8FB9\uFF0C\u7B49\u4F60\u518D\u6254\u4E00\u6B21\u3002"] },
+  { id: "w_jiuzhu", name: "\u6668\u7EC3\u7237\u7237", avatar: "\U0001F3BD", type: "elder", act: ["\u6253\u5B8C\u4E00\u5957\u592A\u6781\uFF0C\u6536\u52BF\u671D\u4F60\u70B9\u70B9\u5934", "\u5728\u5355\u6760\u4E0A\u505A\u4E86\u51E0\u4E2A\u5F15\u4F53\u5411\u4E0A\uFF0C\u8138\u4E0D\u7EA2\u6C14\u4E0D\u55D8"], line: ["\u300C\u5E74\u8F7B\u4EBA\uFF0C\u4E5F\u8981\u591A\u953B\u70BC\u554A\u3002\u300D", "\u300C\u6765\uFF0C\u6559\u4F60\u4E24\u62DB\u3002\u300D"], end: ["\u7237\u7237\u8BF4\uFF0C\u575A\u6301\u953B\u70BC\u7684\u4EBA\u8FD0\u6C14\u4E0D\u4F1A\u592A\u5DEE\u3002"] },
+  { id: "w_guangchangwu", name: "\u5E7F\u573A\u821E\u9886\u961F\u963F\u59E8", avatar: "\U0001F483", type: "dancer", act: ["\u8E29\u7740\u8282\u62CD\u8DF3\u5F97\u6B63\u8D77\u52B2\uFF0C\u770B\u89C1\u4F60\u540E\u70ED\u60C5\u62DB\u624B", "\u628A\u97F3\u54CD\u97F3\u91CF\u8C03\u5C0F\u4E86\u4E00\u70B9\uFF0C\u7B11\u7740\u89E3\u91CA"], line: ["\u300C\u5C0F\u4F19\u5B50/\u5C0F\u59D1\u5A18\uFF0C\u4E00\u8D77\u8DF3\u554A\uFF01\u300D", "\u300C\u522B\u5149\u770B\uFF0C\u52A8\u8D77\u6765\u54DF\uFF5E\u300D"], end: ["\u97F3\u4E50\u58F0\u91CC\uFF0C\u5E7F\u573A\u4E0A\u7684\u4EBA\u7B11\u6210\u4E00\u7247\u3002"] },
+  { id: "w_diaoyu", name: "\u9493\u9C7C\u5927\u53D4", avatar: "\U0001F3A3", type: "fisher", act: ["\u76EF\u7740\u6D6E\u6807\u4E00\u52A8\u4E0D\u52A8\uFF0C\u534A\u5929\u624D\u7728\u4E0B\u773C", "\u9012\u6765\u4E00\u676F\u4FDD\u6E29\u676F\u91CC\u7684\u70ED\u8336"], line: ["\u300C\u9493\u9C7C\u9493\u7684\u4E0D\u662F\u9C7C\uFF0C\u662F\u5FC3\u9759\u3002\u300D", "\u300C\u5750\u4E0B\u7B49\u4E00\u4F1A\u513F\uFF0C\u9C7C\u5C31\u6765\u4E86\u3002\u300D"], end: ["\u5750\u4E86\u4E00\u4E2A\u4E0B\u5348\uFF0C\u4E00\u6761\u9C7C\u6CA1\u9493\u5230\uFF0C\u5FC3\u60C5\u5374\u597D\u4E86\u3002"] },
+  { id: "w_kuaidi", name: "\u5FEB\u9012\u5C0F\u54E5", avatar: "\U0001F4E6", type: "courier", act: ["\u9A91\u7740\u5C0F\u7535\u9A74\u98CE\u98CE\u706B\u706B\u5730\u505C\u5728\u8DEF\u8FB9", "\u4E00\u8FB9\u770B\u5355\u53F7\u4E00\u8FB9\u5F80\u888B\u5B50\u91CC\u88C5\u5305\u88F9"], line: ["\u300C\u60A8\u7684\u4EF6\u513F\u5230\u4E86\uFF0C\u9EBB\u70E6\u7B7E\u6536\uFF01\u300D", "\u300C\u4ECA\u5929\u6D3E\u4E86\u4E09\u767E\u591A\u5355\uFF0C\u817F\u90FD\u8F6F\u4E86\u3002\u300D"], end: ["\u4ED6\u7B11\u8D77\u6765\uFF0C\u597D\u50CF\u4E00\u5929\u7684\u7591\u60EB\u90FD\u4E0D\u662F\u4E8B\u513F\u3002"] },
+  { id: "w_chuzu", name: "\u51FA\u79DF\u8F66\u5E08\u5085", avatar: "\U0001F695", type: "driver", act: ["\u628A\u8F66\u9760\u8FB9\u505C\u4E0B\uFF0C\u6447\u4E0B\u8F66\u7A97\u63A2\u5934\u95EE\u4E86\u4E00\u53E5", "\u8D81\u7740\u7B49\u7EA2\u706F\u7684\u7A7A\u6321\u559D\u4E86\u4E00\u53E3\u6D53\u8336"], line: ["\u300C\u8D70\u4E0D\u8D70\uFF1F\u8FD9\u4E2A\u70B9\u597D\u6253\u8F66\u3002\u300D", "\u300C\u8FD9\u5EA7\u57CE\u554A\uFF0C\u51CC\u6668\u56DB\u70B9\u6211\u624D\u6536\u5DE5\u3002\u300D"], end: ["\u5E08\u5085\u4E00\u811A\u6CB9\u95E8\uFF0C\u6D88\u5931\u5728\u8F66\u6D41\u91CC\u3002"] },
+  { id: "w_qiu", name: "\u5356\u6C14\u7403\u7684\u5C0F\u4E11", avatar: "\U0001F388", type: "balloon", act: ["\u628A\u4E00\u675F\u5F69\u8272\u6C14\u7403\u4E3E\u5F97\u9AD8\u9AD8\u7684\uFF0C\u671D\u5B69\u5B50\u4EEC\u62DB\u624B", "\u7528\u957F\u6C14\u7403\u62E7\u51FA\u4E00\u53EA\u5C0F\u72D7\u9012\u8FC7\u6765"], line: ["\u300C\u4E70\u4E00\u4E2A\u5427\uFF0C\u98DE\u5F97\u53EF\u9AD8\u4E86\uFF01\u300D", "\u300C\u7ED9\u4F60\u62E7\u4E2A\u5C0F\u72D7\uFF0C\u514D\u8D39\u3002\u300D"], end: ["\u6C14\u7403\u98DE\u4E0A\u5929\u7684\u90A3\u4E00\u523B\uFF0C\u4E16\u754C\u90FD\u53D8\u5F69\u8272\u4E86\u3002"] },
+  { id: "w_liugou", name: "\u901B\u72D7\u7684\u5973\u5B69", avatar: "\U0001F436", type: "pet", act: ["\u88AB\u67EF\u57FA\u62FD\u5F97\u4E00\u8DEF\u5C0F\u8DD1\uFF0C\u8FB9\u8DD1\u8FB9\u558A\u5BF9\u4E0D\u8D77", "\u8E72\u4E0B\u6765\u7ED9\u72D7\u72D7\u64E6\u722A\u5B50\uFF0C\u62AC\u5934\u7B11\u4E86\u7B11"], line: ["\u300C\u5B83\u53EB\u5E74\u7CD5\uFF0C\u89C1\u4EBA\u5C31\u70ED\u60C5\uFF01\u300D", "\u300C\u4F60\u4E5F\u559C\u6B22\u72D7\u5417\uFF1F\u300D"], end: ["\u5E74\u7CD5\u56F4\u7740\u4F60\u8F6C\u4E86\u4E09\u5708\uFF0C\u7B97\u662F\u4EA4\u4E86\u670B\u53CB\u3002"] },
+  { id: "w_shutan", name: "\u65E7\u4E66\u644A\u5927\u53D4", avatar: "\U0001F4D6", type: "reader", act: ["\u4ECE\u4E00\u642D\u65E7\u4E66\u91CC\u62BD\u51FA\u4E00\u672C\u6D38\u9EC4\u7684\u8BD7\u96C6", "\u628A\u644A\u4E0A\u7684\u4E66\u4E00\u672C\u672C\u7801\u5F97\u6574\u6574\u9F50\u9F50"], line: ["\u300C\u8FD9\u672C\u7EDD\u7248\u4E86\uFF0C\u5C31\u5269\u8FD9\u4E00\u672C\u3002\u300D", "\u300C\u559C\u6B22\u5C31\u62FF\u53BB\uFF0C\u7B97\u4F60\u4E94\u5757\u3002\u300D"], end: ["\u90A3\u672C\u65E7\u8BD7\u96C6\u540E\u6765\u88AB\u7FFB\u4E86\u5F88\u591A\u904D\u3002"] },
+  { id: "w_chatan", name: "\u8336\u644A\u5976\u5976", avatar: "\U0001F375", type: "elder", act: ["\u5F80\u7C97\u74F7\u7897\u91CC\u6DFB\u4E86\u52FA\u51C9\u8336\uFF0C\u63A8\u5230\u4F60\u9762\u524D", "\u6447\u7740\u84B2\u6247\uFF0C\u6162\u60A0\u60A0\u5730\u5FF5\u53E8"], line: ["\u300C\u559D\u7897\u8336\uFF0C\u6B47\u6B47\u811A\u3002\u300D", "\u300C\u8FD9\u5929\u513F\u554A\uFF0C\u8DDF\u4EBA\u4E00\u6837\uFF0C\u70ED\u4E00\u9635\u51C9\u4E00\u9635\u3002\u300D"], end: ["\u4E00\u7897\u51C9\u8336\u4E0B\u809A\uFF0C\u6691\u6C14\u90FD\u6563\u4E86\u3002"] },
+  { id: "w_xiuxie", name: "\u4FEE\u978B\u5320\u8001\u5468", avatar: "\U0001F45E", type: "cobbler", act: ["\u624B\u91CC\u7684\u9525\u5B50\u4E0A\u4E0B\u7FFB\u98DE\uFF0C\u7F1D\u5F97\u53C8\u5FEB\u53C8\u5300", "\u62CD\u4E86\u62CD\u8EAB\u8FB9\u7684\u5C0F\u9A6C\u624E\uFF0C\u793A\u610F\u5750\u4E0B"], line: ["\u300C\u978B\u574F\u5566\uFF1F\u62FF\u6765\u6211\u770B\u770B\u3002\u300D", "\u300C\u624B\u827A\u6D3B\uFF0C\u6025\u4E0D\u5F97\u3002\u300D"], end: ["\u8001\u5468\u7684\u624B\u827A\uFF0C\u8857\u574A\u90BB\u5C45\u90FD\u77E5\u9053\u3002"] }
 ];
+var META_WORLD_TEMPLATES = {
+  modern: {
+    name: "\u73B0\u4EE3\u90FD\u5E02", style: "modern", desc: "\u4E00\u5EA7\u70E6\u534E\u4E0E\u6E29\u60C5\u5E76\u5B58\u7684\u57CE\u5E02\uFF0C\u8857\u5934\u5DF7\u5C3E\u90FD\u6709\u4EBA\u95F4\u70DF\u706B\u6C14\u3002",
+    places: [{ name: "\u57CE\u5E02\u516C\u56ED", icon: "\U0001F333", desc: "\u6668\u6655\u91CC\u7684\u7EFF\u5730\u548C\u6253\u592A\u6781\u7684\u8001\u4EBA" }, { name: "\u6D77\u8FB9\u6808\u9053", icon: "\U0001F30A", desc: "\u6D77\u98CE\u548C\u6B4C\u58F0\u4EA4\u7EC7\u7684\u5730\u65B9" }, { name: "\u8001\u8857\u591C\u5E02", icon: "\U0001F3EE", desc: "\u70DF\u706B\u6C14\u6D53\u90C1\u7684\u5C0F\u5403\u8857" }, { name: "\u8F6C\u89D2\u5496\u5561\u9986", icon: "\u2615", desc: "\u5496\u5561\u9999\u548C\u6162\u65F6\u5149\u7684\u89D2\u843D" }, { name: "\u4E2D\u5FC3\u5E7F\u573A", icon: "\u26F2", desc: "\u5E7F\u573A\u821E\u548C\u98DE\u8D77\u7684\u9E3D\u5B50" }, { name: "\u516C\u4EA4\u7AD9", icon: "\U0001F68C", desc: "\u4EBA\u6765\u4EBA\u5F80\u7684\u8DEF\u8FC7" }],
+    npcIds: ["w_tanghulu", "w_hua", "w_kaohongshu", "w_jujv", "w_kuaidi", "w_chatan", "w_xiuxie", "w_jiuzhu"]
+  },
+  guxue: {
+    name: "\u53E4\u98CE\u6C5F\u6E56", style: "guxue", desc: "\u725B\u9709\u548C\u5251\u5149\u7684\u6C5F\u6E56\uFF0C\u5BA2\u6808\u91CC\u6D41\u4F20\u7740\u4F20\u5947\u3002",
+    places: [{ name: "\u957F\u5B89\u9152\u8086", icon: "\U0001F376", desc: "\u7B79\u7B7F\u5F80\u6765\u7684\u6C5F\u6E56\u805A\u4F1A\u5730" }, { name: "\u7AF9\u6797\u5C0F\u5F84", icon: "\U0001F38B", desc: "\u7AF9\u53F6\u6C99\u54CD\uFF0C\u5251\u5BA2\u884C\u8D70\u7684\u5730\u65B9" }, { name: "\u6E56\u7554\u8336\u5BBD", icon: "\U0001F375", desc: "\u8336\u9999\u5F25\u6F2B\u7684\u4F11\u606F\u5904" }, { name: "\u53E4\u8857\u5E02\u96C6", icon: "\U0001F3EE", desc: "\u5356\u7CD6\u753B\u3001\u7CD6\u845B\u851A\u7684\u70ED\u95F9\u8857" }, { name: "\u5C71\u95F4\u53E4\u5BFA", icon: "\u26E9\uFE0F", desc: "\u949F\u58F0\u6E05\u8106\u7684\u9759\u5730" }, { name: "\u6E21\u53E3", icon: "\u26F5", desc: "\u8239\u5BB6\u5019\u5EA6\u7684\u6C34\u8DEF\u53E3" }],
+    npcs: [
+      { name: "\u8BF4\u4E66\u5148\u751F", avatar: "\U0001F4D6", type: "reader", act: "\u6298\u6247\u8F7B\u6447\uFF0C\u6B63\u8BB2\u5230\u7CBE\u5F69\u5904", line: "\u300C\u4E14\u542C\u4E0B\u56DE\u5206\u89E3\u3002\u300D", end: "\u90A3\u6545\u4E8B\u91CC\u7684\u6C5F\u6E56\uFF0C\u6BD4\u9152\u8FD8\u9189\u4EBA\u3002" },
+      { name: "\u9152\u8086\u8001\u677F\u5A18", avatar: "\U0001F376", type: "vendor", act: "\u64E6\u7740\u9152\u575B\uFF0C\u62DB\u547C\u5BA2\u4EBA", line: "\u300C\u5BA2\u5B98\uFF0C\u6765\u7897\u6843\u82B1\u917F\uFF1F\u300D", end: "\u4E00\u7897\u4E0B\u809A\uFF0C\u6EE1\u8EAB\u6C5F\u6E56\u6C14\u3002" },
+      { name: "\u5356\u7CD6\u753B\u7684\u8001\u4EBA", avatar: "\U0001F36C", type: "vendor", act: "\u94DC\u52FA\u5728\u77F3\u677F\u4E0A\u753B\u51FA\u51E4\u51F0", line: "\u300C\u5C0F\u90CE\u541B\uFF0C\u8981\u4E2A\u4EC0\u4E48\u82B1\u6837\uFF1F\u300D", end: "\u7CD6\u753B\u751C\u4E86\u4E00\u8DEF\u3002" },
+      { name: "\u8336\u9986\u5C0F\u4E8C", avatar: "\U0001F375", type: "vendor", act: "\u63D0\u7740\u94DC\u58F6\u7A7F\u68AD", line: "\u300C\u5BA2\u5B98\uFF0C\u8336\u51C9\u4E86\uFF0C\u7EED\u4E00\u676F\uFF1F\u300D", end: "\u8336\u9999\u8890\u8890\uFF0C\u4EBA\u95F4\u70DF\u706B\u3002" },
+      { name: "\u6797\u4E2D\u5251\u5BA2", avatar: "\u2694\uFE0F", type: "artist", act: "\u5728\u7AF9\u6797\u91CC\u7EC3\u5251", line: "\u300C\u6C5F\u6E56\u8DEF\u8FDC\uFF0C\u6709\u7F18\u518D\u89C1\u3002\u300D", end: "\u5251\u5BA2\u7684\u8EAB\u5F71\u6D88\u5931\u5728\u7AF9\u6797\u6DF1\u5904\u3002" },
+      { name: "\u5927\u767D\u732B\u300C\u963F\u767D\u300D", avatar: "\U0001F431", type: "animal", act: "\u8E72\u5728\u5C4B\u6A90\u4E0B\u8214\u722A\u5B50", line: "\u300C\u55B5\uFF5E\u300D", end: "\u5B83\u8DF3\u4E0A\u5899\u5934\uFF0C\u56DE\u5934\u770B\u4E86\u4F60\u4E00\u773C\u3002" }
+    ]
+  },
+  fantasy: {
+    name: "\u5947\u5E7B\u5F02\u754C", style: "fantasy", desc: "\u9B54\u6CD5\u4E0E\u5947\u8FF9\u5171\u5B58\u7684\u5F02\u4E16\u754C\uFF0C\u6BCF\u4E2A\u89D2\u843D\u90FD\u85CF\u7740\u53E4\u8001\u7684\u4F20\u8BF4\u3002",
+    places: [{ name: "\u7CBE\u7075\u68EE\u6797", icon: "\U0001F332", desc: "\u53D1\u5149\u7684\u83CC\u548C\u7CBE\u7075\u7684\u68EE\u6797" }, { name: "\u9B54\u6CD5\u5E02\u96C6", icon: "\U0001FA84", desc: "\u5356\u9B54\u6CD5\u624B\u6735\u7684\u5E02\u96C6" }, { name: "\u9F99\u810A\u5C71\u8109", icon: "\U0001F3D4\uFE0F", desc: "\u5C71\u9876\u6709\u9F99\u5728\u71D5\u606F" }, { name: "\u6E56\u7554\u9152\u9986", icon: "\U0001F37A", desc: "\u5192\u9669\u8005\u4EEC\u7684\u805A\u4F1A\u5730" }, { name: "\u53E4\u8001\u9057\u8FF9", icon: "\U0001F3DB\uFE0F", desc: "\u5C01\u5370\u7740\u53E4\u795E\u8BDD\u7684\u5E9F\u589F" }, { name: "\u661F\u661F\u796D\u575B", icon: "\u2728", desc: "\u665A\u4E0A\u4F1A\u4E0B\u661F\u5C18\u7684\u796D\u575B" }],
+    npcs: [
+      { name: "\u9B54\u6CD5\u5B66\u5F92", avatar: "\U0001F9D9", type: "student", act: "\u62B1\u7740\u6BD4\u4EBA\u9AD8\u7684\u9B54\u6CD5\u4E66", line: "\u300C\u5492\u8BED\u53C8\u5FF5\u9519\u4E86\u2026\u2026\u300D", end: "\u4ED6\u5077\u5077\u628A\u4E00\u4E2A\u53D1\u5149\u7684\u5C0F\u7403\u585E\u8FDB\u4F60\u624B\u91CC\u3002" },
+      { name: "\u7CBE\u7075\u5546\u4EBA", avatar: "\U0001F9DD", type: "vendor", act: "\u6446\u7740\u4F1A\u53D1\u5149\u7684\u679C\u5B50", line: "\u300C\u68EE\u6797\u91CC\u624D\u6709\u7684\u597D\u4E1C\u897F\uFF5E\u300D", end: "\u90A3\u9897\u679C\u5B50\u5728\u591C\u91CC\u4E5F\u4EAE\u7740\u3002" },
+      { name: "\u6CFB\u6E38\u8BD7\u4EBA", avatar: "\U0001F3BB", type: "artist", act: "\u5F39\u7740\u7ACB\u7434\u5531\u6B4C", line: "\u300C\u8981\u542C\u4E00\u4E2A\u53E4\u8001\u7684\u4F20\u8BF4\u5417\uFF1F\u300D", end: "\u6B4C\u58F0\u91CC\u85CF\u7740\u9F99\u4E0E\u661F\u661F\u7684\u79D8\u5BC6\u3002" },
+      { name: "\u94C1\u5320\u5927\u53D4", avatar: "\U0001F528", type: "craftsman", act: "\u7089\u706B\u6620\u7EA2\u4E86\u8138", line: "\u300C\u597D\u5251\u5F97\u914D\u597D\u9798\u3002\u300D", end: "\u4ED6\u9001\u4F60\u4E00\u679A\u62A4\u8EAB\u94C1\u7247\u3002" },
+      { name: "\u68EE\u6797\u5C0F\u9E7F", avatar: "\U0001F98C", type: "animal", act: "\u4ECE\u6811\u540E\u63A2\u51FA\u5934", line: "\u300C\uFF08\u5B83\u8E6D\u4E86\u8E6D\u4F60\u7684\u624B\uFF09\u300D", end: "\u5C0F\u9E7F\u8DF3\u56DE\u6797\u95F4\uFF0C\u50CF\u4E00\u675F\u5149\u3002" },
+      { name: "\u5B88\u591C\u4EBA", avatar: "\U0001F3EE", type: "guard", act: "\u63D0\u7740\u706F\u7B3C\u5DE1\u591C", line: "\u300C\u591C\u91CC\u522B\u8D70\u8FDC\u3002\u300D", end: "\u706F\u7B3C\u7684\u5149\u5728\u591C\u8272\u91CC\u6643\u4E86\u5F88\u4E45\u3002" }
+    ]
+  },
+  cyber: {
+    name: "\u8D5B\u535A\u672A\u6765", style: "cyber", desc: "\u84DD\u8272\u516B\u5B57\u706F\u548C\u673A\u68B0\u8EAB\u4F53\u7684\u672A\u6765\u57CE\u5E02\uFF0C\u5BD2\u51B7\u4E2D\u5E26\u7740\u4EBA\u6027\u3002",
+    places: [{ name: "\u9713\u8679\u8857\u533A", icon: "\U0001F303", desc: "\u516B\u5B57\u706F\u7167\u4EAE\u7684\u6DF1\u591C\u8857" }, { name: "\u673A\u68B0\u5E02\u96C6", icon: "\U0001F916", desc: "\u5356\u914D\u4EF6\u548C\u53D8\u8272\u6C41\u7684\u5E02\u96C6" }, { name: "\u5929\u53F0\u82B1\u56ED", icon: "\U0001F33F", desc: "\u94A2\u94C1\u68EE\u6797\u9876\u90E8\u7684\u4E00\u7247\u7EFF\u8272" }, { name: "\u6570\u636E\u9152\u9986", icon: "\U0001F378", desc: "\u7A0B\u5E8F\u5458\u4EEC\u7684\u89E3\u538B\u5730" }, { name: "\u5730\u4E0B\u8F66\u7AD9", icon: "\U0001F687", desc: "\u7A7F\u68AD\u4E8E\u6570\u636E\u6D41\u91CC\u7684\u7AD9\u53F0" }, { name: "\u5168\u606F\u5E7F\u573A", icon: "\U0001F4E1", desc: "\u7ACB\u4F53\u5E7F\u544A\u6C89\u6D78\u7684\u5E7F\u573A" }],
+    npcs: [
+      { name: "\u4FEE\u7406\u5E08\u59D0\u59D0", avatar: "\U0001F527", type: "technician", act: "\u624B\u6307\u7075\u5DE7\u5730\u62C6\u7740\u673A\u5668\u4EBA", line: "\u300C\u4F60\u8FD9\u53F0\u53E4\u8463\u8FD8\u80FD\u4FEE\u3002\u300D", end: "\u5979\u62E7\u597D\u6700\u540E\u4E00\u9897\u87BA\u4E1D\uFF0C\u62CD\u4E86\u62CD\u624B\u3002" },
+      { name: "\u5916\u5356\u673A\u5668\u4EBA", avatar: "\U0001F916", type: "robot", act: "\u8F6E\u5B50\u55A1\u55A1\u8F6C", line: "\u300C\u60A8\u7684\u9910\u5230\u4E86\uFF0C\u8BF7\u7ED9\u4E94\u661F\uFF01\u300D", end: "\u5B83\u8F6C\u7740\u5708\u8D70\u4E86\uFF0C\u5C4F\u5E55\u4E0A\u662F\u7B11\u8138\u3002" },
+      { name: "\u591C\u5E02\u644A\u4E3B", avatar: "\U0001F47E", type: "vendor", act: "\u5356\u53D1\u5149\u7684\u5C0F\u73A9\u610F", line: "\u300C\u8D5B\u535A\u7B26\u5492\uFF0C\u9632\u9ED1\u5BA2\u7684\uFF01\u300D", end: "\u90A3\u4E2A\u5C0F\u73A9\u610F\u771F\u7684\u5728\u591C\u91CC\u4EAE\u4E86\u8D77\u6765\u3002" },
+      { name: "\u673A\u68B0\u732B\u300C\u94C1\u86CB\u300D", avatar: "\U0001F431", type: "animal", act: "\u4E00\u53EA\u88C5\u4E86\u673A\u68B0\u5C3E\u5DF4\u7684\u732B", line: "\u300C\u55B5\u2014\u2014\uFF08\u7535\u5B50\u97F3\uFF09\u300D", end: "\u5B83\u8DF3\u4E0A\u9713\u8679\u706F\u724C\uFF0C\u56DE\u5934\u770B\u4E86\u4E00\u773C\u3002" },
+      { name: "\u6570\u636E\u5854\u5B88\u536B", avatar: "\U0001F6E1\uFE0F", type: "guard", act: "\u7AD9\u5728\u73BB\u7483\u5854\u4E0B", line: "\u300C\u8BC1\u4EF6\u5E26\u4E86\u5417\uFF1F\u300D", end: "\u4ED6\u9012\u7ED9\u4F60\u4E00\u679A\u7EAA\u5FF5\u5FBD\u7AE0\u3002" },
+      { name: "\u8857\u5934\u7434\u5E08", avatar: "\U0001F3B9", type: "artist", act: "\u5168\u606F\u94A2\u7434\u60AC\u5728\u534A\u7A7A", line: "\u300C\u8FD9\u9996\u9001\u7ED9\u4F60\uFF0C\u514D\u8D39\u3002\u300D", end: "\u9713\u8679\u4E0B\uFF0C\u7434\u58F0\u4F20\u4E86\u5F88\u8FDC\u3002" }
+    ]
+  },
+  school: {
+    name: "\u6821\u56ED\u9752\u6625", style: "school", desc: "\u9633\u5149\u6B63\u597D\u7684\u6821\u56ED\uFF0C\u53D1\u751F\u7740\u5E74\u5C11\u65F6\u6700\u7F8E\u597D\u7684\u6545\u4E8B\u3002",
+    places: [{ name: "\u6559\u5B66\u697C", icon: "\U0001F3EB", desc: "\u4E0B\u8BFE\u94C3\u58F0\u5411\u8FC7\u7684\u5730\u65B9" }, { name: "\u64CD\u573A\u8349\u576A", icon: "\U0001F331", desc: "\u4E0B\u5348\u7684\u9633\u5149\u548C\u98DE\u76D8" }, { name: "\u5C0F\u5356\u90E8", icon: "\U0001F3EA", desc: "\u96F6\u98DF\u548C\u5C0F\u65F6\u5149\u7684\u96C6\u5408\u5730" }, { name: "\u56FE\u4E66\u9986", icon: "\U0001F4DA", desc: "\u4E66\u9999\u548C\u5B89\u9759\u7684\u89D2\u843D" }, { name: "\u5929\u53F0", icon: "\u2600\uFE0F", desc: "\u665A\u98CE\u548C\u5FC3\u4E8B\u7684\u5730\u65B9" }, { name: "\u6797\u836B\u9053", icon: "\U0001F333", desc: "\u843D\u53F6\u6EE1\u5730\u7684\u6821\u56ED\u8DEF" }],
+    npcs: [
+      { name: "\u540C\u684C\u540C\u5B66", avatar: "\U0001F4D6", type: "student", act: "\u628A\u7B14\u8BB0\u5F80\u4F60\u8FD9\u8FB9\u63A8\u4E86\u63A8", line: "\u300C\u8FD9\u9053\u9898\u4F60\u4F1A\u5417\uFF1F\u300D", end: "\u653E\u5B66\u65F6\u4ED6\u585E\u7ED9\u4F60\u4E00\u5305\u7CD6\u3002" },
+      { name: "\u98DF\u5802\u963F\u59E8", avatar: "\U0001F35A", type: "cook", act: "\u624B\u4E0D\u6296\u5730\u52FA\u4E86\u4E00\u5927\u52FA", line: "\u300C\u591A\u5403\u70B9\uFF0C\u957F\u8EAB\u4F53\uFF01\u300D", end: "\u5979\u5077\u5077\u7ED9\u4F60\u591A\u52A0\u4E86\u4E2A\u9E21\u817F\u3002" },
+      { name: "\u56FE\u4E66\u9986\u7BA1\u7406\u5458", avatar: "\U0001F4CC", type: "worker", act: "\u6574\u7406\u7740\u4E66\u67B6", line: "\u300C\u561F\u2014\u2014\u4E66\u8981\u8F7B\u58F0\u7FFB\u3002\u300D", end: "\u5979\u63A8\u8350\u4E86\u4F60\u4E00\u672C\u597D\u770B\u7684\u5C0F\u8BF4\u3002" },
+      { name: "\u6821\u732B\u300C\u6A58\u5B50\u300D", avatar: "\U0001F431", type: "animal", act: "\u8DB4\u5728\u53F0\u9636\u4E0A\u6652\u592A\u9633", line: "\u300C\u55B5\uFF5E\u300D", end: "\u5B83\u7FFB\u4E86\u4E2A\u8EAB\uFF0C\u628A\u809A\u76AE\u9732\u7ED9\u4F60\u3002" },
+      { name: "\u7BEE\u7403\u5C11\u5E74", avatar: "\U0001F3C0", type: "student", act: "\u5728\u7403\u573A\u6295\u4E86\u4E2A\u4E09\u5206", line: "\u300C\u6765\u4E00\u5C40\uFF1F\u300D", end: "\u5915\u9633\u628A\u5F71\u5B50\u62C9\u5F97\u5F88\u957F\u3002" },
+      { name: "\u5E7F\u64AD\u7AD9\u5B66\u59D0", avatar: "\U0001F3A4", type: "student", act: "\u5728\u5E7F\u64AD\u91CC\u5FF5\u7740\u7A3F\u5B50", line: "\u300C\u4ECA\u5929\u7684\u70B9\u6B4C\u9001\u7ED9\u6240\u6709\u4EBA\u3002\u300D", end: "\u90A3\u9996\u6B4C\u521A\u597D\u662F\u4F60\u559C\u6B22\u7684\u3002" }
+    ]
+  },
+  space: {
+    name: "\u661F\u9645\u592A\u7A7A", style: "space", desc: "\u661F\u8FB0\u5927\u6D77\u91CC\u7684\u7B3C\u8239\u548C\u68A6\u60F3\uFF0C\u6BCF\u4E2A\u8231\u95E8\u540E\u90FD\u662F\u4E00\u4E2A\u661F\u7403\u3002",
+    places: [{ name: "\u661F\u6E2F\u7801\u5934", icon: "\U0001F680", desc: "\u7B3C\u8239\u8D77\u98DE\u7684\u5730\u65B9" }, { name: "\u73AF\u5F62\u5C71\u57FA\u5730", icon: "\U0001F315", desc: "\u6708\u7403\u4E0A\u7684\u5C0F\u57FA\u5730" }, { name: "\u8F68\u9053\u5E02\u96C6", icon: "\U0001F4E1", desc: "\u5728\u8F68\u9053\u4E0A\u6D6E\u52A8\u7684\u5E02\u96C6" }, { name: "\u98DE\u8239\u9152\u9986", icon: "\U0001F379", desc: "\u5B87\u822A\u5458\u4EEC\u7684\u5C0F\u96C6\u4F1A" }, { name: "\u9668\u77F3\u82B1\u56ED", icon: "\u2604\uFE0F", desc: "\u7A7A\u95F4\u7AD9\u91CC\u7684\u7EFF\u6D32" }, { name: "\u89C2\u6D4B\u53F0", icon: "\U0001F52D", desc: "\u770B\u661F\u8FB0\u7684\u6700\u4F73\u4F4D\u7F6E" }],
+    npcs: [
+      { name: "\u8001\u8239\u957F", avatar: "\U0001FA90", type: "captain", act: "\u9760\u5728\u98DE\u8239\u8FB9\u64E6\u7740\u671B\u8FDC\u955C", line: "\u300C\u5B69\u5B50\uFF0C\u94F6\u6CB3\u662F\u5706\u7684\u3002\u300D", end: "\u4ED6\u6307\u7ED9\u4F60\u770B\u4E00\u9897\u4F1A\u7728\u773C\u7684\u661F\u661F\u3002" },
+      { name: "\u673A\u68B0\u5E08\u732B\u300C\u5C0F\u96F6\u300D", avatar: "\U0001F431", type: "animal", act: "\u6234\u7740\u5FAE\u578B\u5B87\u822A\u5934\u76D4", line: "\u300C\u55B5\u2026\u2026\uFF08\u5934\u76D4\u91CC\u4F20\u51FA\u7535\u6D41\u58F0\uFF09\u300D", end: "\u5B83\u7528\u5C0F\u722A\u5B50\u62CD\u4E86\u62CD\u4F60\u7684\u624B\u5957\u3002" },
+      { name: "\u661F\u6E2F\u5546\u8D29", avatar: "\U0001F6D2", type: "vendor", act: "\u5356\u7740\u4F1A\u53D8\u8272\u7684\u679C\u6C41", line: "\u300C\u706B\u661F\u7279\u8C03\uFF0C\u559D\u4E86\u80FD\u98DE\uFF01\u300D", end: "\u90A3\u676F\u679C\u6C41\u771F\u7684\u5728\u676F\u91CC\u98D8\u4E86\u8D77\u6765\u3002" },
+      { name: "\u5BFC\u822A\u5458\u59D0\u59D0", avatar: "\U0001F9ED", type: "navigator", act: "\u5728\u5C4F\u5E55\u4E0A\u5212\u7740\u822A\u7EBF", line: "\u300C\u8FD9\u6761\u822A\u7EBF\u80FD\u770B\u89C1\u661F\u4E91\u3002\u300D", end: "\u5979\u7ED9\u4F60\u5B58\u4E86\u4E00\u5F20\u661F\u56FE\u3002" },
+      { name: "\u62FE\u8352\u673A\u5668\u4EBA", avatar: "\U0001F916", type: "robot", act: "\u6536\u96C6\u7740\u95EA\u4EAE\u7684\u96F6\u4EF6", line: "\u300C\u53EE\uFF01\u53D1\u73B0\u53EF\u56DE\u6536\u7269\u3002\u300D", end: "\u5B83\u9001\u4F60\u4E00\u9897\u95EA\u4EAE\u7684\u5C0F\u77FF\u77F3\u3002" },
+      { name: "\u89C2\u6D4B\u7AD9\u7237\u7237", avatar: "\U0001F52D", type: "astronomer", act: "\u8C03\u6574\u7740\u5DE8\u5927\u7684\u671B\u8FDC\u955C", line: "\u300C\u4ECA\u665A\u80FD\u770B\u5230\u571F\u661F\u73AF\u3002\u300D", end: "\u4ED6\u8BA9\u4F60\u51D1\u8FD1\u770B\u4E86\u4E00\u773C\uFF0C\u7F8E\u5F97\u8BF4\u4E0D\u51FA\u8BDD\u3002" }
+    ]
+  }
+};
 var MAP_MEET_OPEN = ["{n}\u5728{place}\u95F2\u901B\u65F6\uFF0C{w}\u3002", "{place}\u7684\u5FAE\u98CE\u91CC\uFF0C{n}\u9047\u89C1\u4E86{w}\u3002", "\u521A\u8F6C\u8FC7\u8857\u89D2\uFF0C{n}\u5C31\u649E\u89C1\u4E86{w}\u3002", "{n}\u8D70\u8FDB{place}\uFF0C\u4E0E{w}\u64E6\u80A9\u800C\u8FC7\u3002"];
-var MAP_MEET_CHAR = ["{n}\u505C\u4E0B\u811A\u6B65\uFF0C\u597D\u5947\u5730\u6253\u91CF\u7740\u5BF9\u65B9\u3002", "{n}\u70B9\u4E86\u70B9\u5934\uFF0C\u4E24\u4E2A\u4EBA\u5C31\u8FD9\u4E48\u804A\u4E86\u8D77\u6765\u3002", "{n}\u89C9\u5F97\u5FC3\u91CC\u6696\u6696\u7684\uFF0C\u4EFF\u4F5B\u8FD9\u8D9F\u51FA\u95E8\u6709\u4E86\u610F\u4E49\u3002", "{n}\u88AB\u9017\u7B11\u4E86\uFF0C\u6C14\u6C1B\u4E00\u4E0B\u5B50\u8F7B\u677E\u8D77\u6765\u3002", "{n}\u8D70\u4E0A\u524D\uFF0C\u81EA\u7136\u5730\u6253\u4E86\u4E2A\u62DB\u547C\u3002", "{n}\u7B11\u7740\u6452\u4E86\u6452\u5BF9\u65B9\u7684\u8BDD\uFF0C\u5FC3\u60C5\u597D\u4E86\u4E0D\u5C11\u3002"];
+var MAP_MEET_CHAR = ["{n}\u505C\u4E0B\u811A\u6B65\uFF0C\u597D\u5947\u5730\u6253\u91CF\u7740\u5BF9\u65B9\u3002", "{n}\u70B9\u4E86\u70B9\u5934\uFF0C\u4E24\u4E2A\u4EBA\u5C31\u8FD9\u4E48\u804A\u4E86\u8D77\u6765\u3002", "{n}\u89C9\u5F97\u5FC3\u91CC\u6696\u6696\u7684\uFF0C\u4EFF\u4F5B\u8FD9\u8D9F\u51FA\u95E8\u6709\u4E86\u610F\u4E49\u3002", "{n}\u88AB\u9017\u7B11\u4E86\uFF0C\u6C14\u6C1B\u4E00\u4E0B\u5B50\u8F7B\u677E\u8D77\u6765\u3002", "{n}\u8D70\u4E0A\u524D\uFF0C\u81EA\u7136\u5730\u6253\u4E86\u4E2A\u62DB\u547C\u3002"];
 var _mapMeetState = null;
 function ensureMapData() {
-  if (!DB.mapData || typeof DB.mapData !== "object") DB.mapData = { friends: {}, stories: [], lastAt: {} };
+  if (!DB.mapData || typeof DB.mapData !== "object") DB.mapData = { friends: {}, stories: [], lastAt: {}, worlds: {} };
   if (!DB.mapData.friends || typeof DB.mapData.friends !== "object") DB.mapData.friends = {};
   if (!DB.mapData.stories || typeof DB.mapData.stories !== "object") DB.mapData.stories = [];
   if (!DB.mapData.lastAt || typeof DB.mapData.lastAt !== "object") DB.mapData.lastAt = {};
+  if (!DB.mapData.worlds || typeof DB.mapData.worlds !== "object") DB.mapData.worlds = {};
 }
 function mapCharFriendList(pa) {
   ensureMapData();
   return (DB.mapData.friends[pa.id] || []).slice();
 }
+function roleWorld(pa) {
+  ensureMapData();
+  return DB.mapData.worlds[pa.id] || null;
+}
+function ensureRoleWorld(pa, cb) {
+  ensureMapData();
+  var w = DB.mapData.worlds[pa.id];
+  if (w && w.status === "ready") { if (cb) cb(w); return w; }
+  if (w && w.status === "generating") {
+    if (cb) setTimeout(function() { ensureRoleWorld(pa, cb); }, 500);
+    return null;
+  }
+  DB.mapData.worlds[pa.id] = { status: "generating" };
+  save();
+  renderMapWorldBanner();
+  generateRoleWorld(pa).then(function(world) {
+    DB.mapData.worlds[pa.id] = world;
+    save();
+    renderMapPage();
+    if (cb) cb(world);
+  });
+  return null;
+}
+function generateRoleWorld(pa) {
+  return new Promise(function(resolve) {
+    var wb = buildWorldBooks(pa) || "";
+    var personaText = "\u89D2\u8272\u540D\uFF1A" + pa.name + "\n\u98CE\u683C\uFF1A" + (pa.style || "") + "\n\u7B80\u4ECB\uFF1A" + (pa.intro || "") + "\n\u6838\u5FC3\u8BBE\u5B9A\uFF1A" + (pa.system || "");
+    var hasWb = wb.indexOf("\u4E16\u754C\u4E66") >= 0;
+    var prompt;
+    if (hasWb) {
+      prompt = "\u4F60\u662F\u4E16\u754C\u6784\u5EFA\u5E08\u3002\u8BF7\u4E25\u683C\u57FA\u4E8E\u4EE5\u4E0B\u3010\u89D2\u8272\u8BBE\u5B9A\u3011\u548C\u3010\u4E16\u754C\u4E66\u3011\uFF0C\u4E3A\u8FD9\u4E2A\u89D2\u8272\u751F\u6210\u4E00\u4E2A\u5C5E\u4E8E\u4ED6\u7684\u72EC\u5C5E\u865A\u62DF\u4E16\u754C\uFF08\u4E16\u754C\u89C2\u4EE5\u4E16\u754C\u4E66\u4E3A\u51C6\uFF0C\u4E16\u754C\u4E66\u672A\u63D0\u53CA\u7684\u90E8\u5206\u53EF\u7531\u89D2\u8272\u8BBE\u5B9A\u81EA\u7136\u5EF6\u4F38\uFF09\u3002\n\n\u3010\u89D2\u8272\u8BBE\u5B9A\u3011\n" + personaText + "\n\n\u3010\u4E16\u754C\u4E66\u3011\n" + wb + "\n\n\u8BF7\u8F93\u51FA\u7EAF JSON\uFF08\u4E0D\u8981\u4EFB\u4F55\u5176\u4ED6\u6587\u5B57\u3001\u4E0D\u8981 Markdown \u6807\u8BB0\uFF09\uFF0C\u683C\u5F0F\u5982\u4E0B\uFF1A\n{ \"name\": \"\u4E16\u754C\u540D\u79F0\uFF08\u4E0D\u8D85\u8FC78\u5B57\uFF09\", \"desc\": \"\u4E00\u53E5\u8BDD\u4E16\u754C\u89C2\uFF08\u4E0D\u8D85\u8FC730\u5B57\uFF09\", \"style\": \"\u98CE\u683C\u6807\u7B7E\uFF08\u5982 \u73B0\u4EE3\u90FD\u5E02/\u53E4\u98CE\u6C5F\u6E56/\u5947\u5E7B\u5F02\u754C/\u8D5B\u535A\u672A\u6765/\u6821\u56ED\u9752\u6625/\u661F\u9645\u592A\u7A7A\uFF09\", \"places\": [{\"name\":\"\u5730\u70B9\u540D\",\"icon\":\"emoji\",\"desc\":\"\u4E00\u53E5\u8BDD\u6C1B\u56F4\"}...\u51716\u4E2A], \"npcs\": [{\"name\":\"NPC\u540D\",\"avatar\":\"emoji\u6216\u5934\u50CFURL\",\"type\":\"\u7C7B\u578B\",\"desc\":\"\u4E00\u53E5\u8BDD\",\"act\":[\"\u76F8\u9047\u52A8\u4F5C\"],\"line\":[\"\u4E00\u53E5\u53F0\u8BCD\"],\"end\":[\"\u5206\u522B\u7ED3\u5C40\"]}...\u51716\u4E2A] }";
+    } else {
+      prompt = "\u4F60\u662F\u4E16\u754C\u6784\u5EFA\u5E08\u3002\u8BF7\u6839\u636E\u4EE5\u4E0B\u3010\u89D2\u8272\u8BBE\u5B9A\u3011\u4E3A\u5176\u751F\u6210\u4E00\u4E2A\u5C5E\u4E8E\u4ED6\u7684\u72EC\u5C5E\u865A\u62DF\u4E16\u754C\uFF0C\u4E16\u754C\u89C2\u7531\u89D2\u8272\u8BBE\u5B9A\u81EA\u7136\u5EF6\u4F38\uFF08\u4F8B\u5982\u89D2\u8272\u662F\u5251\u5BA2\uFF0C\u4E16\u754C\u5C31\u662F\u6C5F\u6E56\uFF1B\u89D2\u8272\u662F\u5B66\u751F\uFF0C\u4E16\u754C\u5C31\u662F\u6821\u56ED\uFF1B\u89D2\u8272\u662F\u673A\u5668\u4EBA\uFF0C\u4E16\u754C\u5C31\u662F\u8D5B\u535A\u672A\u6765\uFF09\u3002\n\n\u3010\u89D2\u8272\u8BBE\u5B9A\u3011\n" + personaText + "\n\n\u8BF7\u8F93\u51FA\u7EAF JSON\uFF08\u4E0D\u8981\u4EFB\u4F55\u5176\u4ED6\u6587\u5B57\u3001\u4E0D\u8981 Markdown \u6807\u8BB0\uFF09\uFF0C\u683C\u5F0F\u5982\u4E0B\uFF1A\n{ \"name\": \"\u4E16\u754C\u540D\u79F0\uFF08\u4E0D\u8D85\u8FC78\u5B57\uFF09\", \"desc\": \"\u4E00\u53E5\u8BDD\u4E16\u754C\u89C2\uFF08\u4E0D\u8D85\u8FC730\u5B57\uFF09\", \"style\": \"\u98CE\u683C\u6807\u7B7E\", \"places\": [{\"name\":\"\u5730\u70B9\u540D\",\"icon\":\"emoji\",\"desc\":\"\u4E00\u53E5\u8BDD\u6C1B\u56F4\"}...\u51716\u4E2A], \"npcs\": [{\"name\":\"NPC\u540D\",\"avatar\":\"emoji\u6216\u5934\u50CFURL\",\"type\":\"\u7C7B\u578B\",\"desc\":\"\u4E00\u53E5\u8BDD\",\"act\":[\"\u76F8\u9047\u52A8\u4F5C\"],\"line\":[\"\u4E00\u53E5\u53F0\u8BCD\"],\"end\":[\"\u5206\u522B\u7ED3\u5C40\"]}...\u51716\u4E2A] }";
+    }
+    callChat([{ role: "user", content: prompt }], pa).then(function(reply) {
+      var data = parseMapWorldJson(reply);
+      if (data) resolve(normalizeRoleWorld(pa, data, "api", hasWb));
+      else resolve(makeFallbackWorld(pa));
+    }).catch(function() {
+      resolve(makeFallbackWorld(pa));
+    });
+  });
+}
+function parseMapWorldJson(reply) {
+  if (!reply) return null;
+  var t = String(reply).trim();
+  var m = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) t = m[1].trim();
+  var s = t.indexOf("{"), e = t.lastIndexOf("}");
+  if (s < 0 || e <= s) return null;
+  try { return JSON.parse(t.slice(s, e + 1)); } catch (err) { return null; }
+}
+function toArr(v, def) {
+  if (Array.isArray(v) && v.length) return v.map(function(x) { return String(x); });
+  if (v) return [String(v)];
+  return [def];
+}
+function normalizeRoleWorld(pa, data, source, wbUsed) {
+  var places = [];
+  (data.places || []).slice(0, 8).forEach(function(p, i) {
+    if (!p || !p.name) return;
+    places.push({ id: "mp_" + i, name: String(p.name).slice(0, 8), icon: p.icon || "\U0001F30D", desc: p.desc ? String(p.desc).slice(0, 30) : "", x: MAP_SPOT_XY[i][0], y: MAP_SPOT_XY[i][1] });
+  });
+  if (places.length < 3) return makeFallbackWorld(pa);
+  var npcs = [];
+  (data.npcs || []).slice(0, 10).forEach(function(n, i) {
+    if (!n || !n.name) return;
+    npcs.push({ id: "wn_" + i, name: String(n.name).slice(0, 10), avatar: n.avatar || "\U0001F464", type: n.type || "stranger", desc: n.desc ? String(n.desc).slice(0, 30) : "", act: toArr(n.act, "\u8D70\u4E86\u8FC7\u6765"), line: toArr(n.line, "\u300C\u4F60\u597D\u554A\u300D"), end: toArr(n.end, "\u8FD9\u6B21\u76F8\u9047\uFF0C\u6210\u4E86\u8FD9\u4E2A\u4E16\u754C\u91CC\u4E00\u4E2A\u5C0F\u5C0F\u7684\u6CE8\u811A\u3002") });
+  });
+  if (!npcs.length) return makeFallbackWorld(pa);
+  return { name: String(data.name || pa.name + "\u7684\u4E16\u754C").slice(0, 16), desc: String(data.desc || "\u4E00\u4E2A\u5C5E\u4E8E" + pa.name + "\u7684\u4E16\u754C").slice(0, 60), style: data.style || "", places: places, npcs: npcs, status: "ready", source: source, wbUsed: !!wbUsed, generatedAt: Date.now() };
+}
+function pickTemplate(pa) {
+  var text = ((pa.system || "") + " " + (pa.intro || "") + " " + (pa.style || "") + " " + (pa.name || "")).toLowerCase();
+  var keys = [
+    { words: ["\u53E4\u98CE", "\u6C5F\u6E56", "\u6B66\u4FA0", "\u5251", "\u5BAB", "\u4ED9", "\u5996", "\u5BA2\u6808", "\u957F\u5B89"], tpl: "guxue" },
+    { words: ["\u9B54\u6CD5", "\u5947\u5E7B", "\u7CBE\u7075", "\u9F99", "\u52C7\u8005", "\u5F02\u4E16\u754C", "\u5192\u9669", "\u9A91\u58EB", "\u9B54"], tpl: "fantasy" },
+    { words: ["\u8D5B\u535A", "\u672A\u6765", "\u673A\u68B0", "\u673A\u5668\u4EBA", "\u4E49\u4F53", "\u9713\u8679", "\u9ED1\u5BA2", "\u79D1\u6280"], tpl: "cyber" },
+    { words: ["\u6821\u56ED", "\u5B66\u751F", "\u9752\u6625", "\u6559\u5BA4", "\u793E\u56E2", "\u540C\u5B66"], tpl: "school" },
+    { words: ["\u661F\u9645", "\u592A\u7A7A", "\u5B87\u5B99", "\u98DE\u8239", "\u661F\u7403", "\u5B87\u822A"], tpl: "space" }
+  ];
+  for (var i = 0; i < keys.length; i++) {
+    for (var j = 0; j < keys[i].words.length; j++) {
+      if (text.indexOf(keys[i].words[j]) >= 0) return META_WORLD_TEMPLATES[keys[i].tpl];
+    }
+  }
+  return META_WORLD_TEMPLATES.modern;
+}
+function makeFallbackWorld(pa) {
+  var tpl = pickTemplate(pa);
+  var places = [], npcs = [];
+  tpl.places.forEach(function(p, i) {
+    places.push({ id: "fp_" + i, name: p.name, icon: p.icon, desc: p.desc || "", x: MAP_SPOT_XY[i][0], y: MAP_SPOT_XY[i][1] });
+  });
+  if (tpl.npcIds) {
+    tpl.npcIds.forEach(function(id, i) {
+      var base = null;
+      META_WORLD_NPC.forEach(function(n) { if (n.id === id) base = n; });
+      if (!base) return;
+      npcs.push({ id: "fn_" + i, name: base.name, avatar: base.avatar, type: base.type, desc: "", act: base.act, line: base.line, end: base.end });
+    });
+  } else {
+    tpl.npcs.forEach(function(n, i) {
+      npcs.push({ id: "fn_" + i, name: n.name, avatar: n.avatar, type: n.type || "stranger", desc: "", act: toArr(n.act, "\u8D70\u4E86\u8FC7\u6765"), line: toArr(n.line, "\u300C\u4F60\u597D\u554A\u300D"), end: toArr(n.end, "\u8FD9\u6B21\u76F8\u9047\uFF0C\u6210\u4E86\u8FD9\u4E2A\u4E16\u754C\u91CC\u4E00\u4E2A\u5C0F\u5C0F\u7684\u6CE8\u811A\u3002") });
+    });
+  }
+  return { name: tpl.name + "\u00B7" + pa.name, desc: tpl.desc, style: tpl.style, places: places, npcs: npcs, status: "ready", source: "fallback", generatedAt: Date.now() };
+}
 function renderMapPage() {
   ensureMapData();
+  var pa = activePersona();
+  var w = DB.mapData.worlds[pa.id];
   var canvas = document.getElementById("mapCanvas");
-  if (canvas) {
-    canvas.innerHTML = META_MAP_PLACES.map(function(pl) {
-      return '<div class="map-pin" style="left:' + pl.x + '%;top:' + pl.y + '%" onclick="goExplore(\'' + pl.id + '\')"><span class="pin-ic">' + pl.icon + '</span><span class="pin-name">' + pl.name + '</span></div>';
-    }).join("");
+  var banner = document.getElementById("mapWorldBanner");
+  if (w && w.status === "ready") {
+    if (banner) banner.style.display = "";
+    renderMapWorldBanner();
+    if (canvas) {
+      canvas.innerHTML = w.places.map(function(pl) {
+        return '<div class="map-pin" style="left:' + pl.x + '%;top:' + pl.y + '%" onclick="goExplore(\'' + pl.id + '\')"><span class="pin-ic">' + pl.icon + '</span><span class="pin-name">' + escapeHtml(pl.name) + '</span></div>';
+      }).join("");
+    }
+  } else {
+    if (banner) banner.style.display = "none";
+    if (canvas) canvas.innerHTML = '<div class="map-loading"><div class="ld"></div>\u4E16\u754C\u751F\u6210\u4E2D\u2026\u2026</div>';
+    ensureRoleWorld(pa);
   }
   renderMapFriends();
   renderMapStories();
   var st = document.getElementById("mapStatus");
   if (st) {
-    var pa = activePersona();
-    st.textContent = "\u5F53\u524D\u5728\u91CE\u89D2\u8272\uFF1A" + pa.name + "\uFF0C\u9009\u4E2A\u5730\u70B9\u51FA\u53D1\u5427";
+    st.textContent = w && w.status === "ready" ? "\u5F53\u524D\u5728\u91CE\u89D2\u8272\uFF1A" + pa.name + "\uFF0C\u9009\u4E2A\u5730\u70B9\u51FA\u53D1\u5427" : pa.name + " \u7684\u4E16\u754C\u6B63\u5728\u751F\u6210\u4E2D\u2026\u2026";
   }
   var badge = document.getElementById("mapStoryBadge");
   if (badge) {
@@ -10477,6 +11066,20 @@ function renderMapPage() {
     badge.style.display = n ? "" : "none";
     badge.textContent = n;
   }
+}
+function renderMapWorldBanner() {
+  var pa = activePersona();
+  var w = DB.mapData.worlds[pa.id];
+  var banner = document.getElementById("mapWorldBanner");
+  if (!banner) return;
+  if (!w || w.status !== "ready") { banner.style.display = "none"; return; }
+  banner.style.display = "";
+  var nm = document.getElementById("mapWorldName");
+  if (nm) nm.textContent = w.name;
+  var ds = document.getElementById("mapWorldDesc");
+  if (ds) ds.textContent = w.desc;
+  var sr = document.getElementById("mapWorldSrc");
+  if (sr) sr.textContent = w.source === "api" ? "\u7531 AI \u6839\u636E\u4EBA\u8BBE" + (w.wbUsed ? " + \u4E16\u754C\u4E66" : "") + "\u751F\u6210" : "\u672C\u5730\u6A21\u677F\u751F\u6210\uFF08\u672A\u63A5\u5165 AI \u6216\u751F\u6210\u5931\u8D25\uFF09";
 }
 function renderMapFriends() {
   var pa = activePersona();
@@ -10511,20 +11114,10 @@ function mapTimeStr(ts) {
   if (d.toDateString() === now.toDateString()) return "\u4ECA\u5929 " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
   return (d.getMonth() + 1) + "\u6708" + d.getDate() + "\u65E5";
 }
-function mapMeetPool(place) {
+function mapMeetPool(place, w) {
   var pool = [];
-  var byTags = {};
-  META_WORLD_NPC.forEach(function(n) {
-    n.tags.forEach(function(t) { (byTags[t] = byTags[t] || []).push(n); });
-  });
-  var pl = null;
-  META_MAP_PLACES.forEach(function(p) { if (p.id === place) pl = p; });
-  var tagPool = [];
-  if (pl) {
-    pl.tags.forEach(function(t) { (byTags[t] || []).forEach(function(n) { tagPool.push(n); }); });
-  }
-  if (tagPool.length) pool.push({ kind: "world", list: tagPool, w: 62 });
-  else pool.push({ kind: "world", list: META_WORLD_NPC, w: 62 });
+  var npcList = (w && w.npcs && w.npcs.length) ? w.npcs : META_WORLD_NPC;
+  pool.push({ kind: "world", list: npcList, w: 62 });
   var custom = [];
   var cur = activePersona();
   personaList().forEach(function(p) {
@@ -10547,21 +11140,20 @@ function mapRoll(pool) {
   }
   return mapPick(pool[pool.length - 1].list);
 }
-function makeMapStory(pa, npc, place, isRepeat) {
-  var pl = null;
-  META_MAP_PLACES.forEach(function(p) { if (p.id === place) pl = p; });
-  var placeName = pl ? pl.name : "\u8DEF\u4E0A";
+function makeMapStory(pa, npc, placeName, isRepeat) {
   var parts = [];
   if (npc.kind === "world") {
     parts.push(mapPick(MAP_MEET_OPEN).replace("{n}", pa.name).replace("{place}", placeName).replace("{w}", npc.name));
-    parts.push(mapPick(npc.act) + "\uFF0C" + mapPick(npc.line));
+    var acts = npc.act && npc.act.length ? npc.act : ["\u8D70\u4E86\u8FC7\u6765"];
+    var lines = npc.line && npc.line.length ? npc.line : ["\u300C\u4F60\u597D\u554A\u300D"];
+    parts.push(mapPick(acts) + "\uFF0C" + mapPick(lines));
   } else {
     parts.push(mapPick(MAP_MEET_OPEN).replace("{n}", pa.name).replace("{place}", placeName).replace("{w}", npc.name));
     if (isRepeat) parts.push("\u4E24\u4E2A\u4EBA\u662F\u8001\u670B\u53CB\u4E86\uFF0C\u4E00\u89C1\u9762\u5C31\u804A\u5F97\u70ED\u7EDC\u3002");
     else parts.push("\u4EA4\u6362\u4E86\u540D\u5B57\uFF0C\u7B97\u662F\u8BA4\u8BC6\u4E86\u3002");
   }
   parts.push(mapPick(MAP_MEET_CHAR).replace("{n}", pa.name));
-  if (npc.kind === "world") parts.push(mapPick(npc.end));
+  if (npc.kind === "world" && npc.end && npc.end.length) parts.push(mapPick(npc.end));
   return parts.join("");
 }
 function goExplore(placeId) {
@@ -10572,21 +11164,26 @@ function goExplore(placeId) {
     toast("\u521A\u901B\u5B8C\u56DE\u6765\uFF0C\u6B47\u53E3\u6C14\u518D\u51FA\u53D1\uFF5E");
     return;
   }
-  var place = placeId || META_MAP_PLACES[Math.floor(Math.random() * META_MAP_PLACES.length)].id;
-  var pl = null;
-  META_MAP_PLACES.forEach(function(p) { if (p.id === place) pl = p; });
+  var w = roleWorld(pa);
+  if (!w || w.status !== "ready") {
+    toast(pa.name + " \u7684\u4E16\u754C\u8FD8\u5728\u751F\u6210\u4E2D\uFF0C\u7A0D\u7B49\u4E00\u4E0B\uFF5E");
+    return;
+  }
+  var place = null;
+  w.places.forEach(function(p) { if (p.id === placeId) place = p; });
+  if (!place) place = mapPick(w.places);
   var btn = document.getElementById("mapGoBtn");
   var st = document.getElementById("mapStatus");
   if (btn) btn.disabled = true;
-  if (st) st.textContent = pa.name + " \u6B63\u5728\u524D\u5F80" + (pl ? pl.name : "\u8DEF\u4E0A") + "\u2026\u2026";
+  if (st) st.textContent = pa.name + " \u6B63\u5728\u524D\u5F80" + place.name + "\u2026\u2026";
   setTimeout(function() {
-    var pool = mapMeetPool(place);
+    var pool = mapMeetPool(place, w);
     var friends = mapCharFriendList(pa);
     var target = null, isRepeat = false;
     if (friends.length && Math.random() < 0.3) {
       var f = mapPick(friends);
       var base = null;
-      META_WORLD_NPC.forEach(function(n) { if (n.id === f.npcId) base = n; });
+      w.npcs.forEach(function(n) { if (n.id === f.npcId) base = n; });
       target = base ? { kind: "world", name: base.name, avatar: base.avatar, id: base.id, act: base.act, line: base.line, end: base.end } : { kind: "friend", name: f.npcName, avatar: f.npcAvatar, id: f.npcId };
       isRepeat = true;
     } else {
@@ -10597,8 +11194,8 @@ function goExplore(placeId) {
         tries++;
       }
     }
-    var text = makeMapStory(pa, target, place, isRepeat);
-    var story = { id: Date.now() + Math.floor(Math.random() * 999), charId: pa.id, charName: pa.name, npcId: target.id, npcName: target.name, npcAvatar: target.avatar, npcKind: target.kind, place: pl ? pl.name : "\u8DEF\u4E0A", text: text, time: Date.now() };
+    var text = makeMapStory(pa, target, place.name, isRepeat);
+    var story = { id: Date.now() + Math.floor(Math.random() * 999), charId: pa.id, charName: pa.name, npcId: target.id, npcName: target.name, npcAvatar: target.avatar, npcKind: target.kind, place: place.name, text: text, time: Date.now() };
     DB.mapData.stories.push(story);
     DB.mapData.lastAt[pa.id] = Date.now();
     var f0 = friends.filter(function(x) { return x.npcId === target.id; })[0];
@@ -10618,7 +11215,7 @@ function goExplore(placeId) {
     var t = document.getElementById("mapMeetTitle");
     if (t) t.textContent = pa.name + " \u5076\u9047\u4E86 " + target.name;
     var sub = document.getElementById("mapMeetSub");
-    if (sub) sub.textContent = (pl ? pl.name : "\u8DEF\u4E0A") + " \u00B7 " + (isRepeat ? "\u53C8\u89C1\u9762\u5566" : "\u521D\u6B21\u76F8\u9047");
+    if (sub) sub.textContent = place.name + " \u00B7 " + (isRepeat ? "\u53C8\u89C1\u9762\u5566" : "\u521D\u6B21\u76F8\u9047");
     var tx = document.getElementById("mapMeetText");
     if (tx) tx.textContent = text;
     var ab = document.getElementById("mapMeetAddBtn");
@@ -10629,7 +11226,7 @@ function goExplore(placeId) {
     var mask = document.getElementById("mapMeetMask");
     if (mask) mask.classList.add("show");
     if (btn) btn.disabled = false;
-    if (st) st.textContent = pa.name + " \u901B\u5B8C\u4E86" + (pl ? pl.name : "") + "\uFF0C\u6709\u65B0\u7684\u6545\u4E8B\u53D1\u751F";
+    if (st) st.textContent = pa.name + " \u901B\u5B8C\u4E86" + place.name + "\uFF0C\u6709\u65B0\u7684\u6545\u4E8B\u53D1\u751F";
   }, 900);
 }
 function closeMapMeet() {
@@ -10677,6 +11274,16 @@ function openMapStories() {
 function closeMapStories() {
   var m = document.getElementById("mapStoryMask");
   if (m) m.classList.remove("show");
+}
+function reseedRoleWorld() {
+  var pa = activePersona();
+  var w = DB.mapData.worlds[pa.id];
+  if (w && w.status === "generating") { toast("\u4E16\u754C\u6B63\u5728\u751F\u6210\u4E2D\uFF0C\u7A0D\u7B49\uFF5E"); return; }
+  if (!confirm("\u91CD\u65B0\u751F\u6210\u300C" + pa.name + "\u300D\u7684\u4E16\u754C\uFF1F\u5DF2\u6709\u5076\u9047\u6545\u4E8B\u4F1A\u4FDD\u7559\u3002")) return;
+  delete DB.mapData.worlds[pa.id];
+  save();
+  renderMapPage();
+  toast("\u6B63\u5728\u91CD\u65B0\u751F\u6210\u4E16\u754C\u2026");
 }
 
 var PC_ICONS = {
@@ -10845,13 +11452,40 @@ function backToDesktop() {
   startPcCarousel();
 }
 /* ---------- \u5fae\u4fe1 ---------- */
+function pcNoteOf(pid, who) {
+  if (!pid || !who) return who;
+  var pn = DB.pcNotes && DB.pcNotes[pid] && DB.pcNotes[pid][who];
+  if (pn) return pn;
+  var rn = DB.pcRoleNotes && DB.pcRoleNotes[pid] && DB.pcRoleNotes[pid][who];
+  if (rn) return rn;
+  return who;
+}
+__name(pcNoteOf, "pcNoteOf");
+function pcEditNote(who) {
+  var pid = DB._pcTarget;
+  if (!pid) return;
+  if (!DB.pcNotes) DB.pcNotes = {};
+  if (!DB.pcNotes[pid]) DB.pcNotes[pid] = {};
+  var cur = DB.pcNotes[pid][who] || "";
+  var v = prompt("给\u300c" + who + "\u300d改备注（留空恢复原名）：", cur);
+  if (v === null) return;
+  v = v.trim();
+  if (v) DB.pcNotes[pid][who] = v; else delete DB.pcNotes[pid][who];
+  save();
+  renderPcDesktop();
+  toast("\u5907\u6CE8\u5DF2\u66F4\u65B0");
+}
+__name(pcEditNote, "pcEditNote");
 function pcListWx(d) {
   DB._pcLastKey = "wx";
+  var pid = DB._pcTarget;
   var html = "";
   for (var i = 0; i < (d.wx || []).length; i++) {
     var w = d.wx[i];
     var last = w.msgs[w.msgs.length - 1];
-    html += '<div class="pc-wx-item" onclick="pcWxChat(' + i + ')"><div class="pc-wx-av" style="background:' + ["#ff8a5f", "#5ac8fa", "#7c6cff", "#34c759", "#ff5f8f", "#f5a623"][i % 6] + '">' + pcEsc(w.who.charAt(0)) + '</div><div class="pc-wx-main"><div class="pc-wx-top"><span class="pc-wx-name">' + pcEsc(w.who) + '</span><span class="pc-wx-time">' + pcEsc(w.time) + "</span></div><div class=\"pc-wx-last\">" + pcEsc(last ? (last.me ? "\u6211\uff1a" : "") + last.txt : "") + "</div></div>" + (w.unread ? '<span class="pc-badge">' + w.unread + "</span>" : "") + "</div>";
+    var shown = pcNoteOf(pid, w.who);
+    var isEdited = shown !== w.who;
+    html += '<div class="pc-wx-item" onclick="pcWxChat(' + i + ')"><div class="pc-wx-av" style="background:' + ["#ff8a5f", "#5ac8fa", "#7c6cff", "#34c759", "#ff5f8f", "#f5a623"][i % 6] + '">' + pcEsc(shown.charAt(0)) + '</div><div class="pc-wx-main"><div class="pc-wx-top"><span class="pc-wx-name">' + pcEsc(shown) + (isEdited ? ' <span class="pc-note-mark" style="font-size:10px;opacity:.55">(' + pcEsc(w.who) + ")</span>" : "") + '</span><span class="pc-wx-time">' + pcEsc(w.time) + "</span></div><div class=\"pc-wx-last\">" + pcEsc(last ? (last.me ? "\u6211\uff1a" : "") + last.txt : "") + "</div></div>" + (w.unread ? '<span class="pc-badge">' + w.unread + "</span>" : "") + '<span class="pc-note-btn" onclick="event.stopPropagation();pcEditNote(\'' + w.who.replace(/'/g, "\\'") + '\')">\u5907\u6CE8</span></div>';
   }
   return html;
 }
@@ -10862,7 +11496,7 @@ function pcWxChat(idx) {
   if (!w) return;
   DB._pcLastKey = "wx";
   DB._pcWxIdx = idx;
-  pcSetTitle(w.who);
+  pcSetTitle(pcNoteOf(DB._pcTarget, w.who));
   var html = '<div class="pc-chat" id="pcChat">';
   for (var i = 0; i < w.msgs.length; i++) {
     var m = w.msgs[i];
@@ -10893,7 +11527,7 @@ function pcListCall(d) {
   var cols = { "\u547c\u5165": "#34c759", "\u547c\u51fa": "#5ac8fa", "\u672a\u63a5": "#ff453a" };
   for (var i = 0; i < (d.call || []).length; i++) {
     var c = d.call[i];
-    html += '<div class="pc-call-item"><span class="pc-call-ico" style="color:' + cols[c.type] + '">' + (icons[c.type] || "\u2193") + '</span><span class="nm">' + pcEsc(c.name) + '</span><span class="pc-call-type">' + pcEsc(c.type) + '</span><span class="tm">' + pcEsc(c.time) + "</span></div>";
+    html += '<div class="pc-call-item"><span class="pc-call-ico" style="color:' + cols[c.type] + '">' + (icons[c.type] || "\u2193") + '</span><span class="nm">' + pcEsc(pcNoteOf(DB._pcTarget, c.name)) + '</span><span class="pc-call-type">' + pcEsc(c.type) + '</span><span class="tm">' + pcEsc(c.time) + "</span></div>";
   }
   return html;
 }
@@ -10903,7 +11537,7 @@ function pcListSms(d) {
   var html = "";
   for (var i = 0; i < (d.sms || []).length; i++) {
     var s = d.sms[i];
-    html += '<div class="pc-sms-item" onclick="pcSmsDetail(' + i + ')"><div class="who">' + pcEsc(s.who) + '</div><div class="txt">' + pcEsc(s.txt) + '</div><div class="tm">' + pcEsc(s.time) + "</div></div>";
+    html += '<div class="pc-sms-item" onclick="pcSmsDetail(' + i + ')"><div class="who">' + pcEsc(pcNoteOf(DB._pcTarget, s.who)) + '</div><div class="txt">' + pcEsc(s.txt) + '</div><div class="tm">' + pcEsc(s.time) + "</div></div>";
   }
   return html;
 }
@@ -11420,6 +12054,23 @@ function pcDataOf(p) {
   _mf.forEach(function(f) {
     d.wx.unshift({ who: f.npcName, msgs: [{ me: 0, txt: "\u4E0A\u6B21\u5728" + (f.place || "\u8DEF\u4E0A") + "\u9047\u5230\u4F60\uFF0C\u52A0\u4E2A\u597D\u53CB\u592A\u5F00\u5FC3\u4E86\uFF01", time: pcTimeStr(rnd, 0) }, { me: 1, txt: "\u54C8\u54C8\uFF0C\u6539\u5929\u4E00\u8D77\u53BB" + (f.place || "\u90A3\u8FB9") + "\u554A", time: pcTimeStr(rnd, 0) }], time: pcTimeStr(rnd, 0), unread: pcNum(rnd, 1, 3) });
   });
+  // 小号联系人：与角色聊过的小号出现在角色手机里
+  var _seenWx = {};
+  d.wx.forEach(function(w) {
+    _seenWx[w.who] = 1;
+  });
+  (DB.masks || []).forEach(function(mask) {
+    var logs = (DB.maskChats || {})[mask.id] || {};
+    var arr = logs[p.id];
+    if (arr && arr.length) {
+      (mask.accounts || []).forEach(function(acc) {
+        if (_seenWx[acc.name]) return;
+        _seenWx[acc.name] = 1;
+        d.wx.unshift({ who: acc.name, msgs: [{ me: 0, txt: "\u4F60\u597D\u54C7\uFF0C\u4E4B\u524D\u52A0\u4E86\u4F60\uFF0C\u6CA1\u804A\u8FC7\u51E0\u53E5\u5462", time: pcTimeStr(rnd, 1) }, { me: 1, txt: "\u54E6\uFF0C\u6709\u5370\u8C61\uFF01\u6539\u5929\u804A", time: pcTimeStr(rnd, 1) }], time: pcTimeStr(rnd, 1), unread: 0 });
+        d.contacts.push({ id: "pc_mask_" + acc.id, name: acc.name, note: "\u670B\u53CB" });
+      });
+    }
+  });
   d.sms = [];
   for (var si = 0; si < 8; si++) {
     var st = smsTpl[Math.floor(rnd() * smsTpl.length)];
@@ -11486,6 +12137,19 @@ function pcDataOf(p) {
     { id: "gtap", name: "\u5feb\u901f\u70b9\u51fb", ico: "\u26a1", desc: "30 \u79d2\u5185\u770b\u4f60\u80fd\u70b9\u591a\u5c11\u6b21" }
   ];
   d.device = { model: "iPhone 15 Pro", os: "iOS 17.5.1", storage: "512GB", used: pcNum(rnd, 120, 420), battery: pcNum(rnd, 40, 98), sn: "F2L" + pcNum(rnd, 100000, 999999) };
+  // 角色偶尔改备注
+  if (!DB.pcRoleNotes) DB.pcRoleNotes = {};
+  if (!DB.pcRoleNotes[p.id]) DB.pcRoleNotes[p.id] = {};
+  var roleNotePool = ["\u5c0f\u4e16\u754c\u7684\u5929\u624d", "\u9ebb\u70e6\u5236\u9020\u673a", "\u53ef\u7231\u7cbe", "\u503a\u4e3b", "\u9ed8\u5951\u642d\u5b50", "\u8001\u53cb", "\u7c98\u4eba\u7cbe", "\u6e29\u67d4\u5927\u4f6c"];
+  var changed = 0;
+  d.wx.forEach(function(w) {
+    if (changed >= 2) return;
+    if (rnd() < 0.16 && !DB.pcRoleNotes[p.id][w.who] && w.who !== rn) {
+      DB.pcRoleNotes[p.id][w.who] = roleNotePool[Math.floor(rnd() * roleNotePool.length)];
+      changed++;
+    }
+  });
+  save();
   return d;
 }
 __name(pcDataOf, "pcDataOf");
@@ -11535,7 +12199,7 @@ function switchPcTab(i) {
   var html = "";
   if (t === "\u5FAE\u4FE1") {
     html = d.wx.map(function(w) {
-      return '<div class="pc-card"><div class="pc-card-t">\u4E0E ' + escapeHtml(w.who) + " \u7684\u804A\u5929</div>" + w.msgs.map(function(m) {
+      return '<div class="pc-card"><div class="pc-card-t">\u4E0E ' + escapeHtml(pcNoteOf(DB._pcTarget, w.who)) + " \u7684\u804A\u5929</div>" + w.msgs.map(function(m) {
         return '<div class="pc-line">' + escapeHtml(m) + "</div>";
       }).join("") + "</div>";
     }).join("");
@@ -11584,11 +12248,14 @@ function pcSendMsg() {
   })[0];
   if (!target) return;
   var contacts = DB._pcData.contacts || [];
-  if (!contacts.length) {
+  var realContacts = contacts.filter(function(x) {
+    return x.id.indexOf("pc_mask_") !== 0;
+  });
+  if (!realContacts.length) {
     toast("TA \u624B\u673A\u91CC\u6CA1\u6709\u5176\u4ED6\u8054\u7CFB\u4EBA\u53EF\u53D1");
     return;
   }
-  var c = contacts[Math.floor(Math.random() * contacts.length)];
+  var c = realContacts[Math.floor(Math.random() * realContacts.length)];
   var log = chatLog(c.id);
   log.push({ role: "user", content: text + "\uFF08\u7531 " + target.name + " \u7684\u624B\u673A\u53D1\u51FA\uFF09", time: Date.now() });
   save();
