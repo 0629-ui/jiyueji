@@ -3131,12 +3131,18 @@ function switchMe(meId) {
   toast("\u5DF2\u5207\u6362\u5230\u8D26\u53F7\u300C" + (meProfile().nickname || "\u6211") + "\u300D\u7684\u4E16\u754C");
 }
 __name(switchMe, "switchMe");
+var __ls_had = false;
+var __ls_sv = 0;
 let DB = (function() {
   try {
     var s = localStorage.getItem(LS_KEY) || localStorage.getItem(LS_LEGACY);
     if (s) {
       var d = JSON.parse(s);
-      if (d) return normalizeDB(d);
+      if (d) {
+        __ls_had = true;
+        __ls_sv = d._sv || 0;
+        return normalizeDB(d);
+      }
     }
   } catch (e) {
   }
@@ -3177,28 +3183,28 @@ function idbGet(key) {
   });
 }
 __name(idbGet, "idbGet");
-var _idbSaveTimer = null;
 function idbSet(key, val) {
-  if (_idbSaveTimer) clearTimeout(_idbSaveTimer);
-  _idbSaveTimer = setTimeout(function() {
-    idbOpen().then(function(db) {
-      return new Promise(function(res, rej) {
-        var tx = db.transaction(IDB_STORE, "readwrite");
-        tx.objectStore(IDB_STORE).put(val, key);
-        tx.oncomplete = function() {
-          res();
-        };
-        tx.onerror = function() {
-          rej(tx.error);
-        };
-      });
-    }).catch(function() {
+  idbOpen().then(function(db) {
+    return new Promise(function(res, rej) {
+      var tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put(val, key);
+      tx.oncomplete = function() {
+        res();
+      };
+      tx.onerror = function() {
+        rej(tx.error);
+      };
     });
-  }, 300);
+  }).catch(function() {
+  });
 }
 __name(idbSet, "idbSet");
 var _saveTimer = null;
 function _flushSave() {
+  try {
+    DB._sv = Date.now();
+  } catch (e) {
+  }
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(DB));
   } catch (e) {
@@ -14490,7 +14496,7 @@ bindHomeWidgetLongPress();
 applyTheme();
 showPage("lockscreen");
 idbGet("db").then(function(d) {
-  if (d) {
+  if (d && (!__ls_had || (d._sv || 0) > __ls_sv)) {
     DB = normalizeDB(d);
     loadMomentsFromDB();
     renderSettings();
