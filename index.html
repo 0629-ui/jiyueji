@@ -717,6 +717,7 @@ body.no-scroll{touch-action:none;overflow:hidden}
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
 .modal-sheet h3{font-size:14px;text-align:center;margin-bottom:10px}
 .modal-sheet textarea{width:100%;height:84px;border:1px solid rgba(0,0,0,.1);outline:none;resize:none;background:#f7f7f7;color:var(--page-text);font-size:13px;padding:10px;border-radius:12px;font-family:inherit}
+#offlineEditText{height:min(46vh,420px);min-height:280px;font-size:15px;line-height:1.65;background:#f7f7f7}
 .form-field{margin-bottom:10px}
 .form-field label{display:block;font-size:10px;color:var(--page-dim);margin-bottom:4px}
 .form-field input,.form-field textarea{width:100%;border:1px solid rgba(0,0,0,.12);outline:none;background:#f7f7f7;color:var(--page-text);font-size:13px;padding:9px 11px;border-radius:11px;font-family:inherit}
@@ -1869,6 +1870,14 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeGroupSync()">取消</button><button class="sheet-btn primary" onclick="applyGroupSync()">应用</button></div>
   </div>
 </div>
+<!-- 弹层：线下叙事编辑 -->
+<div class="modal-mask" id="offlineEditMask">
+  <div class="modal-sheet wide">
+    <h3>编辑这段内容</h3>
+    <textarea id="offlineEditText" class="offline-edit-input" placeholder="修改这段线下叙事内容"></textarea>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeOfflineEdit()">取消</button><button class="sheet-btn primary" onclick="saveOfflineEdit()">确定</button></div>
+  </div>
+</div>
 <!-- 弹层：切换「我」账号 -->
 <div class="modal-mask" id="switchMeMask">
   <div class="modal-sheet wide">
@@ -2891,7 +2900,7 @@ In order to maintain psychological balance, living people invent various small r
 const DEFAULT_DATA = /* @__PURE__ */ __name(function() {
   return { plans: { chat: [], voice: [], image: [] }, personas: [Object.assign({ id: "p_1", active: true }, JSON.parse(JSON.stringify(DEFAULT_PERSONA)))], worldbooks: BUILTIN_WORLDBOOKS.map(function(b) {
     return Object.assign({}, b);
-  }), stickers: [], wallet: { balance: 0, logs: [] }, settings: { snow: true, lockNotice: true, timeAware: true, narration: true, translate: true, autoMoment: true }, widgets: [], photos: [], tasks: [], music: [], listen: null, imagePrompts: [], chatSessions: [{ personaId: "p_1", pin: false }], chatLogs: {}, favorites: [], moments: [], mapData: { friends: {}, stories: [], lastAt: {}, worlds: {} }, theme: { lockWall: null, homeWall: null, icons: {}, font: null, customCss: "" }, meProfile: Object.assign({}, DEFAULT_ME), offline: { history: [], narrate: true, minLen: 500, maxLen: 1300, styleId: "os_classic" }, offlineStyles: JSON.parse(JSON.stringify(DEFAULT_OFFLINE_STYLES)), memories: {}, meProfiles: [Object.assign({ id: "me_1" }, JSON.parse(JSON.stringify(DEFAULT_ME)))], currentMeId: "me_1", worlds: {}, groups: [], groupLogs: {}, groupMemories: {}, npcs: [], npcLogs: {}, npcSessions: [], love: { maskId: null, bindings: {} }, maskData: {}, friendRequests: [], masks: [], maskChats: {}, maskMemories: {}, pcNotes: {}, pcRoleNotes: {}, meReveals: {}, currentIdentity: null };
+  }), stickers: [], wallet: { balance: 0, logs: [] }, settings: { snow: true, lockNotice: true, timeAware: true, narration: true, translate: true, autoMoment: true }, widgets: [], photos: [], tasks: [], music: [], listen: null, imagePrompts: [], chatSessions: [{ personaId: "p_1", pin: false }], chatLogs: {}, favorites: [], moments: [], mapData: { friends: {}, stories: [], lastAt: {}, worlds: {} }, theme: { lockWall: null, homeWall: null, icons: {}, font: null, customCss: "" }, meProfile: Object.assign({}, DEFAULT_ME), offline: { history: [], narrate: true, minLen: 500, maxLen: 1300, styleId: "os_classic" }, offlineByPersona: {}, offlineStyles: JSON.parse(JSON.stringify(DEFAULT_OFFLINE_STYLES)), memories: {}, meProfiles: [Object.assign({ id: "me_1" }, JSON.parse(JSON.stringify(DEFAULT_ME)))], currentMeId: "me_1", worlds: {}, groups: [], groupLogs: {}, groupMemories: {}, npcs: [], npcLogs: {}, npcSessions: [], love: { maskId: null, bindings: {} }, maskData: {}, friendRequests: [], masks: [], maskChats: {}, maskMemories: {}, pcNotes: {}, pcRoleNotes: {}, meReveals: {}, currentIdentity: null };
 }, "DEFAULT_DATA");
 function normalizeDB(d) {
   if (!d.personas) {
@@ -2972,6 +2981,7 @@ function normalizeDB(d) {
   if (!d.offline.minLen) d.offline.minLen = 500;
   if (!d.offline.maxLen) d.offline.maxLen = 1300;
   if (!d.offline.styleId) d.offline.styleId = "os_classic";
+  if (!d.offlineByPersona || typeof d.offlineByPersona !== "object") d.offlineByPersona = {};
   if (!d.offlineStyles || typeof d.offlineStyles !== "object" || !d.offlineStyles.length) d.offlineStyles = JSON.parse(JSON.stringify(DEFAULT_OFFLINE_STYLES));
   if (!d.memories || typeof d.memories !== "object") d.memories = {};
   d.offlineStyles.forEach(function(s) {
@@ -3046,6 +3056,7 @@ function snapshotWorld(d) {
     listen: d.listen,
     imagePrompts: JSON.parse(JSON.stringify(d.imagePrompts || [])),
     offline: JSON.parse(JSON.stringify(d.offline || { history: [], narrate: true, minLen: 500, maxLen: 1300, styleId: "os_classic" })),
+    offlineByPersona: JSON.parse(JSON.stringify(d.offlineByPersona || {})),
     groups: JSON.parse(JSON.stringify(d.groups || [])),
     groupLogs: JSON.parse(JSON.stringify(d.groupLogs || {})),
     groupMemories: JSON.parse(JSON.stringify(d.groupMemories || {})),
@@ -3072,6 +3083,7 @@ function restoreWorld(d, meId) {
   d.listen = w.listen !== void 0 ? w.listen : null;
   d.imagePrompts = JSON.parse(JSON.stringify(w.imagePrompts || []));
   d.offline = JSON.parse(JSON.stringify(w.offline || { history: [], narrate: true, minLen: 500, maxLen: 1300, styleId: "os_classic" }));
+  d.offlineByPersona = JSON.parse(JSON.stringify(w.offlineByPersona || {}));
   d.groups = JSON.parse(JSON.stringify(w.groups || []));
   d.groupLogs = JSON.parse(JSON.stringify(w.groupLogs || {}));
   d.groupMemories = JSON.parse(JSON.stringify(w.groupMemories || {}));
@@ -7260,6 +7272,23 @@ function offlineData() {
   return DB.offline;
 }
 __name(offlineData, "offlineData");
+function offlineHist() {
+  if (!DB.offlineByPersona || typeof DB.offlineByPersona !== "object") DB.offlineByPersona = {};
+  var cid = currentChatId();
+  var pid = cid || (activePersona() ? activePersona().id : "me");
+  var h = DB.offlineByPersona[pid];
+  if (!h) {
+    h = { history: [] };
+    if (DB.offline && DB.offline.history && DB.offline.history.length) {
+      h.history = DB.offline.history;
+      DB.offline.history = [];
+    }
+    DB.offlineByPersona[pid] = h;
+    save();
+  }
+  return h;
+}
+__name(offlineHist, "offlineHist");
 function offlineStyleNow() {
   var id = offlineData().styleId || "os_classic";
   for (var i = 0; i < DB.offlineStyles.length; i++) {
@@ -7277,10 +7306,11 @@ function openOfflineEntry() {
 }
 __name(openOfflineEntry, "openOfflineEntry");
 function openOffline() {
-  document.getElementById("offlineName").textContent = activePersona().name || "\u89D2\u8272";
+  var oPa = findPersona(currentChatId()) || activePersona();
+  document.getElementById("offlineName").textContent = oPa ? oPa.name || "\u89D2\u8272" : "\u89D2\u8272";
   renderOffline();
   showPage("offline");
-  if (!offlineData().history.length) {
+  if (!offlineHist().history.length) {
     if (!isConnected("chat")) {
       appendOfflineTip("\u89D2\u8272\u8FD8\u672A\u63A5\u5165\u5BF9\u8BDD\u6A21\u578B\uFF0C\u6682\u65F6\u65E0\u6CD5\u5F00\u542F\u7EBF\u4E0B\u53D9\u4E8B\u3002\u53BB\u8BBE\u7F6E\u91CC\u914D\u7F6E API \u540E\u5C31\u80FD\u73A9\u5566\uFF5E");
       return;
@@ -7288,8 +7318,8 @@ function openOffline() {
     appendOfflineLoading();
     callOffline([]).then(function(reply) {
       removeOfflineLoading();
-      offlineData().history.push({ role: "assistant", content: reply, time: Date.now() });
-      appendOfflineNarr(reply, offlineData().history.length - 1);
+      offlineHist().history.push({ role: "assistant", content: reply, time: Date.now() });
+      appendOfflineNarr(reply, offlineHist().history.length - 1);
       save();
     }).catch(function(err) {
       removeOfflineLoading();
@@ -7305,7 +7335,7 @@ __name(exitOffline, "exitOffline");
 function renderOffline() {
   var body = document.getElementById("offlineBody");
   body.innerHTML = "";
-  offlineData().history.forEach(function(m, i) {
+  offlineHist().history.forEach(function(m, i) {
     if (m.role === "user") appendOfflineMe(m.content, i);
     else appendOfflineNarr(m.content, i);
   });
@@ -7370,7 +7400,7 @@ function bindOfflineMenu(el, idx) {
 __name(bindOfflineMenu, "bindOfflineMenu");
 function showOfflineMenu(x, y, idx) {
   closeBubbleMenu();
-  var h = offlineData().history;
+  var h = offlineHist().history;
   var msg = h[idx];
   var m = document.createElement("div");
   m.className = "bubble-menu";
@@ -7415,22 +7445,47 @@ function showOfflineMenu(x, y, idx) {
   }, 0);
 }
 __name(showOfflineMenu, "showOfflineMenu");
+var offlineEditIdx = -1;
 function editOfflineMsg(idx) {
-  var h = offlineData().history;
+  var h = offlineHist().history;
   var msg = h[idx];
   if (!msg) return;
-  var nt = prompt("\u7F16\u8F91\u8FD9\u6BB5\u5185\u5BB9", msg.content || "");
-  if (nt === null) return;
-  nt = nt.trim();
-  if (!nt) return;
-  msg.content = nt;
-  save();
-  renderOffline();
-  toast("\u5DF2\u7F16\u8F91");
+  offlineEditIdx = idx;
+  document.getElementById("offlineEditText").value = msg.content || "";
+  document.getElementById("offlineEditMask").classList.add("show");
+  setTimeout(function() {
+    var ta = document.getElementById("offlineEditText");
+    if (ta && ta.focus) ta.focus();
+  }, 80);
 }
 __name(editOfflineMsg, "editOfflineMsg");
+function closeOfflineEdit() {
+  document.getElementById("offlineEditMask").classList.remove("show");
+  offlineEditIdx = -1;
+}
+__name(closeOfflineEdit, "closeOfflineEdit");
+function saveOfflineEdit() {
+  var ta = document.getElementById("offlineEditText");
+  var v = (ta.value || "").trim();
+  if (!v) {
+    toast("\u5185\u5BB9\u4E0D\u80FD\u4E3A\u7A7A");
+    return;
+  }
+  var h = offlineHist().history;
+  var msg = h[offlineEditIdx];
+  if (!msg) {
+    closeOfflineEdit();
+    return;
+  }
+  msg.content = v;
+  save();
+  renderOffline();
+  closeOfflineEdit();
+  toast("\u5DF2\u7F16\u8F91");
+}
+__name(saveOfflineEdit, "saveOfflineEdit");
 function deleteOfflineMsg(idx) {
-  var h = offlineData().history;
+  var h = offlineHist().history;
   if (!h[idx]) return;
   if (!confirm("\u5220\u9664\u8FD9\u6BB5\u5185\u5BB9\uFF1F")) return;
   h.splice(idx, 1);
@@ -7440,7 +7495,7 @@ function deleteOfflineMsg(idx) {
 }
 __name(deleteOfflineMsg, "deleteOfflineMsg");
 function regenOfflineMsg(idx) {
-  var h = offlineData().history;
+  var h = offlineHist().history;
   var msg = h[idx];
   if (!msg) return;
   if (msg.role !== "assistant") {
@@ -7456,10 +7511,10 @@ function regenOfflineMsg(idx) {
   save();
   renderOffline();
   appendOfflineLoading();
-  callOffline(offlineData().history).then(function(reply) {
+  callOffline(offlineHist().history).then(function(reply) {
     removeOfflineLoading();
-    offlineData().history.push({ role: "assistant", content: reply, time: Date.now() });
-    appendOfflineNarr(reply, offlineData().history.length - 1);
+    offlineHist().history.push({ role: "assistant", content: reply, time: Date.now() });
+    appendOfflineNarr(reply, offlineHist().history.length - 1);
     save();
     addMemorySource("offline", "\uFF08\u91CD\u65B0\u751F\u6210\uFF09\u7EBF\u4E0B\u53D9\u4E8B\uFF1A" + reply);
   }).catch(function(err) {
@@ -7501,14 +7556,14 @@ function sendOffline() {
     appendOfflineTip("\u89D2\u8272\u8FD8\u672A\u63A5\u5165\u5BF9\u8BDD\u6A21\u578B\uFF0C\u6682\u65F6\u65E0\u6CD5\u7EE7\u7EED\u53D9\u4E8B\u3002\u53BB\u8BBE\u7F6E\u91CC\u914D\u7F6E API \u540E\u5C31\u80FD\u73A9\u5566\uFF5E");
     return;
   }
-  offlineData().history.push({ role: "user", content: text, time: Date.now() });
-  appendOfflineMe(text, offlineData().history.length - 1);
+  offlineHist().history.push({ role: "user", content: text, time: Date.now() });
+  appendOfflineMe(text, offlineHist().history.length - 1);
   save();
   appendOfflineLoading();
-  callOffline(offlineData().history).then(function(reply) {
+  callOffline(offlineHist().history).then(function(reply) {
     removeOfflineLoading();
-    offlineData().history.push({ role: "assistant", content: reply, time: Date.now() });
-    appendOfflineNarr(reply, offlineData().history.length - 1);
+    offlineHist().history.push({ role: "assistant", content: reply, time: Date.now() });
+    appendOfflineNarr(reply, offlineHist().history.length - 1);
     save();
     addMemorySource("offline", "\u6211\uFF1A" + text + "\uFF5C\u7EBF\u4E0B\u53D9\u4E8B\uFF1A" + reply);
   }).catch(function(err) {
