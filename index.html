@@ -7910,7 +7910,7 @@ function callGroupOffline(g, history) {
       var t = chatTarget(mid);
       return t ? t.name + (t.style ? "（" + t.style + "）" : "") : mid;
     });
-    sys += "【群聊线下叙事游戏】你正在扮演一个微信群《" + g.name + "》里的所有角色，进行一场线下多人叙事游戏（对话体小说/文游）。群成员有：" + members.join("、") + "。你既是旁白叙述者，也要轮流扮演每一个成员，让角色们像真实朋友聚会一样自然互动，有来有回，不要冷场。";
+    sys += "【群聊线下叙事游戏·线下聚会】你们《" + g.name + "》这群朋友此刻正聚在一起，面对面进行一场线下多人叙事游戏（对话体小说/文游），不是在微信群里打字聊天。群成员有：" + members.join("、") + "。你既是旁白叙述者，也要轮流扮演每一个成员。注意：此刻大家是真实地坐在一起、线下相处，请用面对面的神态、动作和现场对话推进剧情，严禁出现“群里/发消息/收到/回你微信/在看手机”等线上聊天用语，只有回忆过去时才可提及线上聊过的事。让角色们像真实朋友聚会一样自然互动，有来有回，不要冷场。";
     (g.memberIds || []).forEach(function(mid) {
       var t = chatTarget(mid);
       if (!t) return;
@@ -16621,6 +16621,3568 @@ function closeDreamHelp() {
   bind61();
 })();
 
+</script>
+<style>
+/* ===== 霁月机62 UI ===== */
+.jy-game-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+#jy62BoardArea{flex:1;min-height:0;overflow-y:auto;padding:10px;position:relative}
+
+/* 浮层通用 */
+.jy62-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:900}
+.jy62-sheet{width:100%;max-width:480px;max-height:82%;background:#fff;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -6px 24px rgba(0,0,0,.2)}
+.jy62-sheet-head{display:flex;align-items:center;gap:6px;padding:12px 14px 8px;font-weight:800;font-size:16px;border-bottom:1px solid #f0f0f0;flex:none}
+.jy62-sheet-head .back{width:28px;height:28px;font-size:20px;line-height:28px;text-align:center;color:#333;cursor:pointer;border-radius:8px;background:#f4f4f4}
+.jy62-sheet-body{overflow-y:auto;padding:10px 14px 18px;min-height:80px}
+.jy62-sheet-title{font-size:14px;color:#555;line-height:1.5;margin-bottom:10px}
+.jy-char-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:12px;cursor:pointer}
+.jy-char-item:active{background:#f2f7ff}
+.jy-char-item.picked{background:#e6f2ff}
+.jy-char-item .avatar{width:38px;height:38px;border-radius:50%;background:#f0f0f0;object-fit:cover;flex:none}
+.pick-main{flex:1;min-width:0}
+.pick-name{font-weight:700;font-size:15px}
+.pick-desc{font-size:12px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.pick-empty{padding:24px 8px;text-align:center;color:#999;font-size:13px}
+.jy62-fk-check{width:26px;height:26px;border-radius:50%;border:1.5px solid #ddd;color:#fff;text-align:center;line-height:23px;font-size:16px;flex:none}
+.jy-char-item.picked .jy62-fk-check{background:#3b82f6;border-color:#3b82f6}
+.jy62-foot{padding:10px 14px 22px;flex:none}
+#jy62FriendGo{width:100%;padding:12px;border:0;border-radius:14px;background:#3b82f6;color:#fff;font-size:16px;font-weight:800}
+#jy62FriendGo:disabled{background:#c7d8ef;color:#fff}
+
+/* 悬浮球与聊天窗 */
+.jy62-ball{position:fixed;right:14px;bottom:76px;z-index:940;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6a9cff,#3b82f6);color:#fff;display:none;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 14px rgba(59,130,246,.5);cursor:pointer}
+.jy62-chat-head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid #f0f0f0}
+.jy62-chat-head .avatar{width:32px;height:32px;border-radius:50%;background:#eee}
+.jy62-chat-head b{flex:1;font-size:15px}
+.jy62-chat-body{flex:1;overflow-y:auto;padding:12px;background:#f6f8fb;display:flex;flex-direction:column;gap:6px}
+.jy62-chat-foot{display:flex;gap:8px;padding:10px 12px 18px;border-top:1px solid #eee;background:#fff}
+#jy62ChatInput{flex:1;border:1px solid #ddd;border-radius:18px;padding:9px 14px;font-size:14px;outline:none}
+#jy62ChatSendBtn{border:0;background:#3b82f6;color:#fff;border-radius:18px;padding:0 18px;font-size:14px;font-weight:700}
+#jy62ChatSendBtn:disabled{opacity:.5}
+
+/* 麻将 */
+.mj-seats{display:flex;justify-content:center;gap:14px;padding:6px 0}
+.mj-seat{display:flex;flex-direction:column;align-items:center;gap:4px;width:74px;padding:8px 4px;border-radius:14px;background:#f6f6f6;opacity:.72;transition:.2s}
+.mj-seat.act{background:#fff3d6;opacity:1;box-shadow:0 0 0 2px #f7c95c}
+.mj-av{position:relative}
+.mj-av img{width:40px;height:40px;border-radius:50%;background:#e7e7e7}
+.mj-av i{position:absolute;right:-4px;bottom:-4px;background:#333;color:#fff;font-size:10px;font-style:normal;border-radius:9px;padding:1px 6px;min-width:16px}
+.mj-sn{font-size:12px;font-weight:700;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis}
+.mj-center{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0}
+.mj-last{display:flex;align-items:center;gap:8px;min-height:64px}
+.mj-last-who{font-size:12px;color:#888}
+.mj-last-tile{transform:scale(1.6);margin:6px 10px}
+.mj-msg{font-size:13px;color:#7a5a00;background:#fff7e0;border-radius:14px;padding:7px 12px;max-width:90%;text-align:center}
+.mj-actions{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:4px 0}
+.mj-tip{font-size:13px;color:#555;text-align:center}
+.mj-btn-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:6px 0}
+.mj-inline{display:inline-block;vertical-align:middle;transform:scale(.9)}
+.mj-myhand{background:#fafafa;border-top:1px solid #eee;padding:8px 6px 12px;flex:none}
+.mj-me-tag{font-size:11px;color:#999;margin:0 4px 6px}
+.mj-tiles{display:flex;gap:3px;overflow-x:auto;padding-bottom:4px}
+.mj-tile-slot{padding:2px;border-radius:8px;cursor:pointer;flex:none}
+.mj-tile-slot.picked{background:#fff3d6}
+.mj{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:38px;height:54px;background:#fffdf6;border:1px solid #d8d2c2;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.12);font-weight:700}
+.mj i{font-style:normal;font-size:19px;line-height:1.15;color:#2f2f2f}
+.mj em{font-size:9px;font-style:normal;opacity:.62;margin-top:-1px}
+.mj-w em,.mj-t em,.mj-b em{color:#333}
+.mj-w i{color:#d3382f}.mj-t i{color:#2e7d32}.mj-b i{color:#1e4f8f}
+.mj-z i{color:#e02020}.mj-f i{color:#1e4f8f}.mj-bai i{color:#555}
+.mj-overlay{position:absolute;inset:0;background:rgba(255,255,255,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:20}
+.mj-over-card{width:min(78%,300px);background:#fff;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.25);padding:22px 16px;text-align:center}
+.mj-over-title{font-size:20px;font-weight:900;color:#d3382f}
+.mj-over-av{margin:10px 0 4px}
+.mj-over-av img{width:52px;height:52px;border-radius:50%;background:#eee}
+.mj-over-name{font-weight:800;font-size:16px}
+.mj-over-line{font-size:13px;color:#666;margin:8px 0 12px}
+
+/* 狼人杀 */
+.wolf-cast{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:6px 0}
+.wolf-p{display:flex;flex-direction:column;align-items:center;gap:3px;width:76px;padding:6px 2px;border-radius:12px;background:#f6f6f6}
+.wolf-p.dead{opacity:.42;filter:grayscale(.8)}
+.wolf-av{position:relative}
+.wolf-av img{width:40px;height:40px;border-radius:50%;background:#e7e7e7}
+.wolf-dead-x{position:absolute;right:-6px;top:-6px;background:#c0392b;color:#fff;width:18px;height:18px;border-radius:50%;font-size:11px;line-height:18px;text-align:center}
+.wolf-n{font-size:12px;font-weight:700;white-space:nowrap;max-width:78px;overflow:hidden;text-overflow:ellipsis}
+.wolf-r{font-size:10px;color:#8a5a00}
+.wolf-log{background:#faf6ec;border:1px solid #efe5cf;border-radius:14px;padding:10px 12px;min-height:120px;max-height:44vh;overflow-y:auto;margin:6px 0;display:flex;flex-direction:column;gap:7px}
+.wolf-log-line{font-size:14px;color:#3b3b3b;line-height:1.45}
+.wolf-rolecard{background:#fff3d6;color:#6b4a00;border-radius:12px;padding:8px 12px;text-align:center;font-size:14px}
+.wolf-rolecard b{color:#d3382f;font-size:16px}
+.wolf-action{min-height:50px;padding:4px 0;text-align:center}
+.wolf-input{flex:1;min-width:0;border:1px solid #ddd;border-radius:16px;padding:8px 12px;font-size:14px;outline:none;background:#fff}
+
+</style>
+<!-- 62 对局页 -->
+<div class="page light-page" id="jyGame62">
+  <div class="page-head jy-game-head"><span class="back" onclick="jy62ExitGame()">‹</span><div style="flex:1;min-width:0;text-align:center"><div class="jy-game-title" id="jy62GameTitle">多人游戏</div><div class="jy-game-sub" id="jy62GameSub"></div></div><span class="jy62-head-spacer" style="width:38px"></span></div>
+  <div class="jy-game-body"><div id="jy62BoardArea"></div></div>
+</div>
+
+<!-- 选 TA 浮层 -->
+<div class="jy62-mask" id="jy62CharMask">
+  <div class="jy62-sheet">
+    <div class="jy62-sheet-head"><span class="back" onclick="jy62CloseCharMask()">‹</span>选择和 TA 一起玩</div>
+    <div class="jy62-sheet-body">
+      <div class="jy62-sheet-title">邀请一位你想一起玩的角色（TA 会拉朋友入场）：</div>
+      <div id="jy62HostList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 拉朋友入场浮层 -->
+<div class="jy62-mask" id="jy62FriendMask">
+  <div class="jy62-sheet">
+    <div class="jy62-sheet-head"><span class="back" onclick="jy62CloseFriendMask()">‹</span>拉朋友入场</div>
+    <div class="jy62-sheet-body">
+      <div class="jy62-sheet-title" id="jy62FriendHint"></div>
+      <div id="jy62FriendList"></div>
+    </div>
+    <div class="jy62-foot"><button id="jy62FriendGo" onclick="jy62StartMulti()" disabled>选择好友</button></div>
+  </div>
+</div>
+
+<!-- 边玩边聊悬浮球 + 聊天窗 -->
+<div class="jy62-ball" id="jy62FloatBall" style="display:none" onclick="jy62OpenFloat()">聊</div>
+<div class="jy62-mask" id="jy62ChatMask" style="display:none">
+  <div class="jy62-sheet" style="height:74%">
+    <div class="jy62-chat-head">
+      <img class="avatar" id="jy62ChatAvatar" src="" alt="">
+      <b id="jy62ChatName">TA</b>
+      <span class="back" style="width:28px;height:28px;font-size:20px;line-height:28px;text-align:center;color:#333;cursor:pointer;border-radius:8px;background:#f4f4f4" onclick="jy62CloseChat()">✕</span>
+    </div>
+    <div class="jy62-chat-body" id="jy62ChatBody"></div>
+    <div class="jy62-chat-foot">
+      <input id="jy62ChatInput" placeholder="边玩边聊几句…" onkeydown="jy62ChatKey(event)">
+      <button id="jy62ChatSendBtn" onclick="jy62ChatSend()">发送</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== 霁月机62 · 多人游戏公共核心 ===================== */
+(function () {
+  if (window.__jy62Inited) return;
+  window.__jy62Inited = true;
+
+  var DBG = null;
+  try { DBG = DB; } catch (e) {}
+  function db62() { return window.DB || DBG; }
+  function save62() { try { save(); } catch (e) {} }
+  function toast62(t) { try { toast(t); } catch (e) {} }
+  function esc62(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+
+  var JY62 = {
+    mode: null,      // mahjong | wolf
+    hostId: null,    // 主TA persona id
+    friends: [],     // 拉入场的朋友 [{kind:'persona'|'npc', pa? n?, name, avatar}]
+    over: false,
+    startedAt: 0,
+    thinking: false,
+    chatHist: []
+  };
+  window.JY62 = JY62;
+
+  var HALL62 = [
+    { id: "gomoku", name: "五子棋", tag: "双人 · 已开放", cls: "green", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="12" cy="20" r="2"/><path d="M5 9h14M8 16l-3-7M16 16l3-7M8 16l2.5 2.5M16 16l-2.5 2.5"/></svg>' },
+    { id: "xiangqi", name: "象棋", tag: "双人 · 已开放", cls: "red", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M4 15h16M9 4v16M15 4v16"/><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="9" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="15" r="1.4"/><circle cx="12" cy="19" r="1.4"/><path d="M12 9l-3-4M12 9l3-4M12 15l-3 4M12 15l3 4"/></svg>' },
+    { id: "mahjong", name: "麻将", tag: "多人 · 已开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="9" height="12" rx="1.5"/><path d="m6 6 3 3M6 9l3-3"/><rect x="12" y="9" width="9" height="12" rx="1.5"/><path d="M15 12v3M16.5 13.5h-3"/></svg>' },
+    { id: "wolf", name: "狼人杀", tag: "多人 · 已开放", cls: "dark", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M12 4c2.5-1.8 6-1 8 .8-1.8 1-2.6 2.7-2.7 4.5C20 11 20 14 18 17l-2-2-1 3c-1 .6-3 .6-4 0l-1-3-2 2c-2-3-2-6-.3-7.7-.1-1.8-1-3.5-2.7-4.5C6 3 9.5 2.2 12 4Z"/><circle cx="9.5" cy="11" r=".9" fill="currentColor"/><circle cx="14.5" cy="11" r=".9" fill="currentColor"/></svg>' }
+  ];
+  window.HALL62 = HALL62;
+
+  function currentActivePage62() {
+    try {
+      var list = ["jyGames", "jyGame62", "chat", "home", "messages", "settings"];
+      for (var i = 0; i < list.length; i++) {
+        var el = document.getElementById(list[i]);
+        if (el && el.classList && el.classList.contains("active")) return list[i];
+      }
+      for (var j = 0; j < (window.PAGES || []).length; j++) {
+        var el2 = document.getElementById(PAGES[j]);
+        if (el2 && el2.classList && el2.classList.contains("active")) return PAGES[j];
+      }
+    } catch (e) {}
+    return null;
+  }
+  function rememberPrev62() {
+    var cur = currentActivePage62();
+    if (cur && cur !== "jyGames" && cur !== "jyGame62" && cur !== "lockscreen") window.__jy62PrevMain = cur;
+  }
+  function smartBack62(fallback) {
+    var target = window.__jy62PrevMain || null;
+    var map = { home: function(){ try{ goHome(); }catch(e){ showPage("home"); } }, messages: function(){ try{ openApp("messages"); }catch(e){ showPage("messages"); } }, chat: function(){ try{ openApp("messages"); }catch(e){ showPage("chat"); } }, settings: function(){ try{ renderSettings(); showPage("settings"); }catch(e){ showPage("settings"); } } };
+    if (target && map[target]) { map[target](); return; }
+    if (target && (window.PAGES || []).indexOf(target) > -1) { showPage(target); return; }
+    var fb = fallback || "home";
+    if (map[fb]) map[fb](); else showPage("home");
+  }
+
+  /* ---------- 覆盖 openApp 入口 ---------- */
+  function install62OpenApp() {
+    try {
+      var baseOpen = window.__jy61BaseOpenApp || window.openApp;
+      window.__jy61BaseOpenApp = baseOpen;
+      window.openApp = function (app) {
+        if (app === "games") { rememberPrev62(); jy62OpenGames(); return; }
+        var cur = currentActivePage62();
+        if (cur && cur !== app && cur !== "jyGames" && cur !== "jyGame62") window.__jy62PrevMain = cur;
+        return baseOpen.apply(this, arguments);
+      };
+    } catch (e) { console.error("jy62 openApp", e); }
+  }
+
+  /* ---------- 大厅 ---------- */
+  function jy62OpenGames() {
+    JY62.mode = null;
+    JY62.hostId = null;
+    JY62.friends = [];
+    jy62RenderHall();
+    try { showPage("jyGames"); } catch (e) {}
+  }
+  window.jy62OpenGames = jy62OpenGames;
+
+  function jy62RenderHall() {
+    var box = document.getElementById("jyHallList");
+    if (!box) return;
+    box.innerHTML = HALL62.map(function (a) {
+      var onclick = ' onclick="jy62PickGame(\'' + a.id + '\')"';
+      return '<div class="jy-card"' + onclick + '><div class="jy-card-icon ' + a.cls + '">' + a.icon + '</div><div class="jy-card-main"><div class="jy-card-name">' + a.name + '</div><div class="jy-card-tag">' + a.tag + '</div></div><span class="set-arrow">›</span></div>';
+    }).join("");
+    var maskBtn = document.getElementById("jyHallMaskBtn");
+    if (maskBtn) {
+      var nm = "本尊";
+      try { var a = currentAcc(); if (a && a.name) nm = a.name; } catch (e) {}
+      maskBtn.textContent = "玩家：" + nm;
+    }
+    var note = document.getElementById("jyHallNote");
+    if (note) note.textContent = "五子棋/象棋双人开黑，麻将 4 人桌、狼人杀 5 人局可拉其他角色与 NPC 好友入场，边玩边聊都会记入大家的记忆。";
+  }
+  window.jy62RenderHall = jy62RenderHall;
+
+  function jy62RenderHallLegacy() {
+    // 兼容：若 61 旧渲染被其它路径调用，兜底仍使用 62 渲染
+    jy62RenderHall();
+  }
+
+  function jy62PickGame(id) {
+    JY62.mode = id;
+    if (id === "gomoku" || id === "xiangqi") {
+      if (typeof jy61PickGame === "function") { jy61PickGame(id); return; }
+      toast62("请从旧版入口游玩双人对局");
+      return;
+    }
+    JY62.hostId = null;
+    JY62.friends = [];
+    jy62RenderHostPick();
+    var m = document.getElementById("jy62CharMask");
+    if (m) m.style.display = "flex";
+  }
+  window.jy62PickGame = jy62PickGame;
+
+  function jy62CloseCharMask() { var m = document.getElementById("jy62CharMask"); if (m) m.style.display = "none"; }
+  window.jy62CloseCharMask = jy62CloseCharMask;
+  function jy62CloseFriendMask() { var m = document.getElementById("jy62FriendMask"); if (m) m.style.display = "none"; }
+  window.jy62CloseFriendMask = jy62CloseFriendMask;
+
+  function jy62RenderHostPick() {
+    var box = document.getElementById("jy62HostList");
+    if (!box) return;
+    var ps = [];
+    try { ps = personaList() || []; } catch (e) {}
+    if (!ps.length) {
+      box.innerHTML = '<div class="pick-empty">还没有角色，先去「人设档案」添加你的 TA 吧。</div>';
+      return;
+    }
+    box.innerHTML = ps.map(function (p) {
+      var av = "";
+      try { av = personaAvatarUrl(p); } catch (e) {}
+      return '<div class="jy-char-item" onclick="jy62PickHost(\'' + String(p.id).replace(/'/g, "") + '\')"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc62(p.name || "角色") + '</div><div class="pick-desc">' + esc62(p.intro || "") + "</div></div></div>";
+    }).join("");
+  }
+
+  function jy62PickHost(pid) {
+    var pa = null;
+    try { pa = findPersona(pid); } catch (e) {}
+    if (!pa) { toast62("未找到该角色"); return; }
+    JY62.hostId = pid;
+    jy62CloseCharMask();
+    jy62RenderFriendPick();
+    var m = document.getElementById("jy62FriendMask");
+    if (m) m.style.display = "flex";
+  }
+  window.jy62PickHost = jy62PickHost;
+
+  /* ---------- 拉朋友入场 ---------- */
+  function jy62FriendCandidates() {
+    var out = [];
+    var seen = {};
+    function push(kind, key, name, avatar, pa, npc) {
+      if (!key || seen[key]) return;
+      seen[key] = 1;
+      out.push({ kind: kind, key: key, name: name, avatar: avatar || "", pa: pa || null, n: npc || null });
+    }
+    try {
+      var meMask = (DB.currentIdentity && currentAcc()) ? currentAcc().name : "";
+      (personaList() || []).forEach(function (p) {
+        if (p.id === JY62.hostId) return;
+        if (meMask && p.id === meMask) return;
+        var av = "";
+        try { av = personaAvatarUrl(p); } catch (e) {}
+        push("persona", "p:" + p.id, p.name || "角色", av, p, null);
+      });
+      (DB.npcs || []).forEach(function (n) {
+        if (n.id === JY62.hostId) return;
+        var av = "";
+        try { av = npcAvatar(n); } catch (e) {}
+        push("npc", "n:" + n.id, n.name || "NPC", av, null, n);
+      });
+      (DB.groups || []).forEach(function (g) {
+        (g.memberIds || []).forEach(function (mid) {
+          try {
+            var t = chatTarget(mid);
+            if (t && t.persona && t.persona.id && t.persona.id !== JY62.hostId) {
+              var av2 = "";
+              try { av2 = personaAvatarUrl(t.persona); } catch (e) {}
+              push("persona", "p:" + t.persona.id, t.persona.name || "角色", av2, t.persona, null);
+            }
+          } catch (e) {}
+        });
+      });
+    } catch (e) {}
+    return out;
+  }
+  window.jy62FriendCandidates = jy62FriendCandidates;
+
+  function jy62NeedFriends() {
+    return JY62.mode === "mahjong" ? 2 : 3;
+  }
+  function jy62RenderFriendPick() {
+    var box = document.getElementById("jy62FriendList");
+    if (!box) return;
+    var need = jy62NeedFriends();
+    var cands = jy62FriendCandidates();
+    var hint = document.getElementById("jy62FriendHint");
+    var gname = JY62.mode === "mahjong" ? "麻将（4人桌）" : "狼人杀（5人局）";
+    if (hint) hint.innerHTML = "你正和 <b>" + esc62(JY62.hostId ? (findPersona(JY62.hostId) || {}).name || "TA" : "TA") + "</b> 一起玩" + gname + "，还差 <b>" + need + "</b> 位朋友，可从你的其他角色 / NPC 好友里拉人入场：";
+    if (!cands.length) {
+      box.innerHTML = '<div class="pick-empty">还没有可拉的朋友，去「人设档案」添加更多角色或 NPC 吧。</div>';
+      var go = document.getElementById("jy62FriendGo");
+      if (go) { go.disabled = true; go.textContent = "好友不足"; }
+      return;
+    }
+    box.innerHTML = cands.map(function (c, i) {
+      var av = c.avatar || "";
+      return '<div class="jy-char-item" data-fk="' + c.key + '" onclick="jy62ToggleFriend(this,\'' + c.key + '\')"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc62(c.name) + (c.kind === "npc" ? ' <span style="opacity:.55;font-size:11px">(NPC)</span>' : "") + "</div><div class=\"pick-desc\">" + (c.pa && c.pa.intro ? esc62(c.pa.intro) : c.n && c.n.intro ? esc62(c.n.intro) : "") + '</div></div><span class="jy62-fk-check">＋</span></div>';
+    }).join("");
+    var go = document.getElementById("jy62FriendGo");
+    if (go) { go.disabled = true; go.textContent = "选择 " + need + " 位朋友"; }
+  }
+  window.jy62RenderFriendPick = jy62RenderFriendPick;
+
+  function jy62ToggleFriend(el, key) {
+    var need = jy62NeedFriends();
+    var has = JY62.friends.indexOf(key);
+    if (has > -1) {
+      JY62.friends.splice(has, 1);
+      if (el) el.classList.remove("picked");
+    } else {
+      if (JY62.friends.length >= need) { toast62("最多再拉 " + (need - JY62.friends.length) + " 位就满桌啦"); return; }
+      JY62.friends.push(key);
+      if (el) el.classList.add("picked");
+    }
+    var go = document.getElementById("jy62FriendGo");
+    if (go) {
+      if (JY62.friends.length === need) { go.disabled = false; go.textContent = "开始游戏"; }
+      else { go.disabled = true; go.textContent = "选择 " + need + " 位朋友（已选 " + JY62.friends.length + "）"; }
+    }
+  }
+  window.jy62ToggleFriend = jy62ToggleFriend;
+
+  function jy62ResolveFriends() {
+    var arr = [];
+    var cands = jy62FriendCandidates();
+    JY62.friends.forEach(function (key) {
+      for (var i = 0; i < cands.length; i++) {
+        if (cands[i].key === key) { arr.push(cands[i]); break; }
+      }
+    });
+    return arr;
+  }
+
+  function jy62StartMulti() {
+    var need = jy62NeedFriends();
+    if (JY62.friends.length !== need) { toast62("还差 " + (need - JY62.friends.length) + " 位朋友"); return; }
+    var hostPa = null;
+    try { hostPa = findPersona(JY62.hostId); } catch (e) {}
+    if (!hostPa) { toast62("未找到主角色"); return; }
+    var friends = jy62ResolveFriends();
+    jy62CloseFriendMask();
+    JY62.over = false;
+    JY62.startedAt = Date.now();
+    JY62.chatHist = [];
+    var titleEl = document.getElementById("jy62GameTitle");
+    var subEl = document.getElementById("jy62GameSub");
+    if (JY62.mode === "mahjong") {
+      if (titleEl) titleEl.textContent = "麻将 · 4人桌";
+      var names = friends.map(function (f) { return f.name; });
+      if (subEl) subEl.textContent = hostPa.name + " 拉来了 " + names.join("、") + " 一起打麻将";
+    } else if (JY62.mode === "wolf") {
+      if (titleEl) titleEl.textContent = "狼人杀 · 5人局";
+      var names2 = friends.map(function (f) { return f.name; });
+      if (subEl) subEl.textContent = hostPa.name + " 拉来了 " + names2.join("、") + " 一起玩狼人杀";
+    }
+    showPage("jyGame62");
+    jy62BallShow(true);
+    if (JY62.mode === "mahjong") jy62MjStart();
+    else if (JY62.mode === "wolf") jy62WolfStart();
+  }
+  window.jy62StartMulti = jy62StartMulti;
+
+  function jy62ExitGame() {
+    JY62.over = true;
+    try { if (typeof jy62MjAbortAll === "function") jy62MjAbortAll(); } catch (e) {}
+    try { if (typeof jy62WolfAbortAll === "function") jy62WolfAbortAll(); } catch (e) {}
+    jy62BallShow(false);
+    jy62CloseChat();
+    jy62CloseCharMask();
+    jy62CloseFriendMask();
+    JY62.mode = null;
+    JY62.hostId = null;
+    JY62.friends = [];
+    jy62RenderHall();
+    try { showPage("jyGames"); } catch (e) {}
+  }
+  window.jy62ExitGame = jy62ExitGame;
+
+  function jy62HostPa() {
+    try { return findPersona(JY62.hostId); } catch (e) { return null; }
+  }
+  function jy62HostName() { var p = jy62HostPa(); return p && p.name ? p.name : "TA"; }
+  window.jy62HostPa = jy62HostPa;
+  window.jy62HostName = jy62HostName;
+
+  /* ---------- 记忆 ---------- */
+  function jy62MemLine(pa, type, text) {
+    if (!pa || !text) return;
+    try { addMemorySourceFor(pa, type, text); save62(); } catch (e) {}
+  }
+  window.jy62MemLine = jy62MemLine;
+
+  function jy62LogFriend(friend, text) {
+    if (!friend) return;
+    if (friend.kind === "persona" && friend.pa) {
+      try {
+        var pl = personaPlan(friend.pa);
+        if (pl && pl.baseUrl && pl.apiKey) { addMemorySourceFor(friend.pa, "game", text); save62(); }
+      } catch (e) {}
+    }
+  }
+  window.jy62LogFriend = jy62LogFriend;
+
+  /* ---------- API / 文案辅助 ---------- */
+  function jy62CanApi(pa) {
+    try { var pl = personaPlan(pa); return !!(pa && pl && pl.baseUrl && pl.apiKey); } catch (e) { return false; }
+  }
+  window.jy62CanApi = jy62CanApi;
+
+  function jy62SayFor(actor, prompt, localTexts) {
+    // 返回 Promise<string>；能 API 则请求，失败/无则本地随机文案
+    return new Promise(function (resolve) {
+      var pa = actor && actor.pa ? actor.pa : null;
+      if (pa && jy62CanApi(pa) && typeof callChat === "function") {
+        var timer = setTimeout(function () { resolve(jy62LocalSay(localTexts)); }, 20000);
+        callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+          clearTimeout(timer);
+          if (txt && String(txt).trim().length > 1 && String(txt).length < 400) resolve(String(txt).trim());
+          else resolve(jy62LocalSay(localTexts));
+        }).catch(function () { clearTimeout(timer); resolve(jy62LocalSay(localTexts)); });
+      } else {
+        resolve(jy62LocalSay(localTexts));
+      }
+    });
+  }
+  window.jy62SayFor = jy62SayFor;
+
+  function jy62LocalSay(list) {
+    if (!list || !list.length) return "";
+    return list[Math.floor(Math.random() * list.length)];
+  }
+  window.jy62LocalSay = jy62LocalSay;
+
+  /* ---------- 62 悬浮球 / 聊天窗 ---------- */
+  function jy62BallShow(show) {
+    var ball = document.getElementById("jy62FloatBall");
+    if (ball) ball.style.display = show ? "flex" : "none";
+  }
+  window.jy62BallShow = jy62BallShow;
+
+  function jy62OpenFloat() {
+    var mask = document.getElementById("jy62ChatMask");
+    if (mask) mask.style.display = "flex";
+    var pa = jy62HostPa();
+    var nmEl = document.getElementById("jy62ChatName");
+    if (nmEl) nmEl.textContent = pa && pa.name ? pa.name : "TA";
+    var avEl = document.getElementById("jy62ChatAvatar");
+    if (avEl) {
+      var u = "";
+      try { u = personaAvatarUrl(pa); } catch (e) {}
+      if (!u) u = "";
+      avEl.src = u;
+    }
+    jy62RenderChat();
+  }
+  window.jy62OpenFloat = jy62OpenFloat;
+
+  function jy62CloseChat() {
+    var mask = document.getElementById("jy62ChatMask");
+    if (mask) mask.style.display = "none";
+  }
+  window.jy62CloseChat = jy62CloseChat;
+
+  function jy62RenderChat() {
+    var body = document.getElementById("jy62ChatBody");
+    if (!body) return;
+    var nm = jy62HostName();
+    body.innerHTML = "";
+    var empty = document.createElement("div");
+    empty.className = "sys-tip";
+    empty.textContent = "正在和 " + nm + " 边玩边聊，聊天会记入TA的记忆。";
+    body.appendChild(empty);
+    JY62.chatHist.forEach(function (m) {
+      var d = document.createElement("div");
+      if (m.role === "user") d.className = "me-bubble";
+      else d.className = "ta-bubble";
+      d.innerHTML = '<div class="bub">' + esc62(m.content) + "</div>";
+      body.appendChild(d);
+    });
+    body.scrollTop = body.scrollHeight;
+    var btn = document.getElementById("jy62ChatSendBtn");
+    var input = document.getElementById("jy62ChatInput");
+    if (btn) btn.disabled = !!JY62.thinking;
+    if (input) input.disabled = !!JY62.thinking;
+  }
+
+  function jy62ChatSend() {
+    var input = document.getElementById("jy62ChatInput");
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text || JY62.thinking) return;
+    var pa = jy62HostPa();
+    if (!pa) return;
+    input.value = "";
+    JY62.chatHist.push({ role: "user", content: text });
+    jy62RenderChat();
+    var body = document.getElementById("jy62ChatBody");
+    if (body) {
+      var d = document.createElement("div");
+      d.className = "sys-tip";
+      d.id = "jy62ChatLoading";
+      d.textContent = jy62HostName() + " 正在回复…";
+      body.appendChild(d);
+      body.scrollTop = body.scrollHeight;
+    }
+    JY62.thinking = true;
+    jy62RenderChat();
+    callChat(JY62.chatHist.map(function (m) { return { role: m.role, content: m.content }; }), pa).then(function (reply) {
+      JY62.chatHist.push({ role: "assistant", content: reply });
+      var gname = JY62.mode === "mahjong" ? "麻将" : JY62.mode === "wolf" ? "狼人杀" : "小游戏";
+      jy62MemLine(pa, "gameChat", "玩" + gname + "时你和TA聊了几句：你说「" + text + "」，TA说「" + reply + "」。");
+      JY62.thinking = false;
+      jy62RenderChat();
+    }).catch(function (err) {
+      JY62.chatHist.pop();
+      JY62.thinking = false;
+      var tip = document.createElement("div");
+      tip.className = "sys-tip";
+      tip.textContent = "回复失败：" + (err && err.message ? err.message : "未知错误");
+      var body2 = document.getElementById("jy62ChatBody");
+      if (body2) { body2.appendChild(tip); body2.scrollTop = body2.scrollHeight; }
+      jy62RenderChat();
+    });
+  }
+  window.jy62ChatSend = jy62ChatSend;
+
+  function jy62ChatKey(e) {
+    if (e && e.key === "Enter") { e.preventDefault(); jy62ChatSend(); }
+  }
+  window.jy62ChatKey = jy62ChatKey;
+
+  install62OpenApp();
+})();
+
+</script>
+<script>
+/* ===================== 霁月机62 · 麻将 4 人桌 ===================== */
+(function () {
+  if (window.__jy62MjInited) return;
+  window.__jy62MjInited = true;
+
+  var SUITS = ["w", "t", "b"];
+  var ZI = ["东", "南", "西", "北", "中", "发", "白"];
+  var ALLT = [];
+  SUITS.forEach(function (s) { for (var i = 1; i <= 9; i++) ALLT.push(i + s); });
+  ZI.forEach(function (z) { ALLT.push(z); });
+  var TILE_KIND = ALLT.length;
+
+  function esc(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+
+  function buildWall() {
+    var wall = [];
+    for (var i = 0; i < 4; i++) for (var k = 0; k < TILE_KIND; k++) wall.push(ALLT[k]);
+    for (var j = wall.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = wall[j]; wall[j] = wall[r]; wall[r] = t; }
+    return wall;
+  }
+  function cnt(hand) {
+    var m = {};
+    hand.forEach(function (t) { m[t] = (m[t] || 0) + 1; });
+    return m;
+  }
+  function isNum(k) { return /^[1-9][wtb]$/.test(k); }
+  function isSeq(k1, k2, k3) {
+    if (!isNum(k1) || !isNum(k2) || !isNum(k3)) return false;
+    if (k1.charAt(1) !== k2.charAt(1) || k1.charAt(1) !== k3.charAt(1)) return false;
+    var a = parseInt(k1, 10), b = parseInt(k2, 10), c = parseInt(k3, 10);
+    if (a > b) { var t = a; a = b; b = t; }
+    if (b > c) { var t2 = b; b = c; c = t2; }
+    if (a > b) { var t3 = a; a = b; b = t3; }
+    return b === a + 1 && c === b + 1;
+  }
+  function tryGroups(m) {
+    var keys = Object.keys(m);
+    for (var i = 0; i < keys.length; i++) {
+      if (m[keys[i]] > 0) { var k0 = keys[i]; break; }
+    }
+    if (i >= keys.length) return true;
+    var k = keys[i];
+    if (m[k] >= 3) {
+      var m2 = JSON.parse(JSON.stringify(m));
+      m2[k] -= 3; if (m2[k] === 0) delete m2[k];
+      if (tryGroups(m2)) return true;
+    }
+    if (isNum(k)) {
+      var num = parseInt(k, 10), s = k.charAt(1);
+      var k2 = (num + 1) + s, k3 = (num + 2) + s;
+      if (m[k2] > 0 && m[k3] > 0) {
+        var m3 = JSON.parse(JSON.stringify(m));
+        m3[k] -= 1; if (m3[k] === 0) delete m3[k];
+        m3[k2] -= 1; if (m3[k2] === 0) delete m3[k2];
+        m3[k3] -= 1; if (m3[k3] === 0) delete m3[k3];
+        if (tryGroups(m3)) return true;
+      }
+    }
+    return false;
+  }
+  function canWin(hand) {
+    if (!hand || hand.length % 3 !== 2) return false;
+    var m = cnt(hand);
+    var keys = Object.keys(m);
+    if (keys.length === 7) {
+      var seven = true;
+      keys.forEach(function (k) { if (m[k] !== 2) seven = false; });
+      if (seven) return true; // 七对
+    }
+    // 一般型：4 副 + 1 对将
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (m[k] >= 2) {
+        var m2 = JSON.parse(JSON.stringify(m));
+        m2[k] -= 2;
+        if (m2[k] === 0) delete m2[k];
+        if (tryGroups(m2)) return true;
+      }
+    }
+    return false;
+  }
+  function canHuWith(hand13, tile) { return canWin(hand13.concat([tile])); }
+
+  // 手牌价值启发：返回建议打出的牌
+  function discardSuggest(hand14) {
+    var m = cnt(hand14);
+    var best = null, bestScore = 1e9;
+    hand14.forEach(function (t) {
+      if (m[t] >= 3) return; // 刻子不动
+      var score = tileScore(m, t);
+      if (score < bestScore) { bestScore = score; best = t; }
+    });
+    if (!best) best = hand14[0];
+    return best;
+  }
+  function tileScore(m, t) {
+    var c = m[t];
+    if (c === 0) return 1e9;
+    if (c >= 2) return 5; // 对子保留（将/刻雏形）高分不打
+    if (!isNum(t)) return 1; // 孤张字牌
+    var s = t.charAt(1), num = parseInt(t, 10), sc = 1;
+    for (var d = -2; d <= 2; d++) {
+      if (d === 0) continue;
+      var n2 = num + d, k2 = (n2 >= 1 && n2 <= 9) ? n2 + s : null;
+      if (k2 && m[k2]) sc += (d === -1 || d === 1) ? 2.4 : 1.3;
+    }
+    // 边张/幺九更低价值
+    if (num === 1 || num === 9) sc -= 0.8;
+    return sc;
+  }
+
+  /* ---------- 对局状态 ---------- */
+  var S = null;
+  var seqToken = 0;
+  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function abortAll() { seqToken++; S = null; }
+  window.jy62MjAbortAll = abortAll;
+
+  function actorName(a) { return a ? a.name : ""; }
+
+  function jy62MjStart() {
+    abortAll();
+    var token = ++seqToken;
+    var hostPa = window.jy62HostPa ? window.jy62HostPa() : null;
+    var friends = window.JY62 ? window.JY62.friends : [];
+    var fr = [];
+    try {
+      var cands = window.jy62FriendCandidates ? jy62FriendCandidates() : [];
+      friends.forEach(function (key) {
+        for (var i = 0; i < cands.length; i++) if (cands[i].key === key) { fr.push(cands[i]); break; }
+      });
+    } catch (e) {}
+    var actors = [
+      { kind: "me", name: "你", avatar: "", isMe: true, pa: null },
+      { kind: "host", name: hostPa && hostPa.name ? hostPa.name : "TA", avatar: "", isMe: false, pa: hostPa },
+      { kind: "friend", name: fr[0] ? fr[0].name : "朋友A", avatar: fr[0] ? fr[0].avatar : "", isMe: false, pa: fr[0] ? fr[0].pa : null },
+      { kind: "friend", name: fr[1] ? fr[1].name : "朋友B", avatar: fr[1] ? fr[1].avatar : "", isMe: false, pa: fr[1] ? fr[1].pa : null }
+    ];
+    try {
+      actors[1].avatar = personaAvatarUrl(hostPa) || "";
+    } catch (e) {}
+    var wall = buildWall();
+    var hands = [[], [], [], []];
+    for (var i = 0; i < 4; i++) for (var j = 0; j < 13; j++) hands[i].push(wall.pop());
+    S = {
+      token: token,
+      wall: wall,
+      hands: hands,
+      actors: actors,
+      turn: 0,
+      last: null, // {seat,tile,time}
+      discards: [[], [], [], []],
+      state: "deal", // deal|player|ai|ask|end
+      askMe: null,
+      winner: null,
+      winType: "",
+      message: "",
+      roundEnd: false,
+      picked: -1
+    };
+    window.__jy62MjS = S;
+    mjLog("麻将开始！" + actors.map(function (a) { return a.name; }).join("、") + " 围坐一桌。");
+    // 角色入场白
+    var hostLine = "你们几个人开始打麻将啦，帮我招呼大家开局～";
+    var meText = "你和" + actors[1].name + "、" + actors[2].name + "、" + actors[3].name + "开始了一局麻将。";
+    if (hostPa) window.jy62MemLine(hostPa, "game", meText);
+    if (fr[0] && fr[0].kind === "persona" && fr[0].pa) window.jy62LogFriend(fr[0], "你和大家（含" + actors[1].name + "等）一起打了一局麻将。");
+    if (fr[1] && fr[1].kind === "persona" && fr[1].pa) window.jy62LogFriend(fr[1], "你和大家（含" + actors[1].name + "等）一起打了一局麻将。");
+    (function () {
+      if (window.jy62SayFor && hostPa) {
+        window.jy62SayFor(actors[1], "我们刚开局打麻将，请用一两句话轻松地开场招呼一下（口语，短）。", ["来来来，都坐好，这把我可要好好赢你一把。", "哈，今天手气感觉不错，你们可别放水啊。", "开局了开局了，输的人请奶茶哦。"]).then(function (txt) {
+          if (S && S.token === token && txt) mjChat(1, txt);
+        });
+      }
+    })();
+    (async function () {
+      await delay(600);
+      if (S && S.token === token) mjDrawAndAct();
+    })();
+  }
+  window.jy62MjStart = jy62MjStart;
+
+  function mjRender() {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box || !S) return;
+    var h = "";
+    // AI 座位（host 0，f0 1，f1 2）——显示为上方三张“玩家牌垫”
+    var aiOrder = [1, 2, 3];
+    h += '<div class="mj-seats">';
+    aiOrder.forEach(function (seat, idx) {
+      var a = S.actors[seat];
+      var activeCls = (!S.roundEnd && S.turn === seat && S.state !== "ask") ? " act" : "";
+      var dn = S.hands[seat].length;
+      h += '<div class="mj-seat' + activeCls + '"><div class="mj-av"><img class="avatar" src="' + esc(a.avatar || "") + '" alt=""><i>' + dn + '</i></div><div class="mj-sn">' + esc(a.name) + "</div></div>";
+    });
+    h += "</div>";
+    // 中间区：最近出的牌 + 提示
+    var last = S.last;
+    h += '<div class="mj-center">';
+    h += '<div class="mj-last">' + (last ? '<div class="mj-last-who">' + esc(S.actors[last.seat].name) + " 打出</div><div class=\"mj-last-tile\">" + tileHTML(last.tile) + "</div>" : '<div class="mj-last-who">洗牌中…</div>') + "</div>";
+    h += '<div class="mj-msg" id="mjMsg">' + esc(S.message || "") + "</div>";
+    h += "</div>";
+    // 弃牌区（简化为最近各人弃牌数量）
+    // 操作按钮区
+    h += '<div class="mj-actions" id="mjActions"></div>';
+    // 玩家手牌
+    var meHand = S.hands[0];
+    h += '<div class="mj-myhand"><div class="mj-me-tag">我的手牌（' + meHand.length + "）</div><div class=\"mj-tiles\" id=\"mjTiles\">";
+    meHand.forEach(function (t, i) {
+      h += '<div class="mj-tile-slot' + (S.picked === i ? " picked" : "") + '" onclick="jy62MjClickTile(' + i + ')">' + tileHTML(t) + "</div>";
+    });
+    h += "</div></div>";
+    box.innerHTML = h;
+    // 操作按钮（非自己回合胡碰杠，或自己回合提示出牌）
+    renderActions();
+  }
+  function tileHTML(t) {
+    if (/^[1-9][wtb]$/.test(t)) {
+      var numC = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"][parseInt(t[0], 10)];
+      var su = { w: "万", t: "条", b: "筒" }[t[1]];
+      var cls = t[1] === "w" ? "mj-w" : t[1] === "t" ? "mj-t" : "mj-b";
+      return '<span class="mj ' + cls + '"><i>' + numC + "</i><em>" + su + "</em></span>";
+    }
+    var zi = { 东: "风", 南: "风", 西: "风", 北: "风", 中: "中", 发: "发", 白: "白" };
+    var cls2 = t === "中" ? "mj-z" : t === "发" ? "mj-f" : "mj-bai";
+    return '<span class="mj ' + cls2 + '"><i>' + t + "</i><em>" + (zi[t] || "") + "</em></span>";
+  }
+  window.jy62MjTileHTML = tileHTML;
+
+  function renderActions() {
+    var box = document.getElementById("mjActions");
+    if (!box || !S) return;
+    var h = "";
+    if (S.state === "player") {
+      h += '<div class="mj-tip">轮到你出牌了，点一张手牌打出（当前已选：' + (S.picked > -1 ? "是" : "否") + '）</div>';
+    } else if (S.state === "ask" && S.askMe) {
+      var q = S.askMe;
+      h += '<div class="mj-tip">' + esc(S.actors[q.fromSeat].name) + " 打出 ";
+      h += '<span class="mj-inline">' + tileHTML(q.tile) + "</span>";
+      h += "，你要：</div>";
+      h += '<div class="mj-btn-row">';
+      if (q.hu) h += '<button class="jy-small-btn" onclick="jy62MjMeChoose(\'hu\')">胡</button>';
+      if (q.gang) h += '<button class="jy-small-btn" onclick="jy62MjMeChoose(\'gang\')">杠</button>';
+      if (q.peng) h += '<button class="jy-small-btn" onclick="jy62MjMeChoose(\'peng\')">碰</button>';
+      h += '<button class="jy-small-btn gray" onclick="jy62MjMeChoose(\'pass\')">过</button>';
+      h += "</div>";
+    }
+    box.innerHTML = h;
+  }
+
+  function mjDrawAndAct() {
+    if (!S) return;
+    if (S.roundEnd) return;
+    if (S.wall.length < 4) { mjEndGame(null, "流局（牌摸完了）"); return; }
+    var seat = S.turn;
+    if (seat === 0) {
+      var t = S.wall.pop();
+      S.hands[0].push(t);
+      S.state = "player";
+      S.picked = -1;
+      S.message = "你摸到了牌，选一张打出吧。";
+      mjRender();
+      return;
+    }
+    aiAct(seat);
+  }
+
+  function aiAct(seat) {
+    var token = S.token;
+    var t = S.wall.pop();
+    S.hands[seat].push(t);
+    S.message = S.actors[seat].name + " 摸牌思考中…";
+    S.state = "ai";
+    mjRender();
+    delay(650 + Math.random() * 500).then(function () {
+      if (!S || S.token !== token || S.roundEnd) return;
+      var hand = S.hands[seat];
+      if (canWin(hand)) {
+        // 自摸
+        S.hands[seat] = hand;
+        S.message = S.actors[seat].name + " 自摸！";
+        mjRender();
+        delay(700).then(function () {
+          if (S && S.token === token) mjEndGame(seat, "自摸");
+        });
+        return;
+      }
+      var out = discardSuggest(hand);
+      var idx = hand.indexOf(out);
+      if (idx > -1) hand.splice(idx, 1);
+      S.last = { seat: seat, tile: out };
+      S.discards[seat].push(out);
+      S.message = S.actors[seat].name + " 打出了" + tileName(out);
+      mjRender();
+      delay(500).then(function () {
+        if (S && S.token === token && !S.roundEnd) mjScanClaims(out, seat);
+      });
+    });
+  }
+
+  function tileName(t) {
+    if (/^[1-9][wtb]$/.test(t)) return ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"][parseInt(t[0], 10)] + { w: "万", t: "条", b: "筒" }[t[1]];
+    return t;
+  }
+
+  function mjScanClaims(tile, fromSeat) {
+    var meHu = canHuWith(S.hands[0], tile);
+    var mePeng = false, meGang = false;
+    var mc = cnt(S.hands[0]);
+    if (mc[tile] === 2) mePeng = true;
+    if (mc[tile] === 3) meGang = true;
+    // 玩家优先可胡
+    if (meHu || mePeng || meGang) {
+      S.state = "ask";
+      S.askMe = { tile: tile, fromSeat: fromSeat, hu: meHu, peng: mePeng, gang: meGang };
+      S.message = S.actors[fromSeat].name + " 打出了" + tileName(tile) + "，你可以行动";
+      mjRender();
+      return;
+    }
+    // AI 决策
+    var aiSeats = [1, 2, 3].filter(function (s) { return s !== fromSeat; });
+    // 按回合顺序找胡
+    var huSeat = -1;
+    for (var i = 0; i < aiSeats.length; i++) {
+      var s = aiSeats[i];
+      if (canHuWith(S.hands[s], tile)) { huSeat = s; break; }
+    }
+    if (huSeat > -1) {
+      var outIdx = S.hands[huSeat].indexOf(tile);
+      // 胡需“吃进”此牌：13 张手牌 + 该牌 = 14
+      S.hands[huSeat].push(tile);
+      S.message = S.actors[huSeat].name + " 胡了！";
+      mjRender();
+      delay(700).then(function () {
+        if (S && S.token) mjEndGame(huSeat, "点炮胡");
+      });
+      return;
+    }
+    // 杠/碰（顺序从下家起）
+    var claimSeat = -1, claimType = "";
+    for (var j = 0; j < aiSeats.length; j++) {
+      var s2 = aiSeats[j];
+      var c2 = cnt(S.hands[s2]);
+      if (c2[tile] === 3) { claimSeat = s2; claimType = "gang"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.8) {
+      doAIClaim(claimSeat, tile, "gang", fromSeat);
+      return;
+    }
+    for (var k = 0; k < aiSeats.length; k++) {
+      var s3 = aiSeats[k];
+      var c3 = cnt(S.hands[s3]);
+      if (c3[tile] === 2) { claimSeat = s3; claimType = "peng"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.5) {
+      doAIClaim(claimSeat, tile, "peng", fromSeat);
+      return;
+    }
+    mjAdvanceTurn();
+  }
+
+  function doAIClaim(seat, tile, type, fromSeat) {
+    var token = S.token;
+    var hand = S.hands[seat];
+    // 移除两张做碰、三张做杠
+    for (var i = 0; i < (type === "peng" ? 2 : 3); i++) {
+      var ix = hand.indexOf(tile);
+      if (ix > -1) hand.splice(ix, 1);
+    }
+    S.last = { seat: seat, tile: tile, claim: type };
+    S.message = S.actors[seat].name + (type === "gang" ? " 杠！" : " 碰！");
+    S.turn = seat;
+    S.state = "ai";
+    mjRender();
+    delay(700).then(function () {
+      if (!S || S.token !== token || S.roundEnd) return;
+      if (type === "gang") {
+        // 杠后补一张再打
+        if (!S.wall.length) { mjEndGame(null, "流局（牌摸完了）"); return; }
+        var t = S.wall.pop();
+        S.hands[seat].push(t);
+        S.message = S.actors[seat].name + " 杠后补牌…";
+        mjRender();
+        delay(650).then(function () {
+          if (!S || S.token !== token || S.roundEnd) return;
+          if (canWin(S.hands[seat])) { S.message = S.actors[seat].name + " 杠上开花自摸！"; mjRender(); delay(700).then(function () { if (S && S.token === token) mjEndGame(seat, "杠上开花"); }); return; }
+          var out = discardSuggest(S.hands[seat]);
+          var ix2 = S.hands[seat].indexOf(out);
+          if (ix2 > -1) S.hands[seat].splice(ix2, 1);
+          S.last = { seat: seat, tile: out };
+          S.discards[seat].push(out);
+          S.message = S.actors[seat].name + " 打出了" + tileName(out);
+          mjRender();
+          delay(450).then(function () {
+            if (S && S.token === token && !S.roundEnd) mjScanClaims(out, seat);
+          });
+        });
+      } else {
+        // 碰后直接打
+        var out2 = discardSuggest(S.hands[seat]);
+        var ix3 = S.hands[seat].indexOf(out2);
+        if (ix3 > -1) S.hands[seat].splice(ix3, 1);
+        S.last = { seat: seat, tile: out2 };
+        S.discards[seat].push(out2);
+        S.message = S.actors[seat].name + " 打出了" + tileName(out2);
+        mjRender();
+        delay(450).then(function () {
+          if (S && S.token === token && !S.roundEnd) mjScanClaims(out2, seat);
+        });
+      }
+    });
+  }
+
+  function mjAdvanceTurn() {
+    if (!S || S.roundEnd) return;
+    S.state = "turn";
+    S.turn = (S.turn + 1) % 4;
+    S.askMe = null;
+    mjRender();
+    mjDrawAndAct();
+  }
+
+  /* 玩家交互 */
+  window.jy62MjClickTile = function (i) {
+    if (!S || S.state !== "player" || S.roundEnd) return;
+    S.picked = i;
+    mjRender();
+    // 二次点击打出：改为显示“打出”按钮
+    var actions = document.getElementById("mjActions");
+    if (actions) {
+      actions.innerHTML = '<div class="mj-tip">要打出这张牌吗？</div><div class="mj-btn-row"><button class="jy-small-btn" onclick="jy62MjDiscard()">打出</button><button class="jy-small-btn gray" onclick="jy62MjCancelPick()">再看看</button></div>';
+    }
+  };
+  window.jy62MjDiscard = function () {
+    if (!S || S.state !== "player" || S.roundEnd || S.picked < 0) return;
+    var idx = S.picked;
+    var tile = S.hands[0][idx];
+    S.hands[0].splice(idx, 1);
+    S.last = { seat: 0, tile: tile };
+    S.discards[0].push(tile);
+    S.picked = -1;
+    S.state = "turn";
+    S.message = "你打出了" + tileName(tile);
+    mjRender();
+    // 检查其他人能不能胡你/碰杠你：简化只处理 AI 胡/碰/杠与下一轮
+    if (mjScanClaimsByAIForMe(tile)) return;
+    mjAdvanceTurn();
+  };
+  window.jy62MjCancelPick = function () {
+    if (!S) return;
+    S.picked = -1;
+    S.state = "player";
+    mjRender();
+  };
+  function mjScanClaimsByAIForMe(tile) {
+    var aiSeats = [1, 2, 3];
+    var huSeat = -1;
+    for (var i = 0; i < aiSeats.length; i++) {
+      var s = aiSeats[i];
+      if (canHuWith(S.hands[s], tile)) { huSeat = s; break; }
+    }
+    if (huSeat > -1) {
+      S.hands[huSeat].push(tile);
+      S.message = S.actors[huSeat].name + " 胡了！";
+      mjRender();
+      var token = S.token;
+      delay(700).then(function () { if (S && S.token === token) mjEndGame(huSeat, "点炮胡"); });
+      return true;
+    }
+    // 杠/碰
+    var claimSeat = -1, type = "";
+    for (var j = 0; j < aiSeats.length; j++) {
+      var c = cnt(S.hands[aiSeats[j]]);
+      if (c[tile] === 3) { claimSeat = aiSeats[j]; type = "gang"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.8) { doAIClaim(claimSeat, tile, "gang", 0); return true; }
+    for (var k = 0; k < aiSeats.length; k++) {
+      var c2 = cnt(S.hands[aiSeats[k]]);
+      if (c2[tile] === 2) { claimSeat = aiSeats[k]; type = "peng"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.5) { doAIClaim(claimSeat, tile, "peng", 0); return true; }
+    return false;
+  }
+
+  window.jy62MjMeChoose = function (act) {
+    if (!S || !S.askMe) return;
+    var q = S.askMe;
+    var tile = q.tile;
+    if (act === "pass") {
+      S.askMe = null;
+      // 玩家过：交给 AI 决策同张
+      mjAiClaimsFromLast(tile, q.fromSeat);
+      return;
+    }
+    if (act === "hu") {
+      S.hands[0].push(tile);
+      S.askMe = null;
+      S.state = "end";
+      mjEndGame(0, "点炮胡");
+      return;
+    }
+    if (act === "peng" || act === "gang") {
+      for (var i = 0; i < (act === "peng" ? 2 : 3); i++) {
+        var ix = S.hands[0].indexOf(tile);
+        if (ix > -1) S.hands[0].splice(ix, 1);
+      }
+      S.askMe = null;
+      S.state = "meclaim";
+      S.message = "你" + (act === "peng" ? "碰" : "杠") + "了 " + tileName(tile);
+      mjRender();
+      var token = S.token;
+      delay(500).then(function () {
+        if (!S || S.token !== token || S.roundEnd) return;
+        if (act === "gang") {
+          if (!S.wall.length) { mjEndGame(null, "流局（牌摸完了）"); return; }
+          var t = S.wall.pop();
+          S.hands[0].push(t);
+          S.message = "你杠后补了一张牌，请继续出牌";
+          S.state = "player";
+          S.picked = -1;
+          mjRender();
+          return;
+        }
+        S.message = "你碰了牌，请出牌";
+        S.state = "player";
+        S.picked = -1;
+        mjRender();
+      });
+    }
+  };
+
+  function mjAiClaimsFromLast(tile, fromSeat) {
+    var aiSeats = [1, 2, 3].filter(function (s) { return s !== fromSeat; });
+    var huSeat = -1;
+    for (var i = 0; i < aiSeats.length; i++) {
+      var s = aiSeats[i];
+      if (canHuWith(S.hands[s], tile)) { huSeat = s; break; }
+    }
+    if (huSeat > -1) {
+      S.hands[huSeat].push(tile);
+      S.message = S.actors[huSeat].name + " 胡了！";
+      S.state = "end";
+      mjRender();
+      var token = S.token;
+      delay(700).then(function () { if (S && S.token === token) mjEndGame(huSeat, "点炮胡"); });
+      return;
+    }
+    var claimSeat = -1, type = "";
+    for (var j = 0; j < aiSeats.length; j++) {
+      var c = cnt(S.hands[aiSeats[j]]);
+      if (c[tile] === 3) { claimSeat = aiSeats[j]; type = "gang"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.8) { doAIClaim(claimSeat, tile, "gang", fromSeat); return; }
+    for (var k = 0; k < aiSeats.length; k++) {
+      var c2 = cnt(S.hands[aiSeats[k]]);
+      if (c2[tile] === 2) { claimSeat = aiSeats[k]; type = "peng"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.5) { doAIClaim(claimSeat, tile, "peng", fromSeat); return; }
+    // 无人要：从打出者下家继续
+    var next = (fromSeat + 1) % 4;
+    S.turn = next;
+    S.state = "turn";
+    mjRender();
+    mjDrawAndAct();
+  }
+
+  function mjLog(t) {
+    if (!S) return;
+    S.message = t;
+    mjRender();
+  }
+  function mjChat(seat, txt) {
+    if (!S) return;
+    var d = document.createElement("div");
+    d.style.cssText = "text-align:center;font-size:13px;color:#7a5a00;background:#fff7e0;border-radius:14px;padding:8px 14px;margin:6px auto;max-width:86%;";
+    d.innerHTML = "<b>" + esc(S.actors[seat].name) + "：</b>" + esc(txt);
+    var box = document.getElementById("jy62BoardArea");
+    if (!box) return;
+    // 在消息处展示为“弹幕”
+    var msg = document.getElementById("mjMsg");
+    if (msg) msg.textContent = S.actors[seat].name + "：" + txt;
+  }
+
+  function mjEndGame(winnerSeat, type) {
+    if (!S) return;
+    S.roundEnd = true;
+    S.state = "end";
+    S.winner = winnerSeat;
+    S.winType = type;
+    var txt = "";
+    if (winnerSeat === null) {
+      txt = "这局流局了，牌都摸完了，大家平局收场。";
+      mjRenderOverlay(null, "流局", "这局打成了流局，牌墙都摸空了，看来是势均力敌。");
+    } else {
+      var w = S.actors[winnerSeat];
+      var isMe = winnerSeat === 0;
+      var line = isMe ? "你" + (type === "自摸" ? "自摸胡牌" : "胡了") + "！" : w.name + (type === "自摸" ? "自摸胡牌" : "胡了") + "！";
+      txt = line;
+      mjRenderOverlay(winnerSeat, type, line);
+      var hostPa = window.jy62HostPa ? jy62HostPa() : null;
+      if (hostPa) window.jy62MemLine(hostPa, "game", "你和TA以及朋友们打麻将，" + line + "（" + type + "）。");
+    }
+  }
+
+  function mjRenderOverlay(winnerSeat, type, line) {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box || !S) return;
+    var h = "";
+    var actors = S.actors;
+    h += '<div class="mj-overlay"><div class="mj-over-card">';
+    h += '<div class="mj-over-title">' + (winnerSeat === null ? "流局" : type + "！") + "</div>";
+    if (winnerSeat !== null) {
+      h += '<div class="mj-over-av"><img class="avatar" src="' + esc(actors[winnerSeat].avatar || "") + '"></div>';
+      h += '<div class="mj-over-name">' + (winnerSeat === 0 ? "你" : esc(actors[winnerSeat].name)) + "</div>";
+    }
+    h += '<div class="mj-over-line">' + esc(line) + "</div>";
+    h += '<div class="mj-btn-row"><button class="jy-small-btn" onclick="jy62MjRestart()">再来一局</button><button class="jy-small-btn gray" onclick="jy62ExitGame()">回大厅</button></div>';
+    h += "</div></div>";
+    box.innerHTML = h;
+    // 结束语
+    if (winnerSeat !== null && winnerSeat !== 0) {
+      var a = actors[winnerSeat];
+      window.jy62SayFor(a, "这局" + type + "赢得很开心，用一两句话得意地炫耀或调侃大家（口语，短）。", ["哈哈哈运气好运气好，承让承让。", "这把牌抓得顺，不好意思啦～", "看到没，这就是实力，回头奶茶安排上。"]).then(function (txt) {
+        if (txt) { var msg = document.getElementById("mjMsg"); if (msg) msg.textContent = a.name + "：" + txt; }
+      });
+    }
+  }
+
+  window.jy62MjRestart = function () { jy62MjStart(); };
+  window.jy62MjRender = mjRender;
+})();
+
+</script>
+<script>
+/* ===================== 霁月机62 · 狼人杀 5 人局 ===================== */
+(function () {
+  if (window.__jy62WolfInited) return;
+  window.__jy62WolfInited = true;
+
+  function esc(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  var W = null; // 状态
+  var wToken = 0;
+
+  window.jy62WolfAbortAll = function () { wToken++; W = null; };
+
+  function logToBoard(html) {
+    var box = document.getElementById("jy62WolfLog");
+    if (!box) return;
+    var d = document.createElement("div");
+    d.className = "wolf-log-line";
+    d.innerHTML = html;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setAction(html) {
+    var box = document.getElementById("jy62WolfAction");
+    if (box) box.innerHTML = html;
+  }
+
+  function wolfRenderAll() {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box || !W) return;
+    var oldLog = "";
+    var oldLogEl = document.getElementById("jy62WolfLog");
+    if (oldLogEl) oldLog = oldLogEl.innerHTML;
+    var h = "";
+    // 存活者行
+    h += '<div class="wolf-cast">';
+    W.players.forEach(function (pl) {
+      var dead = pl.dead;
+      h += '<div class="wolf-p' + (dead ? " dead" : "") + '"><div class="wolf-av"><img class="avatar" src="' + esc(pl.avatar || "") + '" alt="">' + (dead ? '<span class="wolf-dead-x">✝</span>' : "") + "</div><div class=\"wolf-n\">" + esc(pl.name) + (pl.isMe ? "（你）" : "") + "</div><div class=\"wolf-r\">" + (pl.isMe ? esc(roleName(pl.role)) : "") + "</div></div>";
+    });
+    h += "</div>";
+    h += '<div class="wolf-log" id="jy62WolfLog"></div>';
+    h += '<div class="wolf-action" id="jy62WolfAction"></div>';
+    box.innerHTML = h;
+    if (oldLog) {
+      var nlog = document.getElementById("jy62WolfLog");
+      if (nlog) {
+        nlog.innerHTML = oldLog;
+        nlog.scrollTop = nlog.scrollHeight;
+      }
+    }
+  }
+
+  function roleName(r) {
+    return { wolf: "狼人", seer: "预言家", witch: "女巫", hunter: "猎人", villager: "村民" }[r] || "";
+  }
+  function roleSide(r) { return r === "wolf" ? "wolf" : "good"; }
+
+  function wolfRestartPlayers() {
+    var hostPa = window.jy62HostPa ? jy62HostPa() : null;
+    var friends = [];
+    try {
+      var cands = window.jy62FriendCandidates ? jy62FriendCandidates() : [];
+      (window.JY62 ? window.JY62.friends : []).forEach(function (key) {
+        for (var i = 0; i < cands.length; i++) if (cands[i].key === key) { friends.push(cands[i]); break; }
+      });
+    } catch (e) {}
+    var pls = [];
+    var meAv = "";
+    try { meAv = currentAcc() ? currentAcc().avatar || "" : ""; } catch (e) {}
+    pls.push({ key: "me", name: "你", avatar: meAv, isMe: true, pa: null, npc: null, role: null, dead: false, witchSave: true, witchPoison: true, hunterGun: true });
+    pls.push({ key: "host", name: hostPa && hostPa.name ? hostPa.name : "TA", avatar: "", isMe: false, pa: hostPa, npc: null, role: null, dead: false, witchSave: true, witchPoison: true, hunterGun: true });
+    try { if (hostPa) pls[1].avatar = personaAvatarUrl(hostPa) || ""; } catch (e) {}
+    friends.forEach(function (f) {
+      pls.push({ key: f.key, name: f.name, avatar: f.avatar || "", isMe: false, pa: f.pa || null, npc: f.n || null, role: null, dead: false, witchSave: true, witchPoison: true, hunterGun: true });
+    });
+    return pls;
+  }
+
+  function assignRoles(pls) {
+    var pool = ["wolf", "seer", "witch", "hunter", "villager"];
+    var order = [];
+    for (var i = 0; i < pls.length; i++) order.push(i);
+    for (var j = order.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = order[j]; order[j] = order[r]; order[r] = t; }
+    for (var k = 0; k < order.length; k++) pls[order[k]].role = pool[k];
+  }
+
+  function aliveList() { return W.players.filter(function (p) { return !p.dead; }); }
+  function aliveExcept(key) { return aliveList().filter(function (p) { return p.key !== key; }); }
+  function findP(key) { for (var i = 0; i < W.players.length; i++) if (W.players[i].key === key) return W.players[i]; return null; }
+  function sideAlive(side) { return aliveList().filter(function (p) { return roleSide(p.role) === side; }); }
+  function goodCount() { return sideAlive("good").length; }
+  function wolfCount() { return sideAlive("wolf").length; }
+
+  function checkEnd() {
+    if (!W) return false;
+    if (wolfCount() === 0) { wolfEnd("good"); return true; }
+    if (wolfCount() > 0 && goodCount() <= wolfCount()) { wolfEnd("wolf"); return true; }
+    return false;
+  }
+
+  function wolfEnd(winSide) {
+    if (!W) return;
+    W.phase = "end";
+    var wolf = W.players.filter(function (p) { return p.role === "wolf"; })[0];
+    var wolfName = wolf ? (wolf.isMe ? "你" : wolf.name) : "狼人";
+    var line = winSide === "good" ? "狼人阵营全军覆没，好人阵营胜利！" : wolfName + " 咬到最后，狼人阵营获胜！";
+    logToBoard('<b style="color:#c0392b">' + line + "</b>");
+    setAction('<div class="mj-btn-row"><button class="jy-small-btn" onclick="jy62WolfRestart()">再来一局</button><button class="jy-small-btn gray" onclick="jy62ExitGame()">回大厅</button></div>');
+    // 记录记忆
+    var hostPa = window.jy62HostPa ? jy62HostPa() : null;
+    if (hostPa) window.jy62MemLine(hostPa, "game", "你和" + W.players.filter(function (p) { return !p.isMe && p.key !== "host"; }).map(function (p) { return p.name; }).join("、") + "一起玩了狼人杀，结局：" + line);
+    var winnerP = winSide === "good" ? null : wolf;
+    if (winnerP && winnerP.key !== "me" && winnerP.key !== "host") window.jy62LogFriend(winnerP, "你赢了这局狼人杀（狼人阵营胜利）。");
+  }
+
+  window.jy62WolfRestart = function () { jy62WolfStart(); };
+
+  function jy62WolfStart() {
+    window.jy62WolfAbortAll();
+    var token = ++wToken;
+    var hostPa = window.jy62HostPa ? jy62HostPa() : null;
+    var pls = wolfRestartPlayers();
+    if (pls.length !== 5) {
+      try { toast("狼人杀需要 5 人：你 + TA + 3 位朋友"); } catch (e) {}
+      return;
+    }
+    assignRoles(pls);
+    W = { token: token, players: pls, phase: "night", day: 0, wolfVictim: null, seerCheck: null, witchSaveUsed: false, witchPoisonUsed: false, lastDead: [] };
+    window.__jy62WolfS = W;
+    // 展示自己的身份
+    var me = pls.filter(function (p) { return p.isMe; })[0];
+    wolfRenderAll();
+    logToBoard('<div class="wolf-rolecard">你的身份是：<b>' + roleName(me.role) + "</b>" + (me.role === "wolf" ? "（狼人阵营，夜晚可以刀人，白天伪装自己）" : "（好人阵营，白天找出狼人并投票放逐）") + "</div>");
+    logToBoard("天黑请闭眼…");
+    var hostLine = "你们几个开始玩狼人杀，请招呼大家进入状态～";
+    if (hostPa) window.jy62MemLine(hostPa, "game", "你和" + pls.filter(function (p) { return !p.isMe && p.key !== "host"; }).map(function (p) { return p.name; }).join("、") + "开始了一局狼人杀。");
+    delay(900).then(function () {
+      if (W && W.token === token) wolfNightWolf(me);
+    });
+  }
+  window.jy62WolfStart = jy62WolfStart;
+
+  /* ---------- 夜晚 ---------- */
+  function wolfNightWolf(me) {
+    var token = W.token;
+    var wolf = W.players.filter(function (p) { return p.role === "wolf" && !p.dead; })[0];
+    if (!wolf) { logToBoard("没有活着的狼了。"); wolfNextAfterWolf(); return; }
+    if (wolf.isMe) {
+      logToBoard("你是狼人，请选择今晚要袭击的对象：");
+      var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'wolf\',\'' + p.key + '\')">' + esc(p.name) + "</button>"; }).join("");
+      setAction('<div class="mj-btn-row">' + opts + "</div>");
+      return;
+    }
+    // AI 狼：随机咬一个非狼好人
+    logToBoard("狼人正在密谋袭击对象…");
+    delay(900).then(function () {
+      if (!W || W.token !== token) return;
+      var wolves = W.players.filter(function (p) { return p.role === "wolf"; });
+      var wolfKeys = wolves.map(function (p) { return p.key; });
+      var targets = aliveExcept(wolf.key).filter(function (p) { return wolfKeys.indexOf(p.key) < 0; });
+      if (!targets.length) targets = aliveExcept(wolf.key);
+      var victim = pick(targets);
+      W.wolfVictim = victim.key;
+      logToBoard("狼人已经决定了袭击目标…");
+      wolfNextAfterWolf();
+    });
+  }
+
+  function wolfNextAfterWolf() {
+    if (!W) return;
+    var token = W.token;
+    var seer = W.players.filter(function (p) { return p.role === "seer" && !p.dead; })[0];
+    delay(800).then(function () {
+      if (!W || W.token !== token) return;
+      if (seer) {
+        if (seer.isMe) {
+          logToBoard("你是预言家，请选择要查验的人：");
+          var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'seer\',\'' + p.key + '\')">' + esc(p.name) + "</button>"; }).join("");
+          setAction('<div class="mj-btn-row">' + opts + "</div>");
+          return;
+        }
+        // AI 预言家随机验
+        delay(800).then(function () {
+          if (!W || W.token !== token) return;
+          var target = pick(aliveExcept(seer.key));
+          W.seerCheck = { key: target.key, wolf: target.role === "wolf" };
+          logToBoard("预言家悄悄睁开了眼睛…");
+          wolfNextAfterSeer();
+        });
+        return;
+      }
+      wolfNextAfterSeer();
+    });
+  }
+
+  function wolfNextAfterSeer() {
+    if (!W) return;
+    var token = W.token;
+    var witch = W.players.filter(function (p) { return p.role === "witch" && !p.dead; })[0];
+    delay(800).then(function () {
+      if (!W || W.token !== token) return;
+      if (witch) {
+        var victim = W.wolfVictim ? findP(W.wolfVictim) : null;
+        var meKilled = victim && victim.isMe;
+        if (witch.isMe) {
+          logToBoard("你是女巫。" + (victim ? (meKilled ? "今晚你被狼人袭击了" : "今晚被狼人袭击的是 " + victim.name) : "今晚没有人被袭击") + "。你有解药（救）与毒药（毒一人）各一次。");
+          var act = "";
+          if (victim && !victim.dead && !W.witchSaveUsed) act += '<button class="jy-small-btn" onclick="jy62WolfChoose(\'witchsave\',\'' + victim.key + '\')">使用解药救TA</button>';
+          if (!W.witchPoisonUsed) {
+            var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'witchpoison\',\'' + p.key + '\')">毒 ' + esc(p.name) + "</button>"; }).join("");
+            act += '<div style="margin-top:8px">或用毒药：</div><div class="mj-btn-row">' + opts + "</div>";
+          }
+          act += '<div class="mj-btn-row"><button class="jy-small-btn gray" onclick="jy62WolfChoose(\'witchskip\',\'\')">什么都不用</button></div>';
+          setAction(act);
+          return;
+        }
+        // AI 女巫：第一晚大概率救，毒药不乱用
+        delay(800).then(function () {
+          if (!W || W.token !== token) return;
+          if (victim && !W.witchSaveUsed && Math.random() < 0.6) {
+            W.witchSaveUsed = true;
+            W.wolfVictim = null;
+            logToBoard("女巫悄悄使用了解药…");
+          }
+          wolfNightEnd();
+        });
+        return;
+      }
+      wolfNightEnd();
+    });
+  }
+
+  function wolfDawnResolve() {
+    if (!W) return;
+    var token = W.token;
+    var victims = [];
+    if (W.wolfVictim) {
+      var v = findP(W.wolfVictim);
+      if (v && !v.dead) victims.push(v);
+    }
+    if (W.witchPoisonTarget) {
+      var vp = findP(W.witchPoisonTarget);
+      if (vp && !vp.dead) victims.push(vp);
+    }
+    W.witchPoisonTarget = null;
+    victims.forEach(function (p) { p.dead = true; });
+    W.lastDead = victims.map(function (p) { return p.key; });
+    logToBoard("<b>天亮了</b>");
+    if (!victims.length) {
+      logToBoard("昨晚是平安夜，没有人死去。");
+    } else {
+      victims.forEach(function (p) {
+        logToBoard(p.isMe ? "你死了…（被" + (W.wolfVictim && findP(W.wolfVictim) === p ? "狼人袭击" : "女巫毒药") + "）" : esc(p.name) + " 死在了夜里。");
+      });
+      // 猎人开枪
+      var hunter = W.players.filter(function (p) { return p.role === "hunter" && p.dead && p.hunterGun && victims.indexOf(p) > -1; })[0];
+      if (hunter) {
+        logToBoard(esc(hunter.name) + " 是猎人，临终前可以开枪带走一人！");
+        W.hunterToShoot = hunter;
+        if (hunter.isMe) {
+          var opts2 = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'hunter\',\'' + p.key + '\')">' + esc(p.name) + "</button>"; }).join("");
+          setAction('<div class="mj-btn-row">' + opts2 + "</div>");
+          return true;
+        }
+        delay(1000).then(function () {
+          if (!W || W.token !== token) return;
+          if (Math.random() < 0.8) {
+            var t = pick(aliveExcept(hunter.key));
+            var tp = findP(t.key);
+            if (tp && !tp.dead) {
+              tp.dead = true;
+              logToBoard(esc(hunter.name) + " 开枪带走了 " + esc(tp.name) + "！");
+            }
+          } else {
+            logToBoard(esc(hunter.name) + " 选择了不开枪。");
+          }
+          wolfAfterDawn();
+        });
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function wolfAfterDawn() {
+    if (!W) return;
+    if (checkEnd()) return;
+    W.phase = "day";
+    W.day++;
+    wolfRenderAll();
+    logToBoard("<b>第 " + W.day + " 个白天</b>，请大家依次发言，然后投票放逐一名玩家。");
+    wolfSpeech();
+  }
+
+  function wolfRenderLogContainer() {
+    var log = document.getElementById("jy62WolfLog");
+    if (log) log.innerHTML = "";
+    logToBoard("—— 进入白天 ——");
+  }
+
+  /* ---------- 白天发言 ---------- */
+  function wolfSpeech() {
+    if (!W) return;
+    var token = W.token;
+    var alive = aliveList();
+    var i = 0;
+    function next() {
+      if (!W || W.token !== token) return;
+      if (i >= alive.length) { wolfVoteIntro(); return; }
+      var p = alive[i++];
+      if (p.isMe) {
+        logToBoard('<b>你（' + roleName(p.role) + '）</b> 轮到发言：');
+        setAction('<div style="display:flex;gap:8px"><input id="jy62WolfSay" class="wolf-input" placeholder="说点什么…" onkeydown="if(event.key===\'Enter\')jy62WolfSpeakDone()"><button class="jy-small-btn" onclick="jy62WolfSpeakDone()">发言</button></div><button class="jy-small-btn gray" onclick="jy62WolfSpeakSkip()">跳过发言</button>');
+        return;
+      }
+      var txt = aiSpeech(p);
+      logToBoard('<b>' + esc(p.name) + "：</b>" + esc(txt));
+      delay(1100).then(next);
+    }
+    next();
+  }
+
+  function aiSpeech(p) {
+    var r = p.role;
+    var others = aliveExcept(p.key);
+    var othersName = others.map(function (o) { return o.name; }).join("、");
+    if (r === "wolf") {
+      var t = pick(["今晚的风有点凉…我觉得" + othersName + "里有人在带节奏。", "我是普通村民，先跟着大家听听看。", "我没什么信息，不过谁急着投我谁就可疑。", "大家都冷静点，别被带了节奏，先听听预言家怎么说。"]);
+      return t;
+    }
+    if (r === "seer") {
+      if (W.seerCheck && findP(W.seerCheck.key) && !findP(W.seerCheck.key).dead) {
+        var tgt = findP(W.seerCheck.key);
+        return W.seerCheck.wolf ? "我是预言家，昨晚我验了 " + tgt.name + "，TA 是狼！大家投TA！" : "我是预言家，昨晚验了 " + tgt.name + "，TA 是好人，可以先放一放。";
+      }
+      return pick(["我是预言家，昨晚验到了一个好人，先不说名字，保护TA。", "我还在观察，谁比较可疑我心里有数。"]);
+    }
+    if (r === "witch") {
+      return pick(["我昨晚救过人，细节不方便说，但我心里有数。", "我是一个有信息的人，先听大家发言再表态。", "别急，让子弹飞一会儿。"]);
+    }
+    if (r === "hunter") {
+      return pick(["我是猎人，不怕死，谁乱跳我带走谁。", "大家理性一点，狼人会藏在话多的人里。", "我暂时没信息，先站好人这边。", "我怀疑 " + pick(others).name + "，发言太急了。"]);
+    }
+    return pick(["我是村民，暂时没信息，再看看。", "我觉得 " + pick(others).name + " 有点可疑。", "我跟着预言家走。", "过，先听你们的。"]);
+  }
+
+  window.jy62WolfSpeakDone = function () {
+    var input = document.getElementById("jy62WolfSay");
+    if (!input) return;
+    var txt = input.value.trim();
+    if (!txt) return;
+    var me = findP("me");
+    logToBoard('<b>你：</b>' + esc(txt));
+    if (W) { W.playerLastSay = txt; }
+    delay(500).then(wolfVoteIntro);
+  };
+  window.jy62WolfSpeakSkip = function () {
+    logToBoard("（你选择了跳过发言）");
+    if (W) W.playerLastSay = "";
+    delay(500).then(wolfVoteIntro);
+  };
+
+  /* ---------- 投票 ---------- */
+  function wolfVoteIntro() {
+    if (!W) return;
+    logToBoard("现在开始投票，得票最多的人将被放逐。");
+    if (findP("me") && !findP("me").dead) {
+      var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'vote\',\'' + p.key + '\')">投 ' + esc(p.name) + "</button>"; }).join("");
+      setAction('<div class="mj-btn-row">' + opts + "</div>");
+      return;
+    }
+    wolfVoteResolve();
+  }
+
+  function aiVote(p) {
+    var others = aliveExcept(p.key);
+    // 狼投好人；好人尽量投怀疑对象；无信息随机
+    if (p.role === "wolf") {
+      var good = others.filter(function (o) { return roleSide(o.role) === "good"; });
+      return pick(good.length ? good : others).key;
+    }
+    if (p.role === "seer" && W.seerCheck) {
+      var chk = findP(W.seerCheck.key);
+      if (chk && !chk.dead && chk.key !== p.key) return chk.key;
+    }
+    return pick(others).key;
+  }
+
+  function wolfVoteResolve() {
+    if (!W) return;
+    var token = W.token;
+    var votes = {};
+    var alive = aliveList();
+    alive.forEach(function (p) {
+      var v = p.isMe ? W.playerVote : aiVote(p);
+      if (!v || findP(v) && findP(v).dead) {
+        var others = aliveExcept(p.key);
+        v = pick(others).key;
+      }
+      votes[v] = (votes[v] || 0) + 1;
+    });
+    var keys = Object.keys(votes);
+    var maxV = 0, top = [];
+    keys.forEach(function (k) { if (votes[k] > maxV) { maxV = votes[k]; top = [k]; } else if (votes[k] === maxV) top.push(k); });
+    var out = top.length === 1 ? findP(top[0]) : null;
+    var desc = keys.map(function (k) { return esc(findP(k) ? findP(k).name : k) + " " + votes[k] + "票"; }).join("，");
+    logToBoard("投票结果：" + desc);
+    delay(900).then(function () {
+      if (!W || W.token !== token) return;
+      if (!out) {
+        logToBoard("平票无人被放逐，进入下一个夜晚。");
+      } else {
+        out.dead = true;
+        logToBoard((out.isMe ? "你被大家投了出去" : esc(out.name) + " 被放逐了") + "，TA的身份是：" + roleName(out.role) + "。");
+        if (out.role === "hunter" && out.hunterGun) {
+          logToBoard(esc(out.name) + " 是猎人，临死前可以开枪！");
+          if (out.isMe) {
+            var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'hunter\',\'' + p.key + '\')">' + esc(p.name) + "</button>"; }).join("");
+            setAction('<div class="mj-btn-row">' + opts + "</div>");
+            W.hunterToShoot = out;
+            return;
+          }
+          delay(800).then(function () {
+            if (!W || W.token !== token) return;
+            if (Math.random() < 0.75) {
+              var t = pick(aliveExcept(out.key));
+              t.dead = true;
+              logToBoard(esc(out.name) + " 开枪带走了 " + esc(t.name) + "！");
+            }
+            wolfGoNight();
+          });
+          return;
+        }
+      }
+      wolfGoNight();
+    });
+  }
+
+  /* ---------- 进入夜晚 ---------- */
+  function wolfGoNight() {
+    if (!W) return;
+    if (checkEnd()) return;
+    W.phase = "night";
+    W.wolfVictim = null;
+    W.seerCheck = null;
+    wolfRenderAll();
+    logToBoard("天黑请闭眼…");
+    var token = W.token;
+    delay(900).then(function () {
+      if (W && W.token === token) wolfNightWolf(findP("me"));
+    });
+  }
+
+  /* ---------- 统一行动处理 ---------- */
+  window.jy62WolfChoose = function (type, key) {
+    if (!W) return;
+    var token = W.token;
+    var me = findP("me");
+    if (type === "wolf") {
+      if (!me || me.role !== "wolf") return;
+      var v = findP(key);
+      if (!v || v.dead) return;
+      W.wolfVictim = v.key;
+      logToBoard("你选择了袭击 " + esc(v.name) + "。");
+      setAction("");
+      wolfNextAfterWolf();
+      return;
+    }
+    if (type === "seer") {
+      if (!me || me.role !== "seer") return;
+      var v2 = findP(key);
+      if (!v2) return;
+      W.seerCheck = { key: v2.key, wolf: v2.role === "wolf" };
+      logToBoard("你查验了 " + esc(v2.name) + "，结果：<b>" + (v2.role === "wolf" ? "是狼人！" : "是好人。") + "</b>");
+      setAction("");
+      wolfNextAfterSeer();
+      return;
+    }
+    if (type === "witchsave") {
+      if (!me || me.role !== "witch") return;
+      W.witchSaveUsed = true;
+      W.wolfVictim = null;
+      logToBoard("你使用了解药，救了 TA。");
+      setAction("");
+      wolfNightEnd();
+      return;
+    }
+    if (type === "witchpoison") {
+      if (!me || me.role !== "witch") return;
+      var v3 = findP(key);
+      if (!v3) return;
+      W.witchPoisonUsed = true;
+      W.witchPoisonTarget = v3.key;
+      logToBoard("你使用了毒药，毒了 " + esc(v3.name) + "。");
+      setAction("");
+      wolfNightEnd();
+      return;
+    }
+    if (type === "witchskip") {
+      setAction("");
+      wolfNightEnd();
+      return;
+    }
+    if (type === "hunter") {
+      var h = W.hunterToShoot || (W.players.filter(function (p) { return p.role === "hunter" && p.dead; })[0]);
+      if (!h) return;
+      h.hunterGun = false;
+      var v4 = findP(key);
+      if (v4 && !v4.dead) {
+        v4.dead = true;
+        logToBoard("你开枪带走了 " + esc(v4.name) + "！");
+      } else {
+        logToBoard("你选择了不开枪。");
+      }
+      W.hunterToShoot = null;
+      setAction("");
+      wolfAfterDawn();
+      return;
+    }
+    if (type === "vote") {
+      if (!me || me.dead) return;
+      W.playerVote = key;
+      logToBoard("你投了 " + esc(findP(key) ? findP(key).name : key) + "。");
+      setAction("");
+      wolfVoteResolve();
+      return;
+    }
+  };
+
+  function wolfNightEnd() {
+    if (!W) return;
+    var token = W.token;
+    logToBoard("女巫闭上了眼睛，夜晚结束…");
+    delay(900).then(function () {
+      if (W && W.token === token) {
+        var shot = wolfDawnResolve();
+        if (!shot) wolfAfterDawn();
+      }
+    });
+  }
+
+  function wolfNextAfterWolf2() {}
+  function wolfNightAfterAll() {}
+})();
+
+</script>
+<script>
+(function(){
+  try { if (window.PAGES && window.PAGES.indexOf("jyGame62") < 0) window.PAGES.push("jyGame62"); } catch (e) {}
+  try { if (window.HOME_APP_META && !window.HOME_APP_META.games) window.HOME_APP_META.games = { name: "小游戏", icon: "" }; } catch (e) {}
+  try { if (window.renderHomeGrid) window.renderHomeGrid(); } catch (e) {}
+})();
+</script>
+<style>
+/* ===== 霁月机62 UI ===== */
+.jy-game-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+#jy62BoardArea{flex:1;min-height:0;overflow-y:auto;padding:10px;position:relative}
+
+/* 浮层通用 */
+.jy62-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:900}
+.jy62-sheet{width:100%;max-width:480px;max-height:82%;background:#fff;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -6px 24px rgba(0,0,0,.2)}
+.jy62-sheet-head{display:flex;align-items:center;gap:6px;padding:12px 14px 8px;font-weight:800;font-size:16px;border-bottom:1px solid #f0f0f0;flex:none}
+.jy62-sheet-head .back{width:28px;height:28px;font-size:20px;line-height:28px;text-align:center;color:#333;cursor:pointer;border-radius:8px;background:#f4f4f4}
+.jy62-sheet-body{overflow-y:auto;padding:10px 14px 18px;min-height:80px}
+.jy62-sheet-title{font-size:14px;color:#555;line-height:1.5;margin-bottom:10px}
+.jy-char-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:12px;cursor:pointer}
+.jy-char-item:active{background:#f2f7ff}
+.jy-char-item.picked{background:#e6f2ff}
+.jy-char-item .avatar{width:38px;height:38px;border-radius:50%;background:#f0f0f0;object-fit:cover;flex:none}
+.pick-main{flex:1;min-width:0}
+.pick-name{font-weight:700;font-size:15px}
+.pick-desc{font-size:12px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.pick-empty{padding:24px 8px;text-align:center;color:#999;font-size:13px}
+.jy62-fk-check{width:26px;height:26px;border-radius:50%;border:1.5px solid #ddd;color:#fff;text-align:center;line-height:23px;font-size:16px;flex:none}
+.jy-char-item.picked .jy62-fk-check{background:#3b82f6;border-color:#3b82f6}
+.jy62-foot{padding:10px 14px 22px;flex:none}
+#jy62FriendGo{width:100%;padding:12px;border:0;border-radius:14px;background:#3b82f6;color:#fff;font-size:16px;font-weight:800}
+#jy62FriendGo:disabled{background:#c7d8ef;color:#fff}
+
+/* 悬浮球与聊天窗 */
+.jy62-ball{position:fixed;right:14px;bottom:76px;z-index:940;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6a9cff,#3b82f6);color:#fff;display:none;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 14px rgba(59,130,246,.5);cursor:pointer}
+.jy62-chat-head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid #f0f0f0}
+.jy62-chat-head .avatar{width:32px;height:32px;border-radius:50%;background:#eee}
+.jy62-chat-head b{flex:1;font-size:15px}
+.jy62-chat-body{flex:1;overflow-y:auto;padding:12px;background:#f6f8fb;display:flex;flex-direction:column;gap:6px}
+.jy62-chat-foot{display:flex;gap:8px;padding:10px 12px 18px;border-top:1px solid #eee;background:#fff}
+#jy62ChatInput{flex:1;border:1px solid #ddd;border-radius:18px;padding:9px 14px;font-size:14px;outline:none}
+#jy62ChatSendBtn{border:0;background:#3b82f6;color:#fff;border-radius:18px;padding:0 18px;font-size:14px;font-weight:700}
+#jy62ChatSendBtn:disabled{opacity:.5}
+
+/* 麻将 */
+.mj-seats{display:flex;justify-content:center;gap:14px;padding:6px 0}
+.mj-seat{display:flex;flex-direction:column;align-items:center;gap:4px;width:74px;padding:8px 4px;border-radius:14px;background:#f6f6f6;opacity:.72;transition:.2s}
+.mj-seat.act{background:#fff3d6;opacity:1;box-shadow:0 0 0 2px #f7c95c}
+.mj-av{position:relative}
+.mj-av img{width:40px;height:40px;border-radius:50%;background:#e7e7e7}
+.mj-av i{position:absolute;right:-4px;bottom:-4px;background:#333;color:#fff;font-size:10px;font-style:normal;border-radius:9px;padding:1px 6px;min-width:16px}
+.mj-sn{font-size:12px;font-weight:700;white-space:nowrap;max-width:76px;overflow:hidden;text-overflow:ellipsis}
+.mj-center{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0}
+.mj-last{display:flex;align-items:center;gap:8px;min-height:64px}
+.mj-last-who{font-size:12px;color:#888}
+.mj-last-tile{transform:scale(1.6);margin:6px 10px}
+.mj-msg{font-size:13px;color:#7a5a00;background:#fff7e0;border-radius:14px;padding:7px 12px;max-width:90%;text-align:center}
+.mj-actions{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:4px 0}
+.mj-tip{font-size:13px;color:#555;text-align:center}
+.mj-btn-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:6px 0}
+.mj-inline{display:inline-block;vertical-align:middle;transform:scale(.9)}
+.mj-myhand{background:#fafafa;border-top:1px solid #eee;padding:8px 6px 12px;flex:none}
+.mj-me-tag{font-size:11px;color:#999;margin:0 4px 6px}
+.mj-tiles{display:flex;gap:3px;overflow-x:auto;padding-bottom:4px}
+.mj-tile-slot{padding:2px;border-radius:8px;cursor:pointer;flex:none}
+.mj-tile-slot.picked{background:#fff3d6}
+.mj{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:38px;height:54px;background:#fffdf6;border:1px solid #d8d2c2;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.12);font-weight:700}
+.mj i{font-style:normal;font-size:19px;line-height:1.15;color:#2f2f2f}
+.mj em{font-size:9px;font-style:normal;opacity:.62;margin-top:-1px}
+.mj-w em,.mj-t em,.mj-b em{color:#333}
+.mj-w i{color:#d3382f}.mj-t i{color:#2e7d32}.mj-b i{color:#1e4f8f}
+.mj-z i{color:#e02020}.mj-f i{color:#1e4f8f}.mj-bai i{color:#555}
+.mj-overlay{position:absolute;inset:0;background:rgba(255,255,255,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:20}
+.mj-over-card{width:min(78%,300px);background:#fff;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.25);padding:22px 16px;text-align:center}
+.mj-over-title{font-size:20px;font-weight:900;color:#d3382f}
+.mj-over-av{margin:10px 0 4px}
+.mj-over-av img{width:52px;height:52px;border-radius:50%;background:#eee}
+.mj-over-name{font-weight:800;font-size:16px}
+.mj-over-line{font-size:13px;color:#666;margin:8px 0 12px}
+
+/* 狼人杀 */
+.wolf-cast{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:6px 0}
+.wolf-p{display:flex;flex-direction:column;align-items:center;gap:3px;width:76px;padding:6px 2px;border-radius:12px;background:#f6f6f6}
+.wolf-p.dead{opacity:.42;filter:grayscale(.8)}
+.wolf-av{position:relative}
+.wolf-av img{width:40px;height:40px;border-radius:50%;background:#e7e7e7}
+.wolf-dead-x{position:absolute;right:-6px;top:-6px;background:#c0392b;color:#fff;width:18px;height:18px;border-radius:50%;font-size:11px;line-height:18px;text-align:center}
+.wolf-n{font-size:12px;font-weight:700;white-space:nowrap;max-width:78px;overflow:hidden;text-overflow:ellipsis}
+.wolf-r{font-size:10px;color:#8a5a00}
+.wolf-log{background:#faf6ec;border:1px solid #efe5cf;border-radius:14px;padding:10px 12px;min-height:120px;max-height:44vh;overflow-y:auto;margin:6px 0;display:flex;flex-direction:column;gap:7px}
+.wolf-log-line{font-size:14px;color:#3b3b3b;line-height:1.45}
+.wolf-rolecard{background:#fff3d6;color:#6b4a00;border-radius:12px;padding:8px 12px;text-align:center;font-size:14px}
+.wolf-rolecard b{color:#d3382f;font-size:16px}
+.wolf-action{min-height:50px;padding:4px 0;text-align:center}
+.wolf-input{flex:1;min-width:0;border:1px solid #ddd;border-radius:16px;padding:8px 12px;font-size:14px;outline:none;background:#fff}
+
+</style>
+<!-- 62 对局页 -->
+<div class="page light-page" id="jyGame62">
+  <div class="page-head jy-game-head"><span class="back" onclick="jy62ExitGame()">‹</span><div style="flex:1;min-width:0;text-align:center"><div class="jy-game-title" id="jy62GameTitle">多人游戏</div><div class="jy-game-sub" id="jy62GameSub"></div></div><span class="jy62-head-spacer" style="width:38px"></span></div>
+  <div class="jy-game-body"><div id="jy62BoardArea"></div></div>
+</div>
+
+<!-- 选 TA 浮层 -->
+<div class="jy62-mask" id="jy62CharMask">
+  <div class="jy62-sheet">
+    <div class="jy62-sheet-head"><span class="back" onclick="jy62CloseCharMask()">‹</span>选择和 TA 一起玩</div>
+    <div class="jy62-sheet-body">
+      <div class="jy62-sheet-title">邀请一位你想一起玩的角色（TA 会拉朋友入场）：</div>
+      <div id="jy62HostList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 拉朋友入场浮层 -->
+<div class="jy62-mask" id="jy62FriendMask">
+  <div class="jy62-sheet">
+    <div class="jy62-sheet-head"><span class="back" onclick="jy62CloseFriendMask()">‹</span>拉朋友入场</div>
+    <div class="jy62-sheet-body">
+      <div class="jy62-sheet-title" id="jy62FriendHint"></div>
+      <div id="jy62FriendList"></div>
+    </div>
+    <div class="jy62-foot"><button id="jy62FriendGo" onclick="jy62StartMulti()" disabled>选择好友</button></div>
+  </div>
+</div>
+
+<!-- 边玩边聊悬浮球 + 聊天窗 -->
+<div class="jy62-ball" id="jy62FloatBall" style="display:none" onclick="jy62OpenFloat()">聊</div>
+<div class="jy62-mask" id="jy62ChatMask" style="display:none">
+  <div class="jy62-sheet" style="height:74%">
+    <div class="jy62-chat-head">
+      <img class="avatar" id="jy62ChatAvatar" src="" alt="">
+      <b id="jy62ChatName">TA</b>
+      <span class="back" style="width:28px;height:28px;font-size:20px;line-height:28px;text-align:center;color:#333;cursor:pointer;border-radius:8px;background:#f4f4f4" onclick="jy62CloseChat()">✕</span>
+    </div>
+    <div class="jy62-chat-body" id="jy62ChatBody"></div>
+    <div class="jy62-chat-foot">
+      <input id="jy62ChatInput" placeholder="边玩边聊几句…" onkeydown="jy62ChatKey(event)">
+      <button id="jy62ChatSendBtn" onclick="jy62ChatSend()">发送</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== 霁月机62 · 多人游戏公共核心 ===================== */
+(function () {
+  if (window.__jy62Inited) return;
+  window.__jy62Inited = true;
+
+  var DBG = null;
+  try { DBG = DB; } catch (e) {}
+  function db62() { return window.DB || DBG; }
+  function save62() { try { save(); } catch (e) {} }
+  function toast62(t) { try { toast(t); } catch (e) {} }
+  function esc62(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+
+  var JY62 = {
+    mode: null,      // mahjong | wolf
+    hostId: null,    // 主TA persona id
+    friends: [],     // 拉入场的朋友 [{kind:'persona'|'npc', pa? n?, name, avatar}]
+    over: false,
+    startedAt: 0,
+    thinking: false,
+    chatHist: []
+  };
+  window.JY62 = JY62;
+
+  var HALL62 = [
+    { id: "gomoku", name: "五子棋", tag: "双人 · 已开放", cls: "green", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="12" cy="20" r="2"/><path d="M5 9h14M8 16l-3-7M16 16l3-7M8 16l2.5 2.5M16 16l-2.5 2.5"/></svg>' },
+    { id: "xiangqi", name: "象棋", tag: "双人 · 已开放", cls: "red", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M4 15h16M9 4v16M15 4v16"/><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="9" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="15" r="1.4"/><circle cx="12" cy="19" r="1.4"/><path d="M12 9l-3-4M12 9l3-4M12 15l-3 4M12 15l3 4"/></svg>' },
+    { id: "mahjong", name: "麻将", tag: "多人 · 已开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="9" height="12" rx="1.5"/><path d="m6 6 3 3M6 9l3-3"/><rect x="12" y="9" width="9" height="12" rx="1.5"/><path d="M15 12v3M16.5 13.5h-3"/></svg>' },
+    { id: "wolf", name: "狼人杀", tag: "多人 · 已开放", cls: "dark", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M12 4c2.5-1.8 6-1 8 .8-1.8 1-2.6 2.7-2.7 4.5C20 11 20 14 18 17l-2-2-1 3c-1 .6-3 .6-4 0l-1-3-2 2c-2-3-2-6-.3-7.7-.1-1.8-1-3.5-2.7-4.5C6 3 9.5 2.2 12 4Z"/><circle cx="9.5" cy="11" r=".9" fill="currentColor"/><circle cx="14.5" cy="11" r=".9" fill="currentColor"/></svg>' }
+  ];
+  window.HALL62 = HALL62;
+
+  function currentActivePage62() {
+    try {
+      var list = ["jyGames", "jyGame62", "chat", "home", "messages", "settings"];
+      for (var i = 0; i < list.length; i++) {
+        var el = document.getElementById(list[i]);
+        if (el && el.classList && el.classList.contains("active")) return list[i];
+      }
+      for (var j = 0; j < (window.PAGES || []).length; j++) {
+        var el2 = document.getElementById(PAGES[j]);
+        if (el2 && el2.classList && el2.classList.contains("active")) return PAGES[j];
+      }
+    } catch (e) {}
+    return null;
+  }
+  function rememberPrev62() {
+    var cur = currentActivePage62();
+    if (cur && cur !== "jyGames" && cur !== "jyGame62" && cur !== "lockscreen") window.__jy62PrevMain = cur;
+  }
+  function smartBack62(fallback) {
+    var target = window.__jy62PrevMain || null;
+    var map = { home: function(){ try{ goHome(); }catch(e){ showPage("home"); } }, messages: function(){ try{ openApp("messages"); }catch(e){ showPage("messages"); } }, chat: function(){ try{ openApp("messages"); }catch(e){ showPage("chat"); } }, settings: function(){ try{ renderSettings(); showPage("settings"); }catch(e){ showPage("settings"); } } };
+    if (target && map[target]) { map[target](); return; }
+    if (target && (window.PAGES || []).indexOf(target) > -1) { showPage(target); return; }
+    var fb = fallback || "home";
+    if (map[fb]) map[fb](); else showPage("home");
+  }
+
+  /* ---------- 覆盖 openApp 入口 ---------- */
+  function install62OpenApp() {
+    try {
+      var baseOpen = window.__jy61BaseOpenApp || window.openApp;
+      window.__jy61BaseOpenApp = baseOpen;
+      window.openApp = function (app) {
+        if (app === "games") { rememberPrev62(); jy62OpenGames(); return; }
+        var cur = currentActivePage62();
+        if (cur && cur !== app && cur !== "jyGames" && cur !== "jyGame62") window.__jy62PrevMain = cur;
+        return baseOpen.apply(this, arguments);
+      };
+    } catch (e) { console.error("jy62 openApp", e); }
+  }
+
+  /* ---------- 大厅 ---------- */
+  function jy62OpenGames() {
+    JY62.mode = null;
+    JY62.hostId = null;
+    JY62.friends = [];
+    jy62RenderHall();
+    try { showPage("jyGames"); } catch (e) {}
+  }
+  window.jy62OpenGames = jy62OpenGames;
+
+  function jy62RenderHall() {
+    var box = document.getElementById("jyHallList");
+    if (!box) return;
+    box.innerHTML = HALL62.map(function (a) {
+      var onclick = ' onclick="jy62PickGame(\'' + a.id + '\')"';
+      return '<div class="jy-card"' + onclick + '><div class="jy-card-icon ' + a.cls + '">' + a.icon + '</div><div class="jy-card-main"><div class="jy-card-name">' + a.name + '</div><div class="jy-card-tag">' + a.tag + '</div></div><span class="set-arrow">›</span></div>';
+    }).join("");
+    var maskBtn = document.getElementById("jyHallMaskBtn");
+    if (maskBtn) {
+      var nm = "本尊";
+      try { var a = currentAcc(); if (a && a.name) nm = a.name; } catch (e) {}
+      maskBtn.textContent = "玩家：" + nm;
+    }
+    var note = document.getElementById("jyHallNote");
+    if (note) note.textContent = "五子棋/象棋双人开黑，麻将 4 人桌、狼人杀 5 人局可拉其他角色与 NPC 好友入场，边玩边聊都会记入大家的记忆。";
+  }
+  window.jy62RenderHall = jy62RenderHall;
+
+  function jy62RenderHallLegacy() {
+    // 兼容：若 61 旧渲染被其它路径调用，兜底仍使用 62 渲染
+    jy62RenderHall();
+  }
+
+  function jy62PickGame(id) {
+    JY62.mode = id;
+    if (id === "gomoku" || id === "xiangqi") {
+      if (typeof jy61PickGame === "function") { jy61PickGame(id); return; }
+      toast62("请从旧版入口游玩双人对局");
+      return;
+    }
+    JY62.hostId = null;
+    JY62.friends = [];
+    jy62RenderHostPick();
+    var m = document.getElementById("jy62CharMask");
+    if (m) m.style.display = "flex";
+  }
+  window.jy62PickGame = jy62PickGame;
+
+  function jy62CloseCharMask() { var m = document.getElementById("jy62CharMask"); if (m) m.style.display = "none"; }
+  window.jy62CloseCharMask = jy62CloseCharMask;
+  function jy62CloseFriendMask() { var m = document.getElementById("jy62FriendMask"); if (m) m.style.display = "none"; }
+  window.jy62CloseFriendMask = jy62CloseFriendMask;
+
+  function jy62RenderHostPick() {
+    var box = document.getElementById("jy62HostList");
+    if (!box) return;
+    var ps = [];
+    try { ps = personaList() || []; } catch (e) {}
+    if (!ps.length) {
+      box.innerHTML = '<div class="pick-empty">还没有角色，先去「人设档案」添加你的 TA 吧。</div>';
+      return;
+    }
+    box.innerHTML = ps.map(function (p) {
+      var av = "";
+      try { av = personaAvatarUrl(p); } catch (e) {}
+      return '<div class="jy-char-item" onclick="jy62PickHost(\'' + String(p.id).replace(/'/g, "") + '\')"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc62(p.name || "角色") + '</div><div class="pick-desc">' + esc62(p.intro || "") + "</div></div></div>";
+    }).join("");
+  }
+
+  function jy62PickHost(pid) {
+    var pa = null;
+    try { pa = findPersona(pid); } catch (e) {}
+    if (!pa) { toast62("未找到该角色"); return; }
+    JY62.hostId = pid;
+    jy62CloseCharMask();
+    jy62RenderFriendPick();
+    var m = document.getElementById("jy62FriendMask");
+    if (m) m.style.display = "flex";
+  }
+  window.jy62PickHost = jy62PickHost;
+
+  /* ---------- 拉朋友入场 ---------- */
+  function jy62FriendCandidates() {
+    var out = [];
+    var seen = {};
+    function push(kind, key, name, avatar, pa, npc) {
+      if (!key || seen[key]) return;
+      seen[key] = 1;
+      out.push({ kind: kind, key: key, name: name, avatar: avatar || "", pa: pa || null, n: npc || null });
+    }
+    try {
+      var meMask = (DB.currentIdentity && currentAcc()) ? currentAcc().name : "";
+      (personaList() || []).forEach(function (p) {
+        if (p.id === JY62.hostId) return;
+        if (meMask && p.id === meMask) return;
+        var av = "";
+        try { av = personaAvatarUrl(p); } catch (e) {}
+        push("persona", "p:" + p.id, p.name || "角色", av, p, null);
+      });
+      (DB.npcs || []).forEach(function (n) {
+        if (n.id === JY62.hostId) return;
+        var av = "";
+        try { av = npcAvatar(n); } catch (e) {}
+        push("npc", "n:" + n.id, n.name || "NPC", av, null, n);
+      });
+      (DB.groups || []).forEach(function (g) {
+        (g.memberIds || []).forEach(function (mid) {
+          try {
+            var t = chatTarget(mid);
+            if (t && t.persona && t.persona.id && t.persona.id !== JY62.hostId) {
+              var av2 = "";
+              try { av2 = personaAvatarUrl(t.persona); } catch (e) {}
+              push("persona", "p:" + t.persona.id, t.persona.name || "角色", av2, t.persona, null);
+            }
+          } catch (e) {}
+        });
+      });
+    } catch (e) {}
+    return out;
+  }
+  window.jy62FriendCandidates = jy62FriendCandidates;
+
+  function jy62NeedFriends() {
+    return JY62.mode === "mahjong" ? 2 : 3;
+  }
+  function jy62RenderFriendPick() {
+    var box = document.getElementById("jy62FriendList");
+    if (!box) return;
+    var need = jy62NeedFriends();
+    var cands = jy62FriendCandidates();
+    var hint = document.getElementById("jy62FriendHint");
+    var gname = JY62.mode === "mahjong" ? "麻将（4人桌）" : "狼人杀（5人局）";
+    if (hint) hint.innerHTML = "你正和 <b>" + esc62(JY62.hostId ? (findPersona(JY62.hostId) || {}).name || "TA" : "TA") + "</b> 一起玩" + gname + "，还差 <b>" + need + "</b> 位朋友，可从你的其他角色 / NPC 好友里拉人入场：";
+    if (!cands.length) {
+      box.innerHTML = '<div class="pick-empty">还没有可拉的朋友，去「人设档案」添加更多角色或 NPC 吧。</div>';
+      var go = document.getElementById("jy62FriendGo");
+      if (go) { go.disabled = true; go.textContent = "好友不足"; }
+      return;
+    }
+    box.innerHTML = cands.map(function (c, i) {
+      var av = c.avatar || "";
+      return '<div class="jy-char-item" data-fk="' + c.key + '" onclick="jy62ToggleFriend(this,\'' + c.key + '\')"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc62(c.name) + (c.kind === "npc" ? ' <span style="opacity:.55;font-size:11px">(NPC)</span>' : "") + "</div><div class=\"pick-desc\">" + (c.pa && c.pa.intro ? esc62(c.pa.intro) : c.n && c.n.intro ? esc62(c.n.intro) : "") + '</div></div><span class="jy62-fk-check">＋</span></div>';
+    }).join("");
+    var go = document.getElementById("jy62FriendGo");
+    if (go) { go.disabled = true; go.textContent = "选择 " + need + " 位朋友"; }
+  }
+  window.jy62RenderFriendPick = jy62RenderFriendPick;
+
+  function jy62ToggleFriend(el, key) {
+    var need = jy62NeedFriends();
+    var has = JY62.friends.indexOf(key);
+    if (has > -1) {
+      JY62.friends.splice(has, 1);
+      if (el) el.classList.remove("picked");
+    } else {
+      if (JY62.friends.length >= need) { toast62("最多再拉 " + (need - JY62.friends.length) + " 位就满桌啦"); return; }
+      JY62.friends.push(key);
+      if (el) el.classList.add("picked");
+    }
+    var go = document.getElementById("jy62FriendGo");
+    if (go) {
+      if (JY62.friends.length === need) { go.disabled = false; go.textContent = "开始游戏"; }
+      else { go.disabled = true; go.textContent = "选择 " + need + " 位朋友（已选 " + JY62.friends.length + "）"; }
+    }
+  }
+  window.jy62ToggleFriend = jy62ToggleFriend;
+
+  function jy62ResolveFriends() {
+    var arr = [];
+    var cands = jy62FriendCandidates();
+    JY62.friends.forEach(function (key) {
+      for (var i = 0; i < cands.length; i++) {
+        if (cands[i].key === key) { arr.push(cands[i]); break; }
+      }
+    });
+    return arr;
+  }
+
+  function jy62StartMulti() {
+    var need = jy62NeedFriends();
+    if (JY62.friends.length !== need) { toast62("还差 " + (need - JY62.friends.length) + " 位朋友"); return; }
+    var hostPa = null;
+    try { hostPa = findPersona(JY62.hostId); } catch (e) {}
+    if (!hostPa) { toast62("未找到主角色"); return; }
+    var friends = jy62ResolveFriends();
+    jy62CloseFriendMask();
+    JY62.over = false;
+    JY62.startedAt = Date.now();
+    JY62.chatHist = [];
+    var titleEl = document.getElementById("jy62GameTitle");
+    var subEl = document.getElementById("jy62GameSub");
+    if (JY62.mode === "mahjong") {
+      if (titleEl) titleEl.textContent = "麻将 · 4人桌";
+      var names = friends.map(function (f) { return f.name; });
+      if (subEl) subEl.textContent = hostPa.name + " 拉来了 " + names.join("、") + " 一起打麻将";
+    } else if (JY62.mode === "wolf") {
+      if (titleEl) titleEl.textContent = "狼人杀 · 5人局";
+      var names2 = friends.map(function (f) { return f.name; });
+      if (subEl) subEl.textContent = hostPa.name + " 拉来了 " + names2.join("、") + " 一起玩狼人杀";
+    }
+    showPage("jyGame62");
+    jy62BallShow(true);
+    if (JY62.mode === "mahjong") jy62MjStart();
+    else if (JY62.mode === "wolf") jy62WolfStart();
+  }
+  window.jy62StartMulti = jy62StartMulti;
+
+  function jy62ExitGame() {
+    JY62.over = true;
+    try { if (typeof jy62MjAbortAll === "function") jy62MjAbortAll(); } catch (e) {}
+    try { if (typeof jy62WolfAbortAll === "function") jy62WolfAbortAll(); } catch (e) {}
+    jy62BallShow(false);
+    jy62CloseChat();
+    jy62CloseCharMask();
+    jy62CloseFriendMask();
+    JY62.mode = null;
+    JY62.hostId = null;
+    JY62.friends = [];
+    jy62RenderHall();
+    try { showPage("jyGames"); } catch (e) {}
+  }
+  window.jy62ExitGame = jy62ExitGame;
+
+  function jy62HostPa() {
+    try { return findPersona(JY62.hostId); } catch (e) { return null; }
+  }
+  function jy62HostName() { var p = jy62HostPa(); return p && p.name ? p.name : "TA"; }
+  window.jy62HostPa = jy62HostPa;
+  window.jy62HostName = jy62HostName;
+
+  /* ---------- 记忆 ---------- */
+  function jy62MemLine(pa, type, text) {
+    if (!pa || !text) return;
+    try { addMemorySourceFor(pa, type, text); save62(); } catch (e) {}
+  }
+  window.jy62MemLine = jy62MemLine;
+
+  function jy62LogFriend(friend, text) {
+    if (!friend) return;
+    if (friend.kind === "persona" && friend.pa) {
+      try {
+        var pl = personaPlan(friend.pa);
+        if (pl && pl.baseUrl && pl.apiKey) { addMemorySourceFor(friend.pa, "game", text); save62(); }
+      } catch (e) {}
+    }
+  }
+  window.jy62LogFriend = jy62LogFriend;
+
+  /* ---------- API / 文案辅助 ---------- */
+  function jy62CanApi(pa) {
+    try { var pl = personaPlan(pa); return !!(pa && pl && pl.baseUrl && pl.apiKey); } catch (e) { return false; }
+  }
+  window.jy62CanApi = jy62CanApi;
+
+  function jy62SayFor(actor, prompt, localTexts) {
+    // 返回 Promise<string>；能 API 则请求，失败/无则本地随机文案
+    return new Promise(function (resolve) {
+      var pa = actor && actor.pa ? actor.pa : null;
+      if (pa && jy62CanApi(pa) && typeof callChat === "function") {
+        var timer = setTimeout(function () { resolve(jy62LocalSay(localTexts)); }, 20000);
+        callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+          clearTimeout(timer);
+          if (txt && String(txt).trim().length > 1 && String(txt).length < 400) resolve(String(txt).trim());
+          else resolve(jy62LocalSay(localTexts));
+        }).catch(function () { clearTimeout(timer); resolve(jy62LocalSay(localTexts)); });
+      } else {
+        resolve(jy62LocalSay(localTexts));
+      }
+    });
+  }
+  window.jy62SayFor = jy62SayFor;
+
+  function jy62LocalSay(list) {
+    if (!list || !list.length) return "";
+    return list[Math.floor(Math.random() * list.length)];
+  }
+  window.jy62LocalSay = jy62LocalSay;
+
+  /* ---------- 62 悬浮球 / 聊天窗 ---------- */
+  function jy62BallShow(show) {
+    var ball = document.getElementById("jy62FloatBall");
+    if (ball) ball.style.display = show ? "flex" : "none";
+  }
+  window.jy62BallShow = jy62BallShow;
+
+  function jy62OpenFloat() {
+    var mask = document.getElementById("jy62ChatMask");
+    if (mask) mask.style.display = "flex";
+    var pa = jy62HostPa();
+    var nmEl = document.getElementById("jy62ChatName");
+    if (nmEl) nmEl.textContent = pa && pa.name ? pa.name : "TA";
+    var avEl = document.getElementById("jy62ChatAvatar");
+    if (avEl) {
+      var u = "";
+      try { u = personaAvatarUrl(pa); } catch (e) {}
+      if (!u) u = "";
+      avEl.src = u;
+    }
+    jy62RenderChat();
+  }
+  window.jy62OpenFloat = jy62OpenFloat;
+
+  function jy62CloseChat() {
+    var mask = document.getElementById("jy62ChatMask");
+    if (mask) mask.style.display = "none";
+  }
+  window.jy62CloseChat = jy62CloseChat;
+
+  function jy62RenderChat() {
+    var body = document.getElementById("jy62ChatBody");
+    if (!body) return;
+    var nm = jy62HostName();
+    body.innerHTML = "";
+    var empty = document.createElement("div");
+    empty.className = "sys-tip";
+    empty.textContent = "正在和 " + nm + " 边玩边聊，聊天会记入TA的记忆。";
+    body.appendChild(empty);
+    JY62.chatHist.forEach(function (m) {
+      var d = document.createElement("div");
+      if (m.role === "user") d.className = "me-bubble";
+      else d.className = "ta-bubble";
+      d.innerHTML = '<div class="bub">' + esc62(m.content) + "</div>";
+      body.appendChild(d);
+    });
+    body.scrollTop = body.scrollHeight;
+    var btn = document.getElementById("jy62ChatSendBtn");
+    var input = document.getElementById("jy62ChatInput");
+    if (btn) btn.disabled = !!JY62.thinking;
+    if (input) input.disabled = !!JY62.thinking;
+  }
+
+  function jy62ChatSend() {
+    var input = document.getElementById("jy62ChatInput");
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text || JY62.thinking) return;
+    var pa = jy62HostPa();
+    if (!pa) return;
+    input.value = "";
+    JY62.chatHist.push({ role: "user", content: text });
+    jy62RenderChat();
+    var body = document.getElementById("jy62ChatBody");
+    if (body) {
+      var d = document.createElement("div");
+      d.className = "sys-tip";
+      d.id = "jy62ChatLoading";
+      d.textContent = jy62HostName() + " 正在回复…";
+      body.appendChild(d);
+      body.scrollTop = body.scrollHeight;
+    }
+    JY62.thinking = true;
+    jy62RenderChat();
+    callChat(JY62.chatHist.map(function (m) { return { role: m.role, content: m.content }; }), pa).then(function (reply) {
+      JY62.chatHist.push({ role: "assistant", content: reply });
+      var gname = JY62.mode === "mahjong" ? "麻将" : JY62.mode === "wolf" ? "狼人杀" : "小游戏";
+      jy62MemLine(pa, "gameChat", "玩" + gname + "时你和TA聊了几句：你说「" + text + "」，TA说「" + reply + "」。");
+      JY62.thinking = false;
+      jy62RenderChat();
+    }).catch(function (err) {
+      JY62.chatHist.pop();
+      JY62.thinking = false;
+      var tip = document.createElement("div");
+      tip.className = "sys-tip";
+      tip.textContent = "回复失败：" + (err && err.message ? err.message : "未知错误");
+      var body2 = document.getElementById("jy62ChatBody");
+      if (body2) { body2.appendChild(tip); body2.scrollTop = body2.scrollHeight; }
+      jy62RenderChat();
+    });
+  }
+  window.jy62ChatSend = jy62ChatSend;
+
+  function jy62ChatKey(e) {
+    if (e && e.key === "Enter") { e.preventDefault(); jy62ChatSend(); }
+  }
+  window.jy62ChatKey = jy62ChatKey;
+
+  install62OpenApp();
+})();
+
+</script>
+<script>
+/* ===================== 霁月机62 · 麻将 4 人桌 ===================== */
+(function () {
+  if (window.__jy62MjInited) return;
+  window.__jy62MjInited = true;
+
+  var SUITS = ["w", "t", "b"];
+  var ZI = ["东", "南", "西", "北", "中", "发", "白"];
+  var ALLT = [];
+  SUITS.forEach(function (s) { for (var i = 1; i <= 9; i++) ALLT.push(i + s); });
+  ZI.forEach(function (z) { ALLT.push(z); });
+  var TILE_KIND = ALLT.length;
+
+  function esc(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+
+  function buildWall() {
+    var wall = [];
+    for (var i = 0; i < 4; i++) for (var k = 0; k < TILE_KIND; k++) wall.push(ALLT[k]);
+    for (var j = wall.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = wall[j]; wall[j] = wall[r]; wall[r] = t; }
+    return wall;
+  }
+  function cnt(hand) {
+    var m = {};
+    hand.forEach(function (t) { m[t] = (m[t] || 0) + 1; });
+    return m;
+  }
+  function isNum(k) { return /^[1-9][wtb]$/.test(k); }
+  function isSeq(k1, k2, k3) {
+    if (!isNum(k1) || !isNum(k2) || !isNum(k3)) return false;
+    if (k1.charAt(1) !== k2.charAt(1) || k1.charAt(1) !== k3.charAt(1)) return false;
+    var a = parseInt(k1, 10), b = parseInt(k2, 10), c = parseInt(k3, 10);
+    if (a > b) { var t = a; a = b; b = t; }
+    if (b > c) { var t2 = b; b = c; c = t2; }
+    if (a > b) { var t3 = a; a = b; b = t3; }
+    return b === a + 1 && c === b + 1;
+  }
+  function tryGroups(m) {
+    var keys = Object.keys(m);
+    for (var i = 0; i < keys.length; i++) {
+      if (m[keys[i]] > 0) { var k0 = keys[i]; break; }
+    }
+    if (i >= keys.length) return true;
+    var k = keys[i];
+    if (m[k] >= 3) {
+      var m2 = JSON.parse(JSON.stringify(m));
+      m2[k] -= 3; if (m2[k] === 0) delete m2[k];
+      if (tryGroups(m2)) return true;
+    }
+    if (isNum(k)) {
+      var num = parseInt(k, 10), s = k.charAt(1);
+      var k2 = (num + 1) + s, k3 = (num + 2) + s;
+      if (m[k2] > 0 && m[k3] > 0) {
+        var m3 = JSON.parse(JSON.stringify(m));
+        m3[k] -= 1; if (m3[k] === 0) delete m3[k];
+        m3[k2] -= 1; if (m3[k2] === 0) delete m3[k2];
+        m3[k3] -= 1; if (m3[k3] === 0) delete m3[k3];
+        if (tryGroups(m3)) return true;
+      }
+    }
+    return false;
+  }
+  function canWin(hand) {
+    if (!hand || hand.length % 3 !== 2) return false;
+    var m = cnt(hand);
+    var keys = Object.keys(m);
+    if (keys.length === 7) {
+      var seven = true;
+      keys.forEach(function (k) { if (m[k] !== 2) seven = false; });
+      if (seven) return true; // 七对
+    }
+    // 一般型：4 副 + 1 对将
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (m[k] >= 2) {
+        var m2 = JSON.parse(JSON.stringify(m));
+        m2[k] -= 2;
+        if (m2[k] === 0) delete m2[k];
+        if (tryGroups(m2)) return true;
+      }
+    }
+    return false;
+  }
+  function canHuWith(hand13, tile) { return canWin(hand13.concat([tile])); }
+
+  // 手牌价值启发：返回建议打出的牌
+  function discardSuggest(hand14) {
+    var m = cnt(hand14);
+    var best = null, bestScore = 1e9;
+    hand14.forEach(function (t) {
+      if (m[t] >= 3) return; // 刻子不动
+      var score = tileScore(m, t);
+      if (score < bestScore) { bestScore = score; best = t; }
+    });
+    if (!best) best = hand14[0];
+    return best;
+  }
+  function tileScore(m, t) {
+    var c = m[t];
+    if (c === 0) return 1e9;
+    if (c >= 2) return 5; // 对子保留（将/刻雏形）高分不打
+    if (!isNum(t)) return 1; // 孤张字牌
+    var s = t.charAt(1), num = parseInt(t, 10), sc = 1;
+    for (var d = -2; d <= 2; d++) {
+      if (d === 0) continue;
+      var n2 = num + d, k2 = (n2 >= 1 && n2 <= 9) ? n2 + s : null;
+      if (k2 && m[k2]) sc += (d === -1 || d === 1) ? 2.4 : 1.3;
+    }
+    // 边张/幺九更低价值
+    if (num === 1 || num === 9) sc -= 0.8;
+    return sc;
+  }
+
+  /* ---------- 对局状态 ---------- */
+  var S = null;
+  var seqToken = 0;
+  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function abortAll() { seqToken++; S = null; }
+  window.jy62MjAbortAll = abortAll;
+
+  function actorName(a) { return a ? a.name : ""; }
+
+  function jy62MjStart() {
+    abortAll();
+    var token = ++seqToken;
+    var hostPa = window.jy62HostPa ? window.jy62HostPa() : null;
+    var friends = window.JY62 ? window.JY62.friends : [];
+    var fr = [];
+    try {
+      var cands = window.jy62FriendCandidates ? jy62FriendCandidates() : [];
+      friends.forEach(function (key) {
+        for (var i = 0; i < cands.length; i++) if (cands[i].key === key) { fr.push(cands[i]); break; }
+      });
+    } catch (e) {}
+    var actors = [
+      { kind: "me", name: "你", avatar: "", isMe: true, pa: null },
+      { kind: "host", name: hostPa && hostPa.name ? hostPa.name : "TA", avatar: "", isMe: false, pa: hostPa },
+      { kind: "friend", name: fr[0] ? fr[0].name : "朋友A", avatar: fr[0] ? fr[0].avatar : "", isMe: false, pa: fr[0] ? fr[0].pa : null },
+      { kind: "friend", name: fr[1] ? fr[1].name : "朋友B", avatar: fr[1] ? fr[1].avatar : "", isMe: false, pa: fr[1] ? fr[1].pa : null }
+    ];
+    try {
+      actors[1].avatar = personaAvatarUrl(hostPa) || "";
+    } catch (e) {}
+    var wall = buildWall();
+    var hands = [[], [], [], []];
+    for (var i = 0; i < 4; i++) for (var j = 0; j < 13; j++) hands[i].push(wall.pop());
+    S = {
+      token: token,
+      wall: wall,
+      hands: hands,
+      actors: actors,
+      turn: 0,
+      last: null, // {seat,tile,time}
+      discards: [[], [], [], []],
+      state: "deal", // deal|player|ai|ask|end
+      askMe: null,
+      winner: null,
+      winType: "",
+      message: "",
+      roundEnd: false,
+      picked: -1
+    };
+    window.__jy62MjS = S;
+    mjLog("麻将开始！" + actors.map(function (a) { return a.name; }).join("、") + " 围坐一桌。");
+    // 角色入场白
+    var hostLine = "你们几个人开始打麻将啦，帮我招呼大家开局～";
+    var meText = "你和" + actors[1].name + "、" + actors[2].name + "、" + actors[3].name + "开始了一局麻将。";
+    if (hostPa) window.jy62MemLine(hostPa, "game", meText);
+    if (fr[0] && fr[0].kind === "persona" && fr[0].pa) window.jy62LogFriend(fr[0], "你和大家（含" + actors[1].name + "等）一起打了一局麻将。");
+    if (fr[1] && fr[1].kind === "persona" && fr[1].pa) window.jy62LogFriend(fr[1], "你和大家（含" + actors[1].name + "等）一起打了一局麻将。");
+    (function () {
+      if (window.jy62SayFor && hostPa) {
+        window.jy62SayFor(actors[1], "我们刚开局打麻将，请用一两句话轻松地开场招呼一下（口语，短）。", ["来来来，都坐好，这把我可要好好赢你一把。", "哈，今天手气感觉不错，你们可别放水啊。", "开局了开局了，输的人请奶茶哦。"]).then(function (txt) {
+          if (S && S.token === token && txt) mjChat(1, txt);
+        });
+      }
+    })();
+    (async function () {
+      await delay(600);
+      if (S && S.token === token) mjDrawAndAct();
+    })();
+  }
+  window.jy62MjStart = jy62MjStart;
+
+  function mjRender() {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box || !S) return;
+    var h = "";
+    // AI 座位（host 0，f0 1，f1 2）——显示为上方三张“玩家牌垫”
+    var aiOrder = [1, 2, 3];
+    h += '<div class="mj-seats">';
+    aiOrder.forEach(function (seat, idx) {
+      var a = S.actors[seat];
+      var activeCls = (!S.roundEnd && S.turn === seat && S.state !== "ask") ? " act" : "";
+      var dn = S.hands[seat].length;
+      h += '<div class="mj-seat' + activeCls + '"><div class="mj-av"><img class="avatar" src="' + esc(a.avatar || "") + '" alt=""><i>' + dn + '</i></div><div class="mj-sn">' + esc(a.name) + "</div></div>";
+    });
+    h += "</div>";
+    // 中间区：最近出的牌 + 提示
+    var last = S.last;
+    h += '<div class="mj-center">';
+    h += '<div class="mj-last">' + (last ? '<div class="mj-last-who">' + esc(S.actors[last.seat].name) + " 打出</div><div class=\"mj-last-tile\">" + tileHTML(last.tile) + "</div>" : '<div class="mj-last-who">洗牌中…</div>') + "</div>";
+    h += '<div class="mj-msg" id="mjMsg">' + esc(S.message || "") + "</div>";
+    h += "</div>";
+    // 弃牌区（简化为最近各人弃牌数量）
+    // 操作按钮区
+    h += '<div class="mj-actions" id="mjActions"></div>';
+    // 玩家手牌
+    var meHand = S.hands[0];
+    h += '<div class="mj-myhand"><div class="mj-me-tag">我的手牌（' + meHand.length + "）</div><div class=\"mj-tiles\" id=\"mjTiles\">";
+    meHand.forEach(function (t, i) {
+      h += '<div class="mj-tile-slot' + (S.picked === i ? " picked" : "") + '" onclick="jy62MjClickTile(' + i + ')">' + tileHTML(t) + "</div>";
+    });
+    h += "</div></div>";
+    box.innerHTML = h;
+    // 操作按钮（非自己回合胡碰杠，或自己回合提示出牌）
+    renderActions();
+  }
+  function tileHTML(t) {
+    if (/^[1-9][wtb]$/.test(t)) {
+      var numC = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"][parseInt(t[0], 10)];
+      var su = { w: "万", t: "条", b: "筒" }[t[1]];
+      var cls = t[1] === "w" ? "mj-w" : t[1] === "t" ? "mj-t" : "mj-b";
+      return '<span class="mj ' + cls + '"><i>' + numC + "</i><em>" + su + "</em></span>";
+    }
+    var zi = { 东: "风", 南: "风", 西: "风", 北: "风", 中: "中", 发: "发", 白: "白" };
+    var cls2 = t === "中" ? "mj-z" : t === "发" ? "mj-f" : "mj-bai";
+    return '<span class="mj ' + cls2 + '"><i>' + t + "</i><em>" + (zi[t] || "") + "</em></span>";
+  }
+  window.jy62MjTileHTML = tileHTML;
+
+  function renderActions() {
+    var box = document.getElementById("mjActions");
+    if (!box || !S) return;
+    var h = "";
+    if (S.state === "player") {
+      h += '<div class="mj-tip">轮到你出牌了，点一张手牌打出（当前已选：' + (S.picked > -1 ? "是" : "否") + '）</div>';
+    } else if (S.state === "ask" && S.askMe) {
+      var q = S.askMe;
+      h += '<div class="mj-tip">' + esc(S.actors[q.fromSeat].name) + " 打出 ";
+      h += '<span class="mj-inline">' + tileHTML(q.tile) + "</span>";
+      h += "，你要：</div>";
+      h += '<div class="mj-btn-row">';
+      if (q.hu) h += '<button class="jy-small-btn" onclick="jy62MjMeChoose(\'hu\')">胡</button>';
+      if (q.gang) h += '<button class="jy-small-btn" onclick="jy62MjMeChoose(\'gang\')">杠</button>';
+      if (q.peng) h += '<button class="jy-small-btn" onclick="jy62MjMeChoose(\'peng\')">碰</button>';
+      h += '<button class="jy-small-btn gray" onclick="jy62MjMeChoose(\'pass\')">过</button>';
+      h += "</div>";
+    }
+    box.innerHTML = h;
+  }
+
+  function mjDrawAndAct() {
+    if (!S) return;
+    if (S.roundEnd) return;
+    if (S.wall.length < 4) { mjEndGame(null, "流局（牌摸完了）"); return; }
+    var seat = S.turn;
+    if (seat === 0) {
+      var t = S.wall.pop();
+      S.hands[0].push(t);
+      S.state = "player";
+      S.picked = -1;
+      S.message = "你摸到了牌，选一张打出吧。";
+      mjRender();
+      return;
+    }
+    aiAct(seat);
+  }
+
+  function aiAct(seat) {
+    var token = S.token;
+    var t = S.wall.pop();
+    S.hands[seat].push(t);
+    S.message = S.actors[seat].name + " 摸牌思考中…";
+    S.state = "ai";
+    mjRender();
+    delay(650 + Math.random() * 500).then(function () {
+      if (!S || S.token !== token || S.roundEnd) return;
+      var hand = S.hands[seat];
+      if (canWin(hand)) {
+        // 自摸
+        S.hands[seat] = hand;
+        S.message = S.actors[seat].name + " 自摸！";
+        mjRender();
+        delay(700).then(function () {
+          if (S && S.token === token) mjEndGame(seat, "自摸");
+        });
+        return;
+      }
+      var out = discardSuggest(hand);
+      var idx = hand.indexOf(out);
+      if (idx > -1) hand.splice(idx, 1);
+      S.last = { seat: seat, tile: out };
+      S.discards[seat].push(out);
+      S.message = S.actors[seat].name + " 打出了" + tileName(out);
+      mjRender();
+      delay(500).then(function () {
+        if (S && S.token === token && !S.roundEnd) mjScanClaims(out, seat);
+      });
+    });
+  }
+
+  function tileName(t) {
+    if (/^[1-9][wtb]$/.test(t)) return ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"][parseInt(t[0], 10)] + { w: "万", t: "条", b: "筒" }[t[1]];
+    return t;
+  }
+
+  function mjScanClaims(tile, fromSeat) {
+    var meHu = canHuWith(S.hands[0], tile);
+    var mePeng = false, meGang = false;
+    var mc = cnt(S.hands[0]);
+    if (mc[tile] === 2) mePeng = true;
+    if (mc[tile] === 3) meGang = true;
+    // 玩家优先可胡
+    if (meHu || mePeng || meGang) {
+      S.state = "ask";
+      S.askMe = { tile: tile, fromSeat: fromSeat, hu: meHu, peng: mePeng, gang: meGang };
+      S.message = S.actors[fromSeat].name + " 打出了" + tileName(tile) + "，你可以行动";
+      mjRender();
+      return;
+    }
+    // AI 决策
+    var aiSeats = [1, 2, 3].filter(function (s) { return s !== fromSeat; });
+    // 按回合顺序找胡
+    var huSeat = -1;
+    for (var i = 0; i < aiSeats.length; i++) {
+      var s = aiSeats[i];
+      if (canHuWith(S.hands[s], tile)) { huSeat = s; break; }
+    }
+    if (huSeat > -1) {
+      var outIdx = S.hands[huSeat].indexOf(tile);
+      // 胡需“吃进”此牌：13 张手牌 + 该牌 = 14
+      S.hands[huSeat].push(tile);
+      S.message = S.actors[huSeat].name + " 胡了！";
+      mjRender();
+      delay(700).then(function () {
+        if (S && S.token) mjEndGame(huSeat, "点炮胡");
+      });
+      return;
+    }
+    // 杠/碰（顺序从下家起）
+    var claimSeat = -1, claimType = "";
+    for (var j = 0; j < aiSeats.length; j++) {
+      var s2 = aiSeats[j];
+      var c2 = cnt(S.hands[s2]);
+      if (c2[tile] === 3) { claimSeat = s2; claimType = "gang"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.8) {
+      doAIClaim(claimSeat, tile, "gang", fromSeat);
+      return;
+    }
+    for (var k = 0; k < aiSeats.length; k++) {
+      var s3 = aiSeats[k];
+      var c3 = cnt(S.hands[s3]);
+      if (c3[tile] === 2) { claimSeat = s3; claimType = "peng"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.5) {
+      doAIClaim(claimSeat, tile, "peng", fromSeat);
+      return;
+    }
+    mjAdvanceTurn();
+  }
+
+  function doAIClaim(seat, tile, type, fromSeat) {
+    var token = S.token;
+    var hand = S.hands[seat];
+    // 移除两张做碰、三张做杠
+    for (var i = 0; i < (type === "peng" ? 2 : 3); i++) {
+      var ix = hand.indexOf(tile);
+      if (ix > -1) hand.splice(ix, 1);
+    }
+    S.last = { seat: seat, tile: tile, claim: type };
+    S.message = S.actors[seat].name + (type === "gang" ? " 杠！" : " 碰！");
+    S.turn = seat;
+    S.state = "ai";
+    mjRender();
+    delay(700).then(function () {
+      if (!S || S.token !== token || S.roundEnd) return;
+      if (type === "gang") {
+        // 杠后补一张再打
+        if (!S.wall.length) { mjEndGame(null, "流局（牌摸完了）"); return; }
+        var t = S.wall.pop();
+        S.hands[seat].push(t);
+        S.message = S.actors[seat].name + " 杠后补牌…";
+        mjRender();
+        delay(650).then(function () {
+          if (!S || S.token !== token || S.roundEnd) return;
+          if (canWin(S.hands[seat])) { S.message = S.actors[seat].name + " 杠上开花自摸！"; mjRender(); delay(700).then(function () { if (S && S.token === token) mjEndGame(seat, "杠上开花"); }); return; }
+          var out = discardSuggest(S.hands[seat]);
+          var ix2 = S.hands[seat].indexOf(out);
+          if (ix2 > -1) S.hands[seat].splice(ix2, 1);
+          S.last = { seat: seat, tile: out };
+          S.discards[seat].push(out);
+          S.message = S.actors[seat].name + " 打出了" + tileName(out);
+          mjRender();
+          delay(450).then(function () {
+            if (S && S.token === token && !S.roundEnd) mjScanClaims(out, seat);
+          });
+        });
+      } else {
+        // 碰后直接打
+        var out2 = discardSuggest(S.hands[seat]);
+        var ix3 = S.hands[seat].indexOf(out2);
+        if (ix3 > -1) S.hands[seat].splice(ix3, 1);
+        S.last = { seat: seat, tile: out2 };
+        S.discards[seat].push(out2);
+        S.message = S.actors[seat].name + " 打出了" + tileName(out2);
+        mjRender();
+        delay(450).then(function () {
+          if (S && S.token === token && !S.roundEnd) mjScanClaims(out2, seat);
+        });
+      }
+    });
+  }
+
+  function mjAdvanceTurn() {
+    if (!S || S.roundEnd) return;
+    S.state = "turn";
+    S.turn = (S.turn + 1) % 4;
+    S.askMe = null;
+    mjRender();
+    mjDrawAndAct();
+  }
+
+  /* 玩家交互 */
+  window.jy62MjClickTile = function (i) {
+    if (!S || S.state !== "player" || S.roundEnd) return;
+    S.picked = i;
+    mjRender();
+    // 二次点击打出：改为显示“打出”按钮
+    var actions = document.getElementById("mjActions");
+    if (actions) {
+      actions.innerHTML = '<div class="mj-tip">要打出这张牌吗？</div><div class="mj-btn-row"><button class="jy-small-btn" onclick="jy62MjDiscard()">打出</button><button class="jy-small-btn gray" onclick="jy62MjCancelPick()">再看看</button></div>';
+    }
+  };
+  window.jy62MjDiscard = function () {
+    if (!S || S.state !== "player" || S.roundEnd || S.picked < 0) return;
+    var idx = S.picked;
+    var tile = S.hands[0][idx];
+    S.hands[0].splice(idx, 1);
+    S.last = { seat: 0, tile: tile };
+    S.discards[0].push(tile);
+    S.picked = -1;
+    S.state = "turn";
+    S.message = "你打出了" + tileName(tile);
+    mjRender();
+    // 检查其他人能不能胡你/碰杠你：简化只处理 AI 胡/碰/杠与下一轮
+    if (mjScanClaimsByAIForMe(tile)) return;
+    mjAdvanceTurn();
+  };
+  window.jy62MjCancelPick = function () {
+    if (!S) return;
+    S.picked = -1;
+    S.state = "player";
+    mjRender();
+  };
+  function mjScanClaimsByAIForMe(tile) {
+    var aiSeats = [1, 2, 3];
+    var huSeat = -1;
+    for (var i = 0; i < aiSeats.length; i++) {
+      var s = aiSeats[i];
+      if (canHuWith(S.hands[s], tile)) { huSeat = s; break; }
+    }
+    if (huSeat > -1) {
+      S.hands[huSeat].push(tile);
+      S.message = S.actors[huSeat].name + " 胡了！";
+      mjRender();
+      var token = S.token;
+      delay(700).then(function () { if (S && S.token === token) mjEndGame(huSeat, "点炮胡"); });
+      return true;
+    }
+    // 杠/碰
+    var claimSeat = -1, type = "";
+    for (var j = 0; j < aiSeats.length; j++) {
+      var c = cnt(S.hands[aiSeats[j]]);
+      if (c[tile] === 3) { claimSeat = aiSeats[j]; type = "gang"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.8) { doAIClaim(claimSeat, tile, "gang", 0); return true; }
+    for (var k = 0; k < aiSeats.length; k++) {
+      var c2 = cnt(S.hands[aiSeats[k]]);
+      if (c2[tile] === 2) { claimSeat = aiSeats[k]; type = "peng"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.5) { doAIClaim(claimSeat, tile, "peng", 0); return true; }
+    return false;
+  }
+
+  window.jy62MjMeChoose = function (act) {
+    if (!S || !S.askMe) return;
+    var q = S.askMe;
+    var tile = q.tile;
+    if (act === "pass") {
+      S.askMe = null;
+      // 玩家过：交给 AI 决策同张
+      mjAiClaimsFromLast(tile, q.fromSeat);
+      return;
+    }
+    if (act === "hu") {
+      S.hands[0].push(tile);
+      S.askMe = null;
+      S.state = "end";
+      mjEndGame(0, "点炮胡");
+      return;
+    }
+    if (act === "peng" || act === "gang") {
+      for (var i = 0; i < (act === "peng" ? 2 : 3); i++) {
+        var ix = S.hands[0].indexOf(tile);
+        if (ix > -1) S.hands[0].splice(ix, 1);
+      }
+      S.askMe = null;
+      S.state = "meclaim";
+      S.message = "你" + (act === "peng" ? "碰" : "杠") + "了 " + tileName(tile);
+      mjRender();
+      var token = S.token;
+      delay(500).then(function () {
+        if (!S || S.token !== token || S.roundEnd) return;
+        if (act === "gang") {
+          if (!S.wall.length) { mjEndGame(null, "流局（牌摸完了）"); return; }
+          var t = S.wall.pop();
+          S.hands[0].push(t);
+          S.message = "你杠后补了一张牌，请继续出牌";
+          S.state = "player";
+          S.picked = -1;
+          mjRender();
+          return;
+        }
+        S.message = "你碰了牌，请出牌";
+        S.state = "player";
+        S.picked = -1;
+        mjRender();
+      });
+    }
+  };
+
+  function mjAiClaimsFromLast(tile, fromSeat) {
+    var aiSeats = [1, 2, 3].filter(function (s) { return s !== fromSeat; });
+    var huSeat = -1;
+    for (var i = 0; i < aiSeats.length; i++) {
+      var s = aiSeats[i];
+      if (canHuWith(S.hands[s], tile)) { huSeat = s; break; }
+    }
+    if (huSeat > -1) {
+      S.hands[huSeat].push(tile);
+      S.message = S.actors[huSeat].name + " 胡了！";
+      S.state = "end";
+      mjRender();
+      var token = S.token;
+      delay(700).then(function () { if (S && S.token === token) mjEndGame(huSeat, "点炮胡"); });
+      return;
+    }
+    var claimSeat = -1, type = "";
+    for (var j = 0; j < aiSeats.length; j++) {
+      var c = cnt(S.hands[aiSeats[j]]);
+      if (c[tile] === 3) { claimSeat = aiSeats[j]; type = "gang"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.8) { doAIClaim(claimSeat, tile, "gang", fromSeat); return; }
+    for (var k = 0; k < aiSeats.length; k++) {
+      var c2 = cnt(S.hands[aiSeats[k]]);
+      if (c2[tile] === 2) { claimSeat = aiSeats[k]; type = "peng"; break; }
+    }
+    if (claimSeat > -1 && Math.random() < 0.5) { doAIClaim(claimSeat, tile, "peng", fromSeat); return; }
+    // 无人要：从打出者下家继续
+    var next = (fromSeat + 1) % 4;
+    S.turn = next;
+    S.state = "turn";
+    mjRender();
+    mjDrawAndAct();
+  }
+
+  function mjLog(t) {
+    if (!S) return;
+    S.message = t;
+    mjRender();
+  }
+  function mjChat(seat, txt) {
+    if (!S) return;
+    var d = document.createElement("div");
+    d.style.cssText = "text-align:center;font-size:13px;color:#7a5a00;background:#fff7e0;border-radius:14px;padding:8px 14px;margin:6px auto;max-width:86%;";
+    d.innerHTML = "<b>" + esc(S.actors[seat].name) + "：</b>" + esc(txt);
+    var box = document.getElementById("jy62BoardArea");
+    if (!box) return;
+    // 在消息处展示为“弹幕”
+    var msg = document.getElementById("mjMsg");
+    if (msg) msg.textContent = S.actors[seat].name + "：" + txt;
+  }
+
+  function mjEndGame(winnerSeat, type) {
+    if (!S) return;
+    S.roundEnd = true;
+    S.state = "end";
+    S.winner = winnerSeat;
+    S.winType = type;
+    var txt = "";
+    if (winnerSeat === null) {
+      txt = "这局流局了，牌都摸完了，大家平局收场。";
+      mjRenderOverlay(null, "流局", "这局打成了流局，牌墙都摸空了，看来是势均力敌。");
+    } else {
+      var w = S.actors[winnerSeat];
+      var isMe = winnerSeat === 0;
+      var line = isMe ? "你" + (type === "自摸" ? "自摸胡牌" : "胡了") + "！" : w.name + (type === "自摸" ? "自摸胡牌" : "胡了") + "！";
+      txt = line;
+      mjRenderOverlay(winnerSeat, type, line);
+      var hostPa = window.jy62HostPa ? jy62HostPa() : null;
+      if (hostPa) window.jy62MemLine(hostPa, "game", "你和TA以及朋友们打麻将，" + line + "（" + type + "）。");
+    }
+  }
+
+  function mjRenderOverlay(winnerSeat, type, line) {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box || !S) return;
+    var h = "";
+    var actors = S.actors;
+    h += '<div class="mj-overlay"><div class="mj-over-card">';
+    h += '<div class="mj-over-title">' + (winnerSeat === null ? "流局" : type + "！") + "</div>";
+    if (winnerSeat !== null) {
+      h += '<div class="mj-over-av"><img class="avatar" src="' + esc(actors[winnerSeat].avatar || "") + '"></div>';
+      h += '<div class="mj-over-name">' + (winnerSeat === 0 ? "你" : esc(actors[winnerSeat].name)) + "</div>";
+    }
+    h += '<div class="mj-over-line">' + esc(line) + "</div>";
+    h += '<div class="mj-btn-row"><button class="jy-small-btn" onclick="jy62MjRestart()">再来一局</button><button class="jy-small-btn gray" onclick="jy62ExitGame()">回大厅</button></div>';
+    h += "</div></div>";
+    box.innerHTML = h;
+    // 结束语
+    if (winnerSeat !== null && winnerSeat !== 0) {
+      var a = actors[winnerSeat];
+      window.jy62SayFor(a, "这局" + type + "赢得很开心，用一两句话得意地炫耀或调侃大家（口语，短）。", ["哈哈哈运气好运气好，承让承让。", "这把牌抓得顺，不好意思啦～", "看到没，这就是实力，回头奶茶安排上。"]).then(function (txt) {
+        if (txt) { var msg = document.getElementById("mjMsg"); if (msg) msg.textContent = a.name + "：" + txt; }
+      });
+    }
+  }
+
+  window.jy62MjRestart = function () { jy62MjStart(); };
+  window.jy62MjRender = mjRender;
+  window.jy62MjCanWin = canWin;
+  window.jy62MjDiscardSuggest = discardSuggest;
+})();
+
+</script>
+<script>
+/* ===================== 霁月机62 · 狼人杀 5 人局 ===================== */
+(function () {
+  if (window.__jy62WolfInited) return;
+  window.__jy62WolfInited = true;
+
+  function esc(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function delay(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  var W = null; // 状态
+  var wToken = 0;
+
+  window.jy62WolfAbortAll = function () { wToken++; W = null; };
+
+  function logToBoard(html) {
+    var box = document.getElementById("jy62WolfLog");
+    if (!box) return;
+    var d = document.createElement("div");
+    d.className = "wolf-log-line";
+    d.innerHTML = html;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setAction(html) {
+    var box = document.getElementById("jy62WolfAction");
+    if (box) box.innerHTML = html;
+  }
+
+  function wolfRenderAll() {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box || !W) return;
+    var oldLog = "";
+    var oldLogEl = document.getElementById("jy62WolfLog");
+    if (oldLogEl) oldLog = oldLogEl.innerHTML;
+    var h = "";
+    // 存活者行
+    h += '<div class="wolf-cast">';
+    W.players.forEach(function (pl) {
+      var dead = pl.dead;
+      h += '<div class="wolf-p' + (dead ? " dead" : "") + '"><div class="wolf-av"><img class="avatar" src="' + esc(pl.avatar || "") + '" alt="">' + (dead ? '<span class="wolf-dead-x">✝</span>' : "") + "</div><div class=\"wolf-n\">" + esc(pl.name) + (pl.isMe ? "（你）" : "") + "</div><div class=\"wolf-r\">" + (pl.isMe ? esc(roleName(pl.role)) : "") + "</div></div>";
+    });
+    h += "</div>";
+    h += '<div class="wolf-log" id="jy62WolfLog"></div>';
+    h += '<div class="wolf-action" id="jy62WolfAction"></div>';
+    box.innerHTML = h;
+    if (oldLog) {
+      var nlog = document.getElementById("jy62WolfLog");
+      if (nlog) {
+        nlog.innerHTML = oldLog;
+        nlog.scrollTop = nlog.scrollHeight;
+      }
+    }
+  }
+
+  function roleName(r) {
+    return { wolf: "狼人", seer: "预言家", witch: "女巫", hunter: "猎人", villager: "村民" }[r] || "";
+  }
+  function roleSide(r) { return r === "wolf" ? "wolf" : "good"; }
+
+  function wolfRestartPlayers() {
+    var hostPa = window.jy62HostPa ? jy62HostPa() : null;
+    var friends = [];
+    try {
+      var cands = window.jy62FriendCandidates ? jy62FriendCandidates() : [];
+      (window.JY62 ? window.JY62.friends : []).forEach(function (key) {
+        for (var i = 0; i < cands.length; i++) if (cands[i].key === key) { friends.push(cands[i]); break; }
+      });
+    } catch (e) {}
+    var pls = [];
+    var meAv = "";
+    try { meAv = currentAcc() ? currentAcc().avatar || "" : ""; } catch (e) {}
+    pls.push({ key: "me", name: "你", avatar: meAv, isMe: true, pa: null, npc: null, role: null, dead: false, witchSave: true, witchPoison: true, hunterGun: true });
+    pls.push({ key: "host", name: hostPa && hostPa.name ? hostPa.name : "TA", avatar: "", isMe: false, pa: hostPa, npc: null, role: null, dead: false, witchSave: true, witchPoison: true, hunterGun: true });
+    try { if (hostPa) pls[1].avatar = personaAvatarUrl(hostPa) || ""; } catch (e) {}
+    friends.forEach(function (f) {
+      pls.push({ key: f.key, name: f.name, avatar: f.avatar || "", isMe: false, pa: f.pa || null, npc: f.n || null, role: null, dead: false, witchSave: true, witchPoison: true, hunterGun: true });
+    });
+    return pls;
+  }
+
+  function assignRoles(pls) {
+    var pool = ["wolf", "seer", "witch", "hunter", "villager"];
+    var order = [];
+    for (var i = 0; i < pls.length; i++) order.push(i);
+    for (var j = order.length - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var t = order[j]; order[j] = order[r]; order[r] = t; }
+    for (var k = 0; k < order.length; k++) pls[order[k]].role = pool[k];
+  }
+
+  function aliveList() { return W.players.filter(function (p) { return !p.dead; }); }
+  function aliveExcept(key) { return aliveList().filter(function (p) { return p.key !== key; }); }
+  function findP(key) { for (var i = 0; i < W.players.length; i++) if (W.players[i].key === key) return W.players[i]; return null; }
+  function sideAlive(side) { return aliveList().filter(function (p) { return roleSide(p.role) === side; }); }
+  function goodCount() { return sideAlive("good").length; }
+  function wolfCount() { return sideAlive("wolf").length; }
+
+  function checkEnd() {
+    if (!W) return false;
+    if (wolfCount() === 0) { wolfEnd("good"); return true; }
+    if (wolfCount() > 0 && goodCount() <= wolfCount()) { wolfEnd("wolf"); return true; }
+    return false;
+  }
+
+  function wolfEnd(winSide) {
+    if (!W) return;
+    W.phase = "end";
+    var wolf = W.players.filter(function (p) { return p.role === "wolf"; })[0];
+    var wolfName = wolf ? (wolf.isMe ? "你" : wolf.name) : "狼人";
+    var line = winSide === "good" ? "狼人阵营全军覆没，好人阵营胜利！" : wolfName + " 咬到最后，狼人阵营获胜！";
+    logToBoard('<b style="color:#c0392b">' + line + "</b>");
+    setAction('<div class="mj-btn-row"><button class="jy-small-btn" onclick="jy62WolfRestart()">再来一局</button><button class="jy-small-btn gray" onclick="jy62ExitGame()">回大厅</button></div>');
+    // 记录记忆
+    var hostPa = window.jy62HostPa ? jy62HostPa() : null;
+    if (hostPa) window.jy62MemLine(hostPa, "game", "你和" + W.players.filter(function (p) { return !p.isMe && p.key !== "host"; }).map(function (p) { return p.name; }).join("、") + "一起玩了狼人杀，结局：" + line);
+    var winnerP = winSide === "good" ? null : wolf;
+    if (winnerP && winnerP.key !== "me" && winnerP.key !== "host") window.jy62LogFriend(winnerP, "你赢了这局狼人杀（狼人阵营胜利）。");
+  }
+
+  window.jy62WolfRestart = function () { jy62WolfStart(); };
+
+  function jy62WolfStart() {
+    window.jy62WolfAbortAll();
+    var token = ++wToken;
+    var hostPa = window.jy62HostPa ? jy62HostPa() : null;
+    var pls = wolfRestartPlayers();
+    if (pls.length !== 5) {
+      try { toast("狼人杀需要 5 人：你 + TA + 3 位朋友"); } catch (e) {}
+      return;
+    }
+    assignRoles(pls);
+    W = { token: token, players: pls, phase: "night", day: 0, wolfVictim: null, seerCheck: null, witchSaveUsed: false, witchPoisonUsed: false, lastDead: [] };
+    window.__jy62WolfS = W;
+    // 展示自己的身份
+    var me = pls.filter(function (p) { return p.isMe; })[0];
+    wolfRenderAll();
+    logToBoard('<div class="wolf-rolecard">你的身份是：<b>' + roleName(me.role) + "</b>" + (me.role === "wolf" ? "（狼人阵营，夜晚可以刀人，白天伪装自己）" : "（好人阵营，白天找出狼人并投票放逐）") + "</div>");
+    logToBoard("天黑请闭眼…");
+    var hostLine = "你们几个开始玩狼人杀，请招呼大家进入状态～";
+    if (hostPa) window.jy62MemLine(hostPa, "game", "你和" + pls.filter(function (p) { return !p.isMe && p.key !== "host"; }).map(function (p) { return p.name; }).join("、") + "开始了一局狼人杀。");
+    delay(900).then(function () {
+      if (W && W.token === token) wolfNightWolf(me);
+    });
+  }
+  window.jy62WolfStart = jy62WolfStart;
+
+  /* ---------- 夜晚 ---------- */
+  function wolfNightWolf(me) {
+    var token = W.token;
+    var wolf = W.players.filter(function (p) { return p.role === "wolf" && !p.dead; })[0];
+    if (!wolf) { logToBoard("没有活着的狼了。"); wolfNextAfterWolf(); return; }
+    if (wolf.isMe) {
+      logToBoard("你是狼人，请选择今晚要袭击的对象：");
+      var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'wolf\',\'' + p.key + '\')">' + esc(p.name) + "</button>"; }).join("");
+      setAction('<div class="mj-btn-row">' + opts + "</div>");
+      return;
+    }
+    // AI 狼：随机咬一个非狼好人
+    logToBoard("狼人正在密谋袭击对象…");
+    delay(900).then(function () {
+      if (!W || W.token !== token) return;
+      var wolves = W.players.filter(function (p) { return p.role === "wolf"; });
+      var wolfKeys = wolves.map(function (p) { return p.key; });
+      var targets = aliveExcept(wolf.key).filter(function (p) { return wolfKeys.indexOf(p.key) < 0; });
+      if (!targets.length) targets = aliveExcept(wolf.key);
+      var victim = pick(targets);
+      W.wolfVictim = victim.key;
+      logToBoard("狼人已经决定了袭击目标…");
+      wolfNextAfterWolf();
+    });
+  }
+
+  function wolfNextAfterWolf() {
+    if (!W) return;
+    var token = W.token;
+    var seer = W.players.filter(function (p) { return p.role === "seer" && !p.dead; })[0];
+    delay(800).then(function () {
+      if (!W || W.token !== token) return;
+      if (seer) {
+        if (seer.isMe) {
+          logToBoard("你是预言家，请选择要查验的人：");
+          var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'seer\',\'' + p.key + '\')">' + esc(p.name) + "</button>"; }).join("");
+          setAction('<div class="mj-btn-row">' + opts + "</div>");
+          return;
+        }
+        // AI 预言家随机验
+        delay(800).then(function () {
+          if (!W || W.token !== token) return;
+          var target = pick(aliveExcept(seer.key));
+          W.seerCheck = { key: target.key, wolf: target.role === "wolf" };
+          logToBoard("预言家悄悄睁开了眼睛…");
+          wolfNextAfterSeer();
+        });
+        return;
+      }
+      wolfNextAfterSeer();
+    });
+  }
+
+  function wolfNextAfterSeer() {
+    if (!W) return;
+    var token = W.token;
+    var witch = W.players.filter(function (p) { return p.role === "witch" && !p.dead; })[0];
+    delay(800).then(function () {
+      if (!W || W.token !== token) return;
+      if (witch) {
+        var victim = W.wolfVictim ? findP(W.wolfVictim) : null;
+        var meKilled = victim && victim.isMe;
+        if (witch.isMe) {
+          logToBoard("你是女巫。" + (victim ? (meKilled ? "今晚你被狼人袭击了" : "今晚被狼人袭击的是 " + victim.name) : "今晚没有人被袭击") + "。你有解药（救）与毒药（毒一人）各一次。");
+          var act = "";
+          if (victim && !victim.dead && !W.witchSaveUsed) act += '<button class="jy-small-btn" onclick="jy62WolfChoose(\'witchsave\',\'' + victim.key + '\')">使用解药救TA</button>';
+          if (!W.witchPoisonUsed) {
+            var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'witchpoison\',\'' + p.key + '\')">毒 ' + esc(p.name) + "</button>"; }).join("");
+            act += '<div style="margin-top:8px">或用毒药：</div><div class="mj-btn-row">' + opts + "</div>";
+          }
+          act += '<div class="mj-btn-row"><button class="jy-small-btn gray" onclick="jy62WolfChoose(\'witchskip\',\'\')">什么都不用</button></div>';
+          setAction(act);
+          return;
+        }
+        // AI 女巫：第一晚大概率救，毒药不乱用
+        delay(800).then(function () {
+          if (!W || W.token !== token) return;
+          if (victim && !W.witchSaveUsed && Math.random() < 0.6) {
+            W.witchSaveUsed = true;
+            W.wolfVictim = null;
+            logToBoard("女巫悄悄使用了解药…");
+          }
+          wolfNightEnd();
+        });
+        return;
+      }
+      wolfNightEnd();
+    });
+  }
+
+  function wolfDawnResolve() {
+    if (!W) return;
+    var token = W.token;
+    var victims = [];
+    if (W.wolfVictim) {
+      var v = findP(W.wolfVictim);
+      if (v && !v.dead) victims.push(v);
+    }
+    if (W.witchPoisonTarget) {
+      var vp = findP(W.witchPoisonTarget);
+      if (vp && !vp.dead) victims.push(vp);
+    }
+    W.witchPoisonTarget = null;
+    victims.forEach(function (p) { p.dead = true; });
+    W.lastDead = victims.map(function (p) { return p.key; });
+    logToBoard("<b>天亮了</b>");
+    if (!victims.length) {
+      logToBoard("昨晚是平安夜，没有人死去。");
+    } else {
+      victims.forEach(function (p) {
+        logToBoard(p.isMe ? "你死了…（被" + (W.wolfVictim && findP(W.wolfVictim) === p ? "狼人袭击" : "女巫毒药") + "）" : esc(p.name) + " 死在了夜里。");
+      });
+      // 猎人开枪
+      var hunter = W.players.filter(function (p) { return p.role === "hunter" && p.dead && p.hunterGun && victims.indexOf(p) > -1; })[0];
+      if (hunter) {
+        logToBoard(esc(hunter.name) + " 是猎人，临终前可以开枪带走一人！");
+        W.hunterToShoot = hunter;
+        if (hunter.isMe) {
+          var opts2 = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'hunter\',\'' + p.key + '\')">' + esc(p.name) + "</button>"; }).join("");
+          setAction('<div class="mj-btn-row">' + opts2 + "</div>");
+          return true;
+        }
+        delay(1000).then(function () {
+          if (!W || W.token !== token) return;
+          if (Math.random() < 0.8) {
+            var t = pick(aliveExcept(hunter.key));
+            var tp = findP(t.key);
+            if (tp && !tp.dead) {
+              tp.dead = true;
+              logToBoard(esc(hunter.name) + " 开枪带走了 " + esc(tp.name) + "！");
+            }
+          } else {
+            logToBoard(esc(hunter.name) + " 选择了不开枪。");
+          }
+          wolfAfterDawn();
+        });
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function wolfAfterDawn() {
+    if (!W) return;
+    if (checkEnd()) return;
+    W.phase = "day";
+    W.day++;
+    wolfRenderAll();
+    logToBoard("<b>第 " + W.day + " 个白天</b>，请大家依次发言，然后投票放逐一名玩家。");
+    wolfSpeech();
+  }
+
+  function wolfRenderLogContainer() {
+    var log = document.getElementById("jy62WolfLog");
+    if (log) log.innerHTML = "";
+    logToBoard("—— 进入白天 ——");
+  }
+
+  /* ---------- 白天发言 ---------- */
+  function wolfSpeech() {
+    if (!W) return;
+    var token = W.token;
+    var alive = aliveList();
+    var i = 0;
+    function next() {
+      if (!W || W.token !== token) return;
+      if (i >= alive.length) { wolfVoteIntro(); return; }
+      var p = alive[i++];
+      if (p.isMe) {
+        logToBoard('<b>你（' + roleName(p.role) + '）</b> 轮到发言：');
+        setAction('<div style="display:flex;gap:8px"><input id="jy62WolfSay" class="wolf-input" placeholder="说点什么…" onkeydown="if(event.key===\'Enter\')jy62WolfSpeakDone()"><button class="jy-small-btn" onclick="jy62WolfSpeakDone()">发言</button></div><button class="jy-small-btn gray" onclick="jy62WolfSpeakSkip()">跳过发言</button>');
+        return;
+      }
+      var txt = aiSpeech(p);
+      logToBoard('<b>' + esc(p.name) + "：</b>" + esc(txt));
+      delay(1100).then(next);
+    }
+    next();
+  }
+
+  function aiSpeech(p) {
+    var r = p.role;
+    var others = aliveExcept(p.key);
+    var othersName = others.map(function (o) { return o.name; }).join("、");
+    if (r === "wolf") {
+      var t = pick(["今晚的风有点凉…我觉得" + othersName + "里有人在带节奏。", "我是普通村民，先跟着大家听听看。", "我没什么信息，不过谁急着投我谁就可疑。", "大家都冷静点，别被带了节奏，先听听预言家怎么说。"]);
+      return t;
+    }
+    if (r === "seer") {
+      if (W.seerCheck && findP(W.seerCheck.key) && !findP(W.seerCheck.key).dead) {
+        var tgt = findP(W.seerCheck.key);
+        return W.seerCheck.wolf ? "我是预言家，昨晚我验了 " + tgt.name + "，TA 是狼！大家投TA！" : "我是预言家，昨晚验了 " + tgt.name + "，TA 是好人，可以先放一放。";
+      }
+      return pick(["我是预言家，昨晚验到了一个好人，先不说名字，保护TA。", "我还在观察，谁比较可疑我心里有数。"]);
+    }
+    if (r === "witch") {
+      return pick(["我昨晚救过人，细节不方便说，但我心里有数。", "我是一个有信息的人，先听大家发言再表态。", "别急，让子弹飞一会儿。"]);
+    }
+    if (r === "hunter") {
+      return pick(["我是猎人，不怕死，谁乱跳我带走谁。", "大家理性一点，狼人会藏在话多的人里。", "我暂时没信息，先站好人这边。", "我怀疑 " + pick(others).name + "，发言太急了。"]);
+    }
+    return pick(["我是村民，暂时没信息，再看看。", "我觉得 " + pick(others).name + " 有点可疑。", "我跟着预言家走。", "过，先听你们的。"]);
+  }
+
+  window.jy62WolfSpeakDone = function () {
+    var input = document.getElementById("jy62WolfSay");
+    if (!input) return;
+    var txt = input.value.trim();
+    if (!txt) return;
+    var me = findP("me");
+    logToBoard('<b>你：</b>' + esc(txt));
+    if (W) { W.playerLastSay = txt; }
+    delay(500).then(wolfVoteIntro);
+  };
+  window.jy62WolfSpeakSkip = function () {
+    logToBoard("（你选择了跳过发言）");
+    if (W) W.playerLastSay = "";
+    delay(500).then(wolfVoteIntro);
+  };
+
+  /* ---------- 投票 ---------- */
+  function wolfVoteIntro() {
+    if (!W) return;
+    logToBoard("现在开始投票，得票最多的人将被放逐。");
+    if (findP("me") && !findP("me").dead) {
+      var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'vote\',\'' + p.key + '\')">投 ' + esc(p.name) + "</button>"; }).join("");
+      setAction('<div class="mj-btn-row">' + opts + "</div>");
+      return;
+    }
+    wolfVoteResolve();
+  }
+
+  function aiVote(p) {
+    var others = aliveExcept(p.key);
+    // 狼投好人；好人尽量投怀疑对象；无信息随机
+    if (p.role === "wolf") {
+      var good = others.filter(function (o) { return roleSide(o.role) === "good"; });
+      return pick(good.length ? good : others).key;
+    }
+    if (p.role === "seer" && W.seerCheck) {
+      var chk = findP(W.seerCheck.key);
+      if (chk && !chk.dead && chk.key !== p.key) return chk.key;
+    }
+    return pick(others).key;
+  }
+
+  function wolfVoteResolve() {
+    if (!W) return;
+    var token = W.token;
+    var votes = {};
+    var alive = aliveList();
+    alive.forEach(function (p) {
+      var v = p.isMe ? W.playerVote : aiVote(p);
+      if (!v || findP(v) && findP(v).dead) {
+        var others = aliveExcept(p.key);
+        v = pick(others).key;
+      }
+      votes[v] = (votes[v] || 0) + 1;
+    });
+    var keys = Object.keys(votes);
+    var maxV = 0, top = [];
+    keys.forEach(function (k) { if (votes[k] > maxV) { maxV = votes[k]; top = [k]; } else if (votes[k] === maxV) top.push(k); });
+    var out = top.length === 1 ? findP(top[0]) : null;
+    var desc = keys.map(function (k) { return esc(findP(k) ? findP(k).name : k) + " " + votes[k] + "票"; }).join("，");
+    logToBoard("投票结果：" + desc);
+    delay(900).then(function () {
+      if (!W || W.token !== token) return;
+      if (!out) {
+        logToBoard("平票无人被放逐，进入下一个夜晚。");
+      } else {
+        out.dead = true;
+        logToBoard((out.isMe ? "你被大家投了出去" : esc(out.name) + " 被放逐了") + "，TA的身份是：" + roleName(out.role) + "。");
+        if (out.role === "hunter" && out.hunterGun) {
+          logToBoard(esc(out.name) + " 是猎人，临死前可以开枪！");
+          if (out.isMe) {
+            var opts = aliveExcept("me").map(function (p) { return '<button class="jy-small-btn" onclick="jy62WolfChoose(\'hunter\',\'' + p.key + '\')">' + esc(p.name) + "</button>"; }).join("");
+            setAction('<div class="mj-btn-row">' + opts + "</div>");
+            W.hunterToShoot = out;
+            return;
+          }
+          delay(800).then(function () {
+            if (!W || W.token !== token) return;
+            if (Math.random() < 0.75) {
+              var t = pick(aliveExcept(out.key));
+              t.dead = true;
+              logToBoard(esc(out.name) + " 开枪带走了 " + esc(t.name) + "！");
+            }
+            wolfGoNight();
+          });
+          return;
+        }
+      }
+      wolfGoNight();
+    });
+  }
+
+  /* ---------- 进入夜晚 ---------- */
+  function wolfGoNight() {
+    if (!W) return;
+    if (checkEnd()) return;
+    W.phase = "night";
+    W.wolfVictim = null;
+    W.seerCheck = null;
+    wolfRenderAll();
+    logToBoard("天黑请闭眼…");
+    var token = W.token;
+    delay(900).then(function () {
+      if (W && W.token === token) wolfNightWolf(findP("me"));
+    });
+  }
+
+  /* ---------- 统一行动处理 ---------- */
+  window.jy62WolfChoose = function (type, key) {
+    if (!W) return;
+    var token = W.token;
+    var me = findP("me");
+    if (type === "wolf") {
+      if (!me || me.role !== "wolf") return;
+      var v = findP(key);
+      if (!v || v.dead) return;
+      W.wolfVictim = v.key;
+      logToBoard("你选择了袭击 " + esc(v.name) + "。");
+      setAction("");
+      wolfNextAfterWolf();
+      return;
+    }
+    if (type === "seer") {
+      if (!me || me.role !== "seer") return;
+      var v2 = findP(key);
+      if (!v2) return;
+      W.seerCheck = { key: v2.key, wolf: v2.role === "wolf" };
+      logToBoard("你查验了 " + esc(v2.name) + "，结果：<b>" + (v2.role === "wolf" ? "是狼人！" : "是好人。") + "</b>");
+      setAction("");
+      wolfNextAfterSeer();
+      return;
+    }
+    if (type === "witchsave") {
+      if (!me || me.role !== "witch") return;
+      W.witchSaveUsed = true;
+      W.wolfVictim = null;
+      logToBoard("你使用了解药，救了 TA。");
+      setAction("");
+      wolfNightEnd();
+      return;
+    }
+    if (type === "witchpoison") {
+      if (!me || me.role !== "witch") return;
+      var v3 = findP(key);
+      if (!v3) return;
+      W.witchPoisonUsed = true;
+      W.witchPoisonTarget = v3.key;
+      logToBoard("你使用了毒药，毒了 " + esc(v3.name) + "。");
+      setAction("");
+      wolfNightEnd();
+      return;
+    }
+    if (type === "witchskip") {
+      setAction("");
+      wolfNightEnd();
+      return;
+    }
+    if (type === "hunter") {
+      var h = W.hunterToShoot || (W.players.filter(function (p) { return p.role === "hunter" && p.dead; })[0]);
+      if (!h) return;
+      h.hunterGun = false;
+      var v4 = findP(key);
+      if (v4 && !v4.dead) {
+        v4.dead = true;
+        logToBoard("你开枪带走了 " + esc(v4.name) + "！");
+      } else {
+        logToBoard("你选择了不开枪。");
+      }
+      W.hunterToShoot = null;
+      setAction("");
+      wolfAfterDawn();
+      return;
+    }
+    if (type === "vote") {
+      if (!me || me.dead) return;
+      W.playerVote = key;
+      logToBoard("你投了 " + esc(findP(key) ? findP(key).name : key) + "。");
+      setAction("");
+      wolfVoteResolve();
+      return;
+    }
+  };
+
+  function wolfNightEnd() {
+    if (!W) return;
+    var token = W.token;
+    logToBoard("女巫闭上了眼睛，夜晚结束…");
+    delay(900).then(function () {
+      if (W && W.token === token) {
+        var shot = wolfDawnResolve();
+        if (!shot) wolfAfterDawn();
+      }
+    });
+  }
+
+  function wolfNextAfterWolf2() {}
+  function wolfNightAfterAll() {}
+})();
+
+</script>
+<script>
+(function(){
+  try { if (window.PAGES && window.PAGES.indexOf("jyGame62") < 0) window.PAGES.push("jyGame62"); } catch (e) {}
+  try { if (window.HOME_APP_META && !window.HOME_APP_META.games) window.HOME_APP_META.games = { name: "小游戏", icon: "" }; } catch (e) {}
+  try { if (window.renderHomeGrid) window.renderHomeGrid(); } catch (e) {}
+})();
 </script>
 </body>
 </html>
