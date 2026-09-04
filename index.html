@@ -1614,6 +1614,44 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeMapStories()">关闭</button></div>
   </div>
 </div>
+<!-- 关系网 -->
+<div class="page light-page" id="relation">
+  <div class="page-head">
+    <span class="back" onclick="goHome()">‹</span>
+    <div class="title">关系网</div>
+    <span class="map-story-btn" onclick="openRelInfo()">说明</span>
+  </div>
+  <div class="rel-scroll">
+    <div class="rel-desc">选一个主体，查看 TA 的关系线；关系全部来自聊天、记忆、大地图、情侣空间等真实记录。</div>
+    <div class="rel-subject" id="relSubjectList"></div>
+    <div class="rel-toolbar">
+      <button class="sheet-btn ghost small" onclick="relZoomOut()">－</button>
+      <span class="rel-zoom-tip">缩放/拖动</span>
+      <button class="sheet-btn ghost small" onclick="relZoomIn()">＋</button>
+      <button class="sheet-btn ghost small" onclick="relCenter()">居中</button>
+      <button class="sheet-btn primary small" onclick="relAiAnalyze()">✨ AI 深挖</button>
+    </div>
+    <div class="rel-graph" id="relGraph">
+      <svg id="relSvg" width="0" height="0"></svg>
+      <div class="rel-empty" id="relEmpty"></div>
+    </div>
+    <div class="rel-detail" id="relDetail"></div>
+  </div>
+</div>
+<!-- 关系网说明弹窗 -->
+<div class="modal-mask" id="relInfoMask" onclick="if(event.target===this)closeRelInfo()">
+  <div class="modal-sheet wide">
+    <h3>关系网说明</h3>
+    <div class="sheet-desc">关系网把 TA 在手机上留下的关系线索织成一张网，像刑侦档案一样呈现：</div>
+    <ul class="rel-info-list">
+      <li>节点：本尊、角色、NPC、群聊、小号分身</li>
+      <li>连线：聊天、同群、情侣绑定、地图偶遇、记忆提及、小号坦白</li>
+      <li>线越粗、数字越大：来往越频繁/证据越足</li>
+      <li>点节点可查看与主体的关系明细；「AI 深挖」需接入 AI 后由模型从记忆里补充线索</li>
+    </ul>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeRelInfo()">知道了</button></div>
+  </div>
+</div>
 <!-- 查手机 -->
 
 <div class="page light-page" id="phonecheck">
@@ -2946,7 +2984,10 @@ function normalizeDB(d) {
   if (!d.mapData.stories || typeof d.mapData.stories !== "object") d.mapData.stories = [];
   if (!d.mapData.lastAt || typeof d.mapData.lastAt !== "object") d.mapData.lastAt = {};
   if (!d.homeOrder || !d.homeOrder.length) d.homeOrder = DEFAULT_HOME_ORDER.slice();
-  else if (d.homeOrder.indexOf("map") < 0) d.homeOrder.push("map");
+  else {
+    if (d.homeOrder.indexOf("map") < 0) d.homeOrder.push("map");
+    if (d.homeOrder.indexOf("relations") < 0) d.homeOrder.push("relations");
+  }
   if (d.chatSessions === void 0) {
     d.chatSessions = [];
     d.personas.forEach(function(p) {
@@ -3290,7 +3331,7 @@ function applyAvatars() {
 }
 __name(applyAvatars, "applyAvatars");
 let currentPersonaId = null;
-const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "groupOffline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map"];
+const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "groupOffline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map", "relation"];
 function showPage(id) {
   PAGES.forEach(function(p) {
     document.getElementById(p).classList.toggle("active", p === id);
@@ -3674,7 +3715,7 @@ function addWidget(type) {
   toast("\u5DF2\u6DFB\u52A0\u300C" + widgetTypeName(type) + "\u300D\uFF1A\u70B9\u6587\u5B57\u6539\u5185\u5BB9\u3001\u70B9\u56FE\u7247\u6362\u56FE\u3001\u957F\u6309\u7EC4\u4EF6\u53EF\u5220\u9664");
 }
 __name(addWidget, "addWidget");
-var DEFAULT_HOME_ORDER = ["messages", "photos", "music", "calendar", "love", "theme", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map"];
+var DEFAULT_HOME_ORDER = ["messages", "photos", "music", "calendar", "love", "theme", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map", "relations"];
 var HOME_APP_META = {
   messages: { name: "\u4FE1\u606F", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>' },
   photos: { name: "\u76F8\u518C", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 16-5-5L6 21"/></svg>' },
@@ -3687,7 +3728,8 @@ var HOME_APP_META = {
   pdd: { name: "\u62FC\u67D0\u5915", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M6 7h12l-1.2 13H7.2L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>' },
   watch: { name: "\u4E00\u8D77\u770B", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="13" rx="3"/><path d="M10 9l6 3.5-6 3.5Z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>' },
   phonecheck: { name: "\u67E5\u624B\u673A", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="8" y="3" width="10" height="18" rx="2"/><path d="M12 20h2"/><path d="M4 7s1.5-2 3-2 3 2 3 2-1.5 2-3 2-3-2-3-2Z"/></svg>' },
-  map: { name: "\u5927\u5730\u56FE", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' }
+  map: { name: "\u5927\u5730\u56FE", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' },
+  relations: { name: "\u5173\u7CFB\u7F51", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M7 7.2 10.5 16M17 7.2 13.5 16M7.4 6h9.2"/></svg>' }
 };
 var homeDrag = null;
 function homeOrderArr() {
@@ -3986,6 +4028,10 @@ function openApp(app) {
     case "map":
       renderMapPage();
       showPage("map");
+      break;
+    case "relations":
+      renderRelationPage();
+      showPage("relation");
       break;
     case "phonecheck":
       renderPhoneCheck();
@@ -11149,73 +11195,6 @@ var META_WORLD_NPC = [
   { id: "w_chatan", name: "\u8336\u644A\u5976\u5976", avatar: "\U0001F375", type: "elder", act: ["\u5F80\u7C97\u74F7\u7897\u91CC\u6DFB\u4E86\u52FA\u51C9\u8336\uFF0C\u63A8\u5230\u4F60\u9762\u524D", "\u6447\u7740\u84B2\u6247\uFF0C\u6162\u60A0\u60A0\u5730\u5FF5\u53E8"], line: ["\u300C\u559D\u7897\u8336\uFF0C\u6B47\u6B47\u811A\u3002\u300D", "\u300C\u8FD9\u5929\u513F\u554A\uFF0C\u8DDF\u4EBA\u4E00\u6837\uFF0C\u70ED\u4E00\u9635\u51C9\u4E00\u9635\u3002\u300D"], end: ["\u4E00\u7897\u51C9\u8336\u4E0B\u809A\uFF0C\u6691\u6C14\u90FD\u6563\u4E86\u3002"] },
   { id: "w_xiuxie", name: "\u4FEE\u978B\u5320\u8001\u5468", avatar: "\U0001F45E", type: "cobbler", act: ["\u624B\u91CC\u7684\u9525\u5B50\u4E0A\u4E0B\u7FFB\u98DE\uFF0C\u7F1D\u5F97\u53C8\u5FEB\u53C8\u5300", "\u62CD\u4E86\u62CD\u8EAB\u8FB9\u7684\u5C0F\u9A6C\u624E\uFF0C\u793A\u610F\u5750\u4E0B"], line: ["\u300C\u978B\u574F\u5566\uFF1F\u62FF\u6765\u6211\u770B\u770B\u3002\u300D", "\u300C\u624B\u827A\u6D3B\uFF0C\u6025\u4E0D\u5F97\u3002\u300D"], end: ["\u8001\u5468\u7684\u624B\u827A\uFF0C\u8857\u574A\u90BB\u5C45\u90FD\u77E5\u9053\u3002"] }
 ];
-var META_WORLD_TEMPLATES = {
-  modern: {
-    name: "\u73B0\u4EE3\u90FD\u5E02", style: "modern", desc: "\u4E00\u5EA7\u70E6\u534E\u4E0E\u6E29\u60C5\u5E76\u5B58\u7684\u57CE\u5E02\uFF0C\u8857\u5934\u5DF7\u5C3E\u90FD\u6709\u4EBA\u95F4\u70DF\u706B\u6C14\u3002",
-    places: [{ name: "\u57CE\u5E02\u516C\u56ED", icon: "\U0001F333", desc: "\u6668\u6655\u91CC\u7684\u7EFF\u5730\u548C\u6253\u592A\u6781\u7684\u8001\u4EBA" }, { name: "\u6D77\u8FB9\u6808\u9053", icon: "\U0001F30A", desc: "\u6D77\u98CE\u548C\u6B4C\u58F0\u4EA4\u7EC7\u7684\u5730\u65B9" }, { name: "\u8001\u8857\u591C\u5E02", icon: "\U0001F3EE", desc: "\u70DF\u706B\u6C14\u6D53\u90C1\u7684\u5C0F\u5403\u8857" }, { name: "\u8F6C\u89D2\u5496\u5561\u9986", icon: "\u2615", desc: "\u5496\u5561\u9999\u548C\u6162\u65F6\u5149\u7684\u89D2\u843D" }, { name: "\u4E2D\u5FC3\u5E7F\u573A", icon: "\u26F2", desc: "\u5E7F\u573A\u821E\u548C\u98DE\u8D77\u7684\u9E3D\u5B50" }, { name: "\u516C\u4EA4\u7AD9", icon: "\U0001F68C", desc: "\u4EBA\u6765\u4EBA\u5F80\u7684\u8DEF\u8FC7" }],
-    npcIds: ["w_tanghulu", "w_hua", "w_kaohongshu", "w_jujv", "w_kuaidi", "w_chatan", "w_xiuxie", "w_jiuzhu"]
-  },
-  guxue: {
-    name: "\u53E4\u98CE\u6C5F\u6E56", style: "guxue", desc: "\u725B\u9709\u548C\u5251\u5149\u7684\u6C5F\u6E56\uFF0C\u5BA2\u6808\u91CC\u6D41\u4F20\u7740\u4F20\u5947\u3002",
-    places: [{ name: "\u957F\u5B89\u9152\u8086", icon: "\U0001F376", desc: "\u7B79\u7B7F\u5F80\u6765\u7684\u6C5F\u6E56\u805A\u4F1A\u5730" }, { name: "\u7AF9\u6797\u5C0F\u5F84", icon: "\U0001F38B", desc: "\u7AF9\u53F6\u6C99\u54CD\uFF0C\u5251\u5BA2\u884C\u8D70\u7684\u5730\u65B9" }, { name: "\u6E56\u7554\u8336\u5BBD", icon: "\U0001F375", desc: "\u8336\u9999\u5F25\u6F2B\u7684\u4F11\u606F\u5904" }, { name: "\u53E4\u8857\u5E02\u96C6", icon: "\U0001F3EE", desc: "\u5356\u7CD6\u753B\u3001\u7CD6\u845B\u851A\u7684\u70ED\u95F9\u8857" }, { name: "\u5C71\u95F4\u53E4\u5BFA", icon: "\u26E9\uFE0F", desc: "\u949F\u58F0\u6E05\u8106\u7684\u9759\u5730" }, { name: "\u6E21\u53E3", icon: "\u26F5", desc: "\u8239\u5BB6\u5019\u5EA6\u7684\u6C34\u8DEF\u53E3" }],
-    npcs: [
-      { name: "\u8BF4\u4E66\u5148\u751F", avatar: "\U0001F4D6", type: "reader", act: "\u6298\u6247\u8F7B\u6447\uFF0C\u6B63\u8BB2\u5230\u7CBE\u5F69\u5904", line: "\u300C\u4E14\u542C\u4E0B\u56DE\u5206\u89E3\u3002\u300D", end: "\u90A3\u6545\u4E8B\u91CC\u7684\u6C5F\u6E56\uFF0C\u6BD4\u9152\u8FD8\u9189\u4EBA\u3002" },
-      { name: "\u9152\u8086\u8001\u677F\u5A18", avatar: "\U0001F376", type: "vendor", act: "\u64E6\u7740\u9152\u575B\uFF0C\u62DB\u547C\u5BA2\u4EBA", line: "\u300C\u5BA2\u5B98\uFF0C\u6765\u7897\u6843\u82B1\u917F\uFF1F\u300D", end: "\u4E00\u7897\u4E0B\u809A\uFF0C\u6EE1\u8EAB\u6C5F\u6E56\u6C14\u3002" },
-      { name: "\u5356\u7CD6\u753B\u7684\u8001\u4EBA", avatar: "\U0001F36C", type: "vendor", act: "\u94DC\u52FA\u5728\u77F3\u677F\u4E0A\u753B\u51FA\u51E4\u51F0", line: "\u300C\u5C0F\u90CE\u541B\uFF0C\u8981\u4E2A\u4EC0\u4E48\u82B1\u6837\uFF1F\u300D", end: "\u7CD6\u753B\u751C\u4E86\u4E00\u8DEF\u3002" },
-      { name: "\u8336\u9986\u5C0F\u4E8C", avatar: "\U0001F375", type: "vendor", act: "\u63D0\u7740\u94DC\u58F6\u7A7F\u68AD", line: "\u300C\u5BA2\u5B98\uFF0C\u8336\u51C9\u4E86\uFF0C\u7EED\u4E00\u676F\uFF1F\u300D", end: "\u8336\u9999\u8890\u8890\uFF0C\u4EBA\u95F4\u70DF\u706B\u3002" },
-      { name: "\u6797\u4E2D\u5251\u5BA2", avatar: "\u2694\uFE0F", type: "artist", act: "\u5728\u7AF9\u6797\u91CC\u7EC3\u5251", line: "\u300C\u6C5F\u6E56\u8DEF\u8FDC\uFF0C\u6709\u7F18\u518D\u89C1\u3002\u300D", end: "\u5251\u5BA2\u7684\u8EAB\u5F71\u6D88\u5931\u5728\u7AF9\u6797\u6DF1\u5904\u3002" },
-      { name: "\u5927\u767D\u732B\u300C\u963F\u767D\u300D", avatar: "\U0001F431", type: "animal", act: "\u8E72\u5728\u5C4B\u6A90\u4E0B\u8214\u722A\u5B50", line: "\u300C\u55B5\uFF5E\u300D", end: "\u5B83\u8DF3\u4E0A\u5899\u5934\uFF0C\u56DE\u5934\u770B\u4E86\u4F60\u4E00\u773C\u3002" }
-    ]
-  },
-  fantasy: {
-    name: "\u5947\u5E7B\u5F02\u754C", style: "fantasy", desc: "\u9B54\u6CD5\u4E0E\u5947\u8FF9\u5171\u5B58\u7684\u5F02\u4E16\u754C\uFF0C\u6BCF\u4E2A\u89D2\u843D\u90FD\u85CF\u7740\u53E4\u8001\u7684\u4F20\u8BF4\u3002",
-    places: [{ name: "\u7CBE\u7075\u68EE\u6797", icon: "\U0001F332", desc: "\u53D1\u5149\u7684\u83CC\u548C\u7CBE\u7075\u7684\u68EE\u6797" }, { name: "\u9B54\u6CD5\u5E02\u96C6", icon: "\U0001FA84", desc: "\u5356\u9B54\u6CD5\u624B\u6735\u7684\u5E02\u96C6" }, { name: "\u9F99\u810A\u5C71\u8109", icon: "\U0001F3D4\uFE0F", desc: "\u5C71\u9876\u6709\u9F99\u5728\u71D5\u606F" }, { name: "\u6E56\u7554\u9152\u9986", icon: "\U0001F37A", desc: "\u5192\u9669\u8005\u4EEC\u7684\u805A\u4F1A\u5730" }, { name: "\u53E4\u8001\u9057\u8FF9", icon: "\U0001F3DB\uFE0F", desc: "\u5C01\u5370\u7740\u53E4\u795E\u8BDD\u7684\u5E9F\u589F" }, { name: "\u661F\u661F\u796D\u575B", icon: "\u2728", desc: "\u665A\u4E0A\u4F1A\u4E0B\u661F\u5C18\u7684\u796D\u575B" }],
-    npcs: [
-      { name: "\u9B54\u6CD5\u5B66\u5F92", avatar: "\U0001F9D9", type: "student", act: "\u62B1\u7740\u6BD4\u4EBA\u9AD8\u7684\u9B54\u6CD5\u4E66", line: "\u300C\u5492\u8BED\u53C8\u5FF5\u9519\u4E86\u2026\u2026\u300D", end: "\u4ED6\u5077\u5077\u628A\u4E00\u4E2A\u53D1\u5149\u7684\u5C0F\u7403\u585E\u8FDB\u4F60\u624B\u91CC\u3002" },
-      { name: "\u7CBE\u7075\u5546\u4EBA", avatar: "\U0001F9DD", type: "vendor", act: "\u6446\u7740\u4F1A\u53D1\u5149\u7684\u679C\u5B50", line: "\u300C\u68EE\u6797\u91CC\u624D\u6709\u7684\u597D\u4E1C\u897F\uFF5E\u300D", end: "\u90A3\u9897\u679C\u5B50\u5728\u591C\u91CC\u4E5F\u4EAE\u7740\u3002" },
-      { name: "\u6CFB\u6E38\u8BD7\u4EBA", avatar: "\U0001F3BB", type: "artist", act: "\u5F39\u7740\u7ACB\u7434\u5531\u6B4C", line: "\u300C\u8981\u542C\u4E00\u4E2A\u53E4\u8001\u7684\u4F20\u8BF4\u5417\uFF1F\u300D", end: "\u6B4C\u58F0\u91CC\u85CF\u7740\u9F99\u4E0E\u661F\u661F\u7684\u79D8\u5BC6\u3002" },
-      { name: "\u94C1\u5320\u5927\u53D4", avatar: "\U0001F528", type: "craftsman", act: "\u7089\u706B\u6620\u7EA2\u4E86\u8138", line: "\u300C\u597D\u5251\u5F97\u914D\u597D\u9798\u3002\u300D", end: "\u4ED6\u9001\u4F60\u4E00\u679A\u62A4\u8EAB\u94C1\u7247\u3002" },
-      { name: "\u68EE\u6797\u5C0F\u9E7F", avatar: "\U0001F98C", type: "animal", act: "\u4ECE\u6811\u540E\u63A2\u51FA\u5934", line: "\u300C\uFF08\u5B83\u8E6D\u4E86\u8E6D\u4F60\u7684\u624B\uFF09\u300D", end: "\u5C0F\u9E7F\u8DF3\u56DE\u6797\u95F4\uFF0C\u50CF\u4E00\u675F\u5149\u3002" },
-      { name: "\u5B88\u591C\u4EBA", avatar: "\U0001F3EE", type: "guard", act: "\u63D0\u7740\u706F\u7B3C\u5DE1\u591C", line: "\u300C\u591C\u91CC\u522B\u8D70\u8FDC\u3002\u300D", end: "\u706F\u7B3C\u7684\u5149\u5728\u591C\u8272\u91CC\u6643\u4E86\u5F88\u4E45\u3002" }
-    ]
-  },
-  cyber: {
-    name: "\u8D5B\u535A\u672A\u6765", style: "cyber", desc: "\u84DD\u8272\u516B\u5B57\u706F\u548C\u673A\u68B0\u8EAB\u4F53\u7684\u672A\u6765\u57CE\u5E02\uFF0C\u5BD2\u51B7\u4E2D\u5E26\u7740\u4EBA\u6027\u3002",
-    places: [{ name: "\u9713\u8679\u8857\u533A", icon: "\U0001F303", desc: "\u516B\u5B57\u706F\u7167\u4EAE\u7684\u6DF1\u591C\u8857" }, { name: "\u673A\u68B0\u5E02\u96C6", icon: "\U0001F916", desc: "\u5356\u914D\u4EF6\u548C\u53D8\u8272\u6C41\u7684\u5E02\u96C6" }, { name: "\u5929\u53F0\u82B1\u56ED", icon: "\U0001F33F", desc: "\u94A2\u94C1\u68EE\u6797\u9876\u90E8\u7684\u4E00\u7247\u7EFF\u8272" }, { name: "\u6570\u636E\u9152\u9986", icon: "\U0001F378", desc: "\u7A0B\u5E8F\u5458\u4EEC\u7684\u89E3\u538B\u5730" }, { name: "\u5730\u4E0B\u8F66\u7AD9", icon: "\U0001F687", desc: "\u7A7F\u68AD\u4E8E\u6570\u636E\u6D41\u91CC\u7684\u7AD9\u53F0" }, { name: "\u5168\u606F\u5E7F\u573A", icon: "\U0001F4E1", desc: "\u7ACB\u4F53\u5E7F\u544A\u6C89\u6D78\u7684\u5E7F\u573A" }],
-    npcs: [
-      { name: "\u4FEE\u7406\u5E08\u59D0\u59D0", avatar: "\U0001F527", type: "technician", act: "\u624B\u6307\u7075\u5DE7\u5730\u62C6\u7740\u673A\u5668\u4EBA", line: "\u300C\u4F60\u8FD9\u53F0\u53E4\u8463\u8FD8\u80FD\u4FEE\u3002\u300D", end: "\u5979\u62E7\u597D\u6700\u540E\u4E00\u9897\u87BA\u4E1D\uFF0C\u62CD\u4E86\u62CD\u624B\u3002" },
-      { name: "\u5916\u5356\u673A\u5668\u4EBA", avatar: "\U0001F916", type: "robot", act: "\u8F6E\u5B50\u55A1\u55A1\u8F6C", line: "\u300C\u60A8\u7684\u9910\u5230\u4E86\uFF0C\u8BF7\u7ED9\u4E94\u661F\uFF01\u300D", end: "\u5B83\u8F6C\u7740\u5708\u8D70\u4E86\uFF0C\u5C4F\u5E55\u4E0A\u662F\u7B11\u8138\u3002" },
-      { name: "\u591C\u5E02\u644A\u4E3B", avatar: "\U0001F47E", type: "vendor", act: "\u5356\u53D1\u5149\u7684\u5C0F\u73A9\u610F", line: "\u300C\u8D5B\u535A\u7B26\u5492\uFF0C\u9632\u9ED1\u5BA2\u7684\uFF01\u300D", end: "\u90A3\u4E2A\u5C0F\u73A9\u610F\u771F\u7684\u5728\u591C\u91CC\u4EAE\u4E86\u8D77\u6765\u3002" },
-      { name: "\u673A\u68B0\u732B\u300C\u94C1\u86CB\u300D", avatar: "\U0001F431", type: "animal", act: "\u4E00\u53EA\u88C5\u4E86\u673A\u68B0\u5C3E\u5DF4\u7684\u732B", line: "\u300C\u55B5\u2014\u2014\uFF08\u7535\u5B50\u97F3\uFF09\u300D", end: "\u5B83\u8DF3\u4E0A\u9713\u8679\u706F\u724C\uFF0C\u56DE\u5934\u770B\u4E86\u4E00\u773C\u3002" },
-      { name: "\u6570\u636E\u5854\u5B88\u536B", avatar: "\U0001F6E1\uFE0F", type: "guard", act: "\u7AD9\u5728\u73BB\u7483\u5854\u4E0B", line: "\u300C\u8BC1\u4EF6\u5E26\u4E86\u5417\uFF1F\u300D", end: "\u4ED6\u9012\u7ED9\u4F60\u4E00\u679A\u7EAA\u5FF5\u5FBD\u7AE0\u3002" },
-      { name: "\u8857\u5934\u7434\u5E08", avatar: "\U0001F3B9", type: "artist", act: "\u5168\u606F\u94A2\u7434\u60AC\u5728\u534A\u7A7A", line: "\u300C\u8FD9\u9996\u9001\u7ED9\u4F60\uFF0C\u514D\u8D39\u3002\u300D", end: "\u9713\u8679\u4E0B\uFF0C\u7434\u58F0\u4F20\u4E86\u5F88\u8FDC\u3002" }
-    ]
-  },
-  school: {
-    name: "\u6821\u56ED\u9752\u6625", style: "school", desc: "\u9633\u5149\u6B63\u597D\u7684\u6821\u56ED\uFF0C\u53D1\u751F\u7740\u5E74\u5C11\u65F6\u6700\u7F8E\u597D\u7684\u6545\u4E8B\u3002",
-    places: [{ name: "\u6559\u5B66\u697C", icon: "\U0001F3EB", desc: "\u4E0B\u8BFE\u94C3\u58F0\u5411\u8FC7\u7684\u5730\u65B9" }, { name: "\u64CD\u573A\u8349\u576A", icon: "\U0001F331", desc: "\u4E0B\u5348\u7684\u9633\u5149\u548C\u98DE\u76D8" }, { name: "\u5C0F\u5356\u90E8", icon: "\U0001F3EA", desc: "\u96F6\u98DF\u548C\u5C0F\u65F6\u5149\u7684\u96C6\u5408\u5730" }, { name: "\u56FE\u4E66\u9986", icon: "\U0001F4DA", desc: "\u4E66\u9999\u548C\u5B89\u9759\u7684\u89D2\u843D" }, { name: "\u5929\u53F0", icon: "\u2600\uFE0F", desc: "\u665A\u98CE\u548C\u5FC3\u4E8B\u7684\u5730\u65B9" }, { name: "\u6797\u836B\u9053", icon: "\U0001F333", desc: "\u843D\u53F6\u6EE1\u5730\u7684\u6821\u56ED\u8DEF" }],
-    npcs: [
-      { name: "\u540C\u684C\u540C\u5B66", avatar: "\U0001F4D6", type: "student", act: "\u628A\u7B14\u8BB0\u5F80\u4F60\u8FD9\u8FB9\u63A8\u4E86\u63A8", line: "\u300C\u8FD9\u9053\u9898\u4F60\u4F1A\u5417\uFF1F\u300D", end: "\u653E\u5B66\u65F6\u4ED6\u585E\u7ED9\u4F60\u4E00\u5305\u7CD6\u3002" },
-      { name: "\u98DF\u5802\u963F\u59E8", avatar: "\U0001F35A", type: "cook", act: "\u624B\u4E0D\u6296\u5730\u52FA\u4E86\u4E00\u5927\u52FA", line: "\u300C\u591A\u5403\u70B9\uFF0C\u957F\u8EAB\u4F53\uFF01\u300D", end: "\u5979\u5077\u5077\u7ED9\u4F60\u591A\u52A0\u4E86\u4E2A\u9E21\u817F\u3002" },
-      { name: "\u56FE\u4E66\u9986\u7BA1\u7406\u5458", avatar: "\U0001F4CC", type: "worker", act: "\u6574\u7406\u7740\u4E66\u67B6", line: "\u300C\u561F\u2014\u2014\u4E66\u8981\u8F7B\u58F0\u7FFB\u3002\u300D", end: "\u5979\u63A8\u8350\u4E86\u4F60\u4E00\u672C\u597D\u770B\u7684\u5C0F\u8BF4\u3002" },
-      { name: "\u6821\u732B\u300C\u6A58\u5B50\u300D", avatar: "\U0001F431", type: "animal", act: "\u8DB4\u5728\u53F0\u9636\u4E0A\u6652\u592A\u9633", line: "\u300C\u55B5\uFF5E\u300D", end: "\u5B83\u7FFB\u4E86\u4E2A\u8EAB\uFF0C\u628A\u809A\u76AE\u9732\u7ED9\u4F60\u3002" },
-      { name: "\u7BEE\u7403\u5C11\u5E74", avatar: "\U0001F3C0", type: "student", act: "\u5728\u7403\u573A\u6295\u4E86\u4E2A\u4E09\u5206", line: "\u300C\u6765\u4E00\u5C40\uFF1F\u300D", end: "\u5915\u9633\u628A\u5F71\u5B50\u62C9\u5F97\u5F88\u957F\u3002" },
-      { name: "\u5E7F\u64AD\u7AD9\u5B66\u59D0", avatar: "\U0001F3A4", type: "student", act: "\u5728\u5E7F\u64AD\u91CC\u5FF5\u7740\u7A3F\u5B50", line: "\u300C\u4ECA\u5929\u7684\u70B9\u6B4C\u9001\u7ED9\u6240\u6709\u4EBA\u3002\u300D", end: "\u90A3\u9996\u6B4C\u521A\u597D\u662F\u4F60\u559C\u6B22\u7684\u3002" }
-    ]
-  },
-  space: {
-    name: "\u661F\u9645\u592A\u7A7A", style: "space", desc: "\u661F\u8FB0\u5927\u6D77\u91CC\u7684\u7B3C\u8239\u548C\u68A6\u60F3\uFF0C\u6BCF\u4E2A\u8231\u95E8\u540E\u90FD\u662F\u4E00\u4E2A\u661F\u7403\u3002",
-    places: [{ name: "\u661F\u6E2F\u7801\u5934", icon: "\U0001F680", desc: "\u7B3C\u8239\u8D77\u98DE\u7684\u5730\u65B9" }, { name: "\u73AF\u5F62\u5C71\u57FA\u5730", icon: "\U0001F315", desc: "\u6708\u7403\u4E0A\u7684\u5C0F\u57FA\u5730" }, { name: "\u8F68\u9053\u5E02\u96C6", icon: "\U0001F4E1", desc: "\u5728\u8F68\u9053\u4E0A\u6D6E\u52A8\u7684\u5E02\u96C6" }, { name: "\u98DE\u8239\u9152\u9986", icon: "\U0001F379", desc: "\u5B87\u822A\u5458\u4EEC\u7684\u5C0F\u96C6\u4F1A" }, { name: "\u9668\u77F3\u82B1\u56ED", icon: "\u2604\uFE0F", desc: "\u7A7A\u95F4\u7AD9\u91CC\u7684\u7EFF\u6D32" }, { name: "\u89C2\u6D4B\u53F0", icon: "\U0001F52D", desc: "\u770B\u661F\u8FB0\u7684\u6700\u4F73\u4F4D\u7F6E" }],
-    npcs: [
-      { name: "\u8001\u8239\u957F", avatar: "\U0001FA90", type: "captain", act: "\u9760\u5728\u98DE\u8239\u8FB9\u64E6\u7740\u671B\u8FDC\u955C", line: "\u300C\u5B69\u5B50\uFF0C\u94F6\u6CB3\u662F\u5706\u7684\u3002\u300D", end: "\u4ED6\u6307\u7ED9\u4F60\u770B\u4E00\u9897\u4F1A\u7728\u773C\u7684\u661F\u661F\u3002" },
-      { name: "\u673A\u68B0\u5E08\u732B\u300C\u5C0F\u96F6\u300D", avatar: "\U0001F431", type: "animal", act: "\u6234\u7740\u5FAE\u578B\u5B87\u822A\u5934\u76D4", line: "\u300C\u55B5\u2026\u2026\uFF08\u5934\u76D4\u91CC\u4F20\u51FA\u7535\u6D41\u58F0\uFF09\u300D", end: "\u5B83\u7528\u5C0F\u722A\u5B50\u62CD\u4E86\u62CD\u4F60\u7684\u624B\u5957\u3002" },
-      { name: "\u661F\u6E2F\u5546\u8D29", avatar: "\U0001F6D2", type: "vendor", act: "\u5356\u7740\u4F1A\u53D8\u8272\u7684\u679C\u6C41", line: "\u300C\u706B\u661F\u7279\u8C03\uFF0C\u559D\u4E86\u80FD\u98DE\uFF01\u300D", end: "\u90A3\u676F\u679C\u6C41\u771F\u7684\u5728\u676F\u91CC\u98D8\u4E86\u8D77\u6765\u3002" },
-      { name: "\u5BFC\u822A\u5458\u59D0\u59D0", avatar: "\U0001F9ED", type: "navigator", act: "\u5728\u5C4F\u5E55\u4E0A\u5212\u7740\u822A\u7EBF", line: "\u300C\u8FD9\u6761\u822A\u7EBF\u80FD\u770B\u89C1\u661F\u4E91\u3002\u300D", end: "\u5979\u7ED9\u4F60\u5B58\u4E86\u4E00\u5F20\u661F\u56FE\u3002" },
-      { name: "\u62FE\u8352\u673A\u5668\u4EBA", avatar: "\U0001F916", type: "robot", act: "\u6536\u96C6\u7740\u95EA\u4EAE\u7684\u96F6\u4EF6", line: "\u300C\u53EE\uFF01\u53D1\u73B0\u53EF\u56DE\u6536\u7269\u3002\u300D", end: "\u5B83\u9001\u4F60\u4E00\u9897\u95EA\u4EAE\u7684\u5C0F\u77FF\u77F3\u3002" },
-      { name: "\u89C2\u6D4B\u7AD9\u7237\u7237", avatar: "\U0001F52D", type: "astronomer", act: "\u8C03\u6574\u7740\u5DE8\u5927\u7684\u671B\u8FDC\u955C", line: "\u300C\u4ECA\u665A\u80FD\u770B\u5230\u571F\u661F\u73AF\u3002\u300D", end: "\u4ED6\u8BA9\u4F60\u51D1\u8FD1\u770B\u4E86\u4E00\u773C\uFF0C\u7F8E\u5F97\u8BF4\u4E0D\u51FA\u8BDD\u3002" }
-    ]
-  }
-};
 var MAP_MEET_OPEN = ["{n}\u5728{place}\u95F2\u901B\u65F6\uFF0C{w}\u3002", "{place}\u7684\u5FAE\u98CE\u91CC\uFF0C{n}\u9047\u89C1\u4E86{w}\u3002", "\u521A\u8F6C\u8FC7\u8857\u89D2\uFF0C{n}\u5C31\u649E\u89C1\u4E86{w}\u3002", "{n}\u8D70\u8FDB{place}\uFF0C\u4E0E{w}\u64E6\u80A9\u800C\u8FC7\u3002"];
 var MAP_MEET_CHAR = ["{n}\u505C\u4E0B\u811A\u6B65\uFF0C\u597D\u5947\u5730\u6253\u91CF\u7740\u5BF9\u65B9\u3002", "{n}\u70B9\u4E86\u70B9\u5934\uFF0C\u4E24\u4E2A\u4EBA\u5C31\u8FD9\u4E48\u804A\u4E86\u8D77\u6765\u3002", "{n}\u89C9\u5F97\u5FC3\u91CC\u6696\u6696\u7684\uFF0C\u4EFF\u4F5B\u8FD9\u8D9F\u51FA\u95E8\u6709\u4E86\u610F\u4E49\u3002", "{n}\u88AB\u9017\u7B11\u4E86\uFF0C\u6C14\u6C1B\u4E00\u4E0B\u5B50\u8F7B\u677E\u8D77\u6765\u3002", "{n}\u8D70\u4E0A\u524D\uFF0C\u81EA\u7136\u5730\u6253\u4E86\u4E2A\u62DB\u547C\u3002"];
 var _mapMeetState = null;
@@ -11242,34 +11221,53 @@ function ensureRoleWorld(pa, cb) {
     if (cb) setTimeout(function() { ensureRoleWorld(pa, cb); }, 500);
     return null;
   }
+  if (w && w.status === "error") {
+    if (cb) cb(null);
+    return null;
+  }
   DB.mapData.worlds[pa.id] = { status: "generating" };
   save();
   renderMapWorldBanner();
   generateRoleWorld(pa).then(function(world) {
-    DB.mapData.worlds[pa.id] = world;
+    if (world) {
+      DB.mapData.worlds[pa.id] = world;
+    } else {
+      DB.mapData.worlds[pa.id] = { status: "error", generatedAt: Date.now() };
+      toast("\u4e16\u754c\u751f\u6210\u5931\u8d25\uff1a\u672a\u63a5\u5165 AI \u6216\u751f\u6210\u51fa\u9519\uff0c\u5df2\u505c\u6b62\u672c\u5730\u4fdd\u5e95\u3002\u53ef\u70b9\u91cd\u8bd5\u518d\u6765\u3002");
+    }
     save();
     renderMapPage();
     if (cb) cb(world);
   });
   return null;
 }
+function retryRoleWorld() {
+  var pa = activePersona();
+  if (!pa) return;
+  var w = DB.mapData.worlds[pa.id];
+  if (w && w.status === "error") delete DB.mapData.worlds[pa.id];
+  save();
+  renderMapPage();
+  ensureRoleWorld(pa);
+}
 function generateRoleWorld(pa) {
   return new Promise(function(resolve) {
     var wb = buildWorldBooks(pa) || "";
-    var personaText = "\u89D2\u8272\u540D\uFF1A" + pa.name + "\n\u98CE\u683C\uFF1A" + (pa.style || "") + "\n\u7B80\u4ECB\uFF1A" + (pa.intro || "") + "\n\u6838\u5FC3\u8BBE\u5B9A\uFF1A" + (pa.system || "");
-    var hasWb = wb.indexOf("\u4E16\u754C\u4E66") >= 0;
+    var personaText = "\u89d2\u8272\u540d\uff1a" + pa.name + "\n\u98ce\u683c\uff1a" + (pa.style || "") + "\n\u7b80\u4ecb\uff1a" + (pa.intro || "") + "\n\u6838\u5fc3\u8bbe\u5b9a\uff1a" + (pa.system || "");
+    var hasWb = wb.indexOf("\u4e16\u754c\u4e66") >= 0;
     var prompt;
     if (hasWb) {
-      prompt = "\u4F60\u662F\u4E16\u754C\u6784\u5EFA\u5E08\u3002\u8BF7\u4E25\u683C\u57FA\u4E8E\u4EE5\u4E0B\u3010\u89D2\u8272\u8BBE\u5B9A\u3011\u548C\u3010\u4E16\u754C\u4E66\u3011\uFF0C\u4E3A\u8FD9\u4E2A\u89D2\u8272\u751F\u6210\u4E00\u4E2A\u5C5E\u4E8E\u4ED6\u7684\u72EC\u5C5E\u865A\u62DF\u4E16\u754C\uFF08\u4E16\u754C\u89C2\u4EE5\u4E16\u754C\u4E66\u4E3A\u51C6\uFF0C\u4E16\u754C\u4E66\u672A\u63D0\u53CA\u7684\u90E8\u5206\u53EF\u7531\u89D2\u8272\u8BBE\u5B9A\u81EA\u7136\u5EF6\u4F38\uFF09\u3002\n\n\u3010\u89D2\u8272\u8BBE\u5B9A\u3011\n" + personaText + "\n\n\u3010\u4E16\u754C\u4E66\u3011\n" + wb + "\n\n\u8BF7\u8F93\u51FA\u7EAF JSON\uFF08\u4E0D\u8981\u4EFB\u4F55\u5176\u4ED6\u6587\u5B57\u3001\u4E0D\u8981 Markdown \u6807\u8BB0\uFF09\uFF0C\u683C\u5F0F\u5982\u4E0B\uFF1A\n{ \"name\": \"\u4E16\u754C\u540D\u79F0\uFF08\u4E0D\u8D85\u8FC78\u5B57\uFF09\", \"desc\": \"\u4E00\u53E5\u8BDD\u4E16\u754C\u89C2\uFF08\u4E0D\u8D85\u8FC730\u5B57\uFF09\", \"style\": \"\u98CE\u683C\u6807\u7B7E\uFF08\u5982 \u73B0\u4EE3\u90FD\u5E02/\u53E4\u98CE\u6C5F\u6E56/\u5947\u5E7B\u5F02\u754C/\u8D5B\u535A\u672A\u6765/\u6821\u56ED\u9752\u6625/\u661F\u9645\u592A\u7A7A\uFF09\", \"places\": [{\"name\":\"\u5730\u70B9\u540D\",\"icon\":\"emoji\",\"desc\":\"\u4E00\u53E5\u8BDD\u6C1B\u56F4\"}...\u51716\u4E2A], \"npcs\": [{\"name\":\"NPC\u540D\",\"avatar\":\"emoji\u6216\u5934\u50CFURL\",\"type\":\"\u7C7B\u578B\",\"desc\":\"\u4E00\u53E5\u8BDD\",\"act\":[\"\u76F8\u9047\u52A8\u4F5C\"],\"line\":[\"\u4E00\u53E5\u53F0\u8BCD\"],\"end\":[\"\u5206\u522B\u7ED3\u5C40\"]}...\u51716\u4E2A] }";
+      prompt = "\u4f60\u662f\u4e16\u754c\u6784\u5efa\u5e08\u3002\u8bf7\u4e25\u683c\u57fa\u4e8e\u4ee5\u4e0b\u3010\u89d2\u8272\u8bbe\u5b9a\u3011\u548c\u3010\u4e16\u754c\u4e66\u3011\uff0c\u4e3a\u8fd9\u4e2a\u89d2\u8272\u751f\u6210\u4e00\u4e2a\u5c5e\u4e8e\u4ed6\u7684\u72ec\u5c5e\u865a\u62df\u4e16\u754c\uff08\u4e16\u754c\u89c2\u4ee5\u4e16\u754c\u4e66\u4e3a\u51c6\uff0c\u4e16\u754c\u4e66\u672a\u63d0\u53ca\u7684\u90e8\u5206\u53ef\u7531\u89d2\u8272\u8bbe\u5b9a\u81ea\u7136\u5ef6\u4f38\uff09\u3002\n\n\u3010\u89d2\u8272\u8bbe\u5b9a\u3011\n" + personaText + "\n\n\u3010\u4e16\u754c\u4e66\u3011\n" + wb + "\n\n\u8bf7\u8f93\u51fa\u7eaf JSON\uff08\u4e0d\u8981\u4efb\u4f55\u5176\u4ed6\u6587\u5b57\u3001\u4e0d\u8981 Markdown \u6807\u8bb0\uff09\uff0c\u683c\u5f0f\u5982\u4e0b\uff1a\n{ \"name\": \"\u4e16\u754c\u540d\u79f0\uff08\u4e0d\u8d85\u8fc78\u5b57\uff09\", \"desc\": \"\u4e00\u53e5\u8bdd\u4e16\u754c\u89c2\uff08\u4e0d\u8d85\u8fc730\u5b57\uff09\", \"style\": \"\u98ce\u683c\u6807\u7b7e\uff08\u5982 \u73b0\u4ee3\u90fd\u5e02/\u53e4\u98ce\u6c5f\u6e56/\u5947\u5e7b\u5f02\u754c/\u8d5b\u535a\u672a\u6765/\u6821\u56ed\u9752\u6625/\u661f\u9645\u592a\u7a7a\uff09\", \"places\": [{\"name\":\"\u5730\u70b9\u540d\",\"icon\":\"emoji\",\"desc\":\"\u4e00\u53e5\u8bdd\u6c1b\u56f4\"}...\u51716\u4e2a], \"npcs\": [{\"name\":\"NPC\u540d\",\"avatar\":\"emoji\u6216\u5934\u50cfURL\",\"type\":\"\u7c7b\u578b\",\"desc\":\"\u4e00\u53e5\u8bdd\",\"act\":[\"\u76f8\u9047\u52a8\u4f5c\"],\"line\":[\"\u4e00\u53e5\u53f0\u8bcd\"],\"end\":[\"\u5206\u522b\u7ed3\u5c40\"]}...\u51716\u4e2a] }";
     } else {
-      prompt = "\u4F60\u662F\u4E16\u754C\u6784\u5EFA\u5E08\u3002\u8BF7\u6839\u636E\u4EE5\u4E0B\u3010\u89D2\u8272\u8BBE\u5B9A\u3011\u4E3A\u5176\u751F\u6210\u4E00\u4E2A\u5C5E\u4E8E\u4ED6\u7684\u72EC\u5C5E\u865A\u62DF\u4E16\u754C\uFF0C\u4E16\u754C\u89C2\u7531\u89D2\u8272\u8BBE\u5B9A\u81EA\u7136\u5EF6\u4F38\uFF08\u4F8B\u5982\u89D2\u8272\u662F\u5251\u5BA2\uFF0C\u4E16\u754C\u5C31\u662F\u6C5F\u6E56\uFF1B\u89D2\u8272\u662F\u5B66\u751F\uFF0C\u4E16\u754C\u5C31\u662F\u6821\u56ED\uFF1B\u89D2\u8272\u662F\u673A\u5668\u4EBA\uFF0C\u4E16\u754C\u5C31\u662F\u8D5B\u535A\u672A\u6765\uFF09\u3002\n\n\u3010\u89D2\u8272\u8BBE\u5B9A\u3011\n" + personaText + "\n\n\u8BF7\u8F93\u51FA\u7EAF JSON\uFF08\u4E0D\u8981\u4EFB\u4F55\u5176\u4ED6\u6587\u5B57\u3001\u4E0D\u8981 Markdown \u6807\u8BB0\uFF09\uFF0C\u683C\u5F0F\u5982\u4E0B\uFF1A\n{ \"name\": \"\u4E16\u754C\u540D\u79F0\uFF08\u4E0D\u8D85\u8FC78\u5B57\uFF09\", \"desc\": \"\u4E00\u53E5\u8BDD\u4E16\u754C\u89C2\uFF08\u4E0D\u8D85\u8FC730\u5B57\uFF09\", \"style\": \"\u98CE\u683C\u6807\u7B7E\", \"places\": [{\"name\":\"\u5730\u70B9\u540D\",\"icon\":\"emoji\",\"desc\":\"\u4E00\u53E5\u8BDD\u6C1B\u56F4\"}...\u51716\u4E2A], \"npcs\": [{\"name\":\"NPC\u540D\",\"avatar\":\"emoji\u6216\u5934\u50CFURL\",\"type\":\"\u7C7B\u578B\",\"desc\":\"\u4E00\u53E5\u8BDD\",\"act\":[\"\u76F8\u9047\u52A8\u4F5C\"],\"line\":[\"\u4E00\u53E5\u53F0\u8BCD\"],\"end\":[\"\u5206\u522B\u7ED3\u5C40\"]}...\u51716\u4E2A] }";
+      prompt = "\u4f60\u662f\u4e16\u754c\u6784\u5efa\u5e08\u3002\u8bf7\u6839\u636e\u4ee5\u4e0b\u3010\u89d2\u8272\u8bbe\u5b9a\u3011\u4e3a\u5176\u751f\u6210\u4e00\u4e2a\u5c5e\u4e8e\u4ed6\u7684\u72ec\u5c5e\u865a\u62df\u4e16\u754c\uff0c\u4e16\u754c\u89c2\u7531\u89d2\u8272\u8bbe\u5b9a\u81ea\u7136\u5ef6\u4f38\uff08\u4f8b\u5982\u89d2\u8272\u662f\u5251\u5ba2\uff0c\u4e16\u754c\u5c31\u662f\u6c5f\u6e56\uff1b\u89d2\u8272\u662f\u5b66\u751f\uff0c\u4e16\u754c\u5c31\u662f\u6821\u56ed\uff1b\u89d2\u8272\u662f\u673a\u5668\u4eba\uff0c\u4e16\u754c\u5c31\u662f\u8d5b\u535a\u672a\u6765\uff09\u3002\n\n\u3010\u89d2\u8272\u8bbe\u5b9a\u3011\n" + personaText + "\n\n\u8bf7\u8f93\u51fa\u7eaf JSON\uff08\u4e0d\u8981\u4efb\u4f55\u5176\u4ed6\u6587\u5b57\u3001\u4e0d\u8981 Markdown \u6807\u8bb0\uff09\uff0c\u683c\u5f0f\u5982\u4e0b\uff1a\n{ \"name\": \"\u4e16\u754c\u540d\u79f0\uff08\u4e0d\u8d85\u8fc78\u5b57\uff09\", \"desc\": \"\u4e00\u53e5\u8bdd\u4e16\u754c\u89c2\uff08\u4e0d\u8d85\u8fc730\u5b57\uff09\", \"style\": \"\u98ce\u683c\u6807\u7b7e\", \"places\": [{\"name\":\"\u5730\u70b9\u540d\",\"icon\":\"emoji\",\"desc\":\"\u4e00\u53e5\u8bdd\u6c1b\u56f4\"}...\u51716\u4e2a], \"npcs\": [{\"name\":\"NPC\u540d\",\"avatar\":\"emoji\u6216\u5934\u50cfURL\",\"type\":\"\u7c7b\u578b\",\"desc\":\"\u4e00\u53e5\u8bdd\",\"act\":[\"\u76f8\u9047\u52a8\u4f5c\"],\"line\":[\"\u4e00\u53e5\u53f0\u8bcd\"],\"end\":[\"\u5206\u522b\u7ed3\u5c40\"]}...\u51716\u4e2a] }";
     }
     callChat([{ role: "user", content: prompt }], pa).then(function(reply) {
       var data = parseMapWorldJson(reply);
-      if (data) resolve(normalizeRoleWorld(pa, data, "api", hasWb));
-      else resolve(makeFallbackWorld(pa));
+      var world = null;
+      if (data) world = normalizeRoleWorld(pa, data, "api", hasWb);
+      resolve(world);
     }).catch(function() {
-      resolve(makeFallbackWorld(pa));
+      resolve(null);
     });
   });
 }
@@ -11293,51 +11291,19 @@ function normalizeRoleWorld(pa, data, source, wbUsed) {
     if (!p || !p.name) return;
     places.push({ id: "mp_" + i, name: String(p.name).slice(0, 8), icon: p.icon || "\U0001F30D", desc: p.desc ? String(p.desc).slice(0, 30) : "", x: MAP_SPOT_XY[i][0], y: MAP_SPOT_XY[i][1] });
   });
-  if (places.length < 3) return makeFallbackWorld(pa);
+  if (places.length < 3) return null;
   var npcs = [];
   (data.npcs || []).slice(0, 10).forEach(function(n, i) {
     if (!n || !n.name) return;
     npcs.push({ id: "wn_" + i, name: String(n.name).slice(0, 10), avatar: n.avatar || "\U0001F464", type: n.type || "stranger", desc: n.desc ? String(n.desc).slice(0, 30) : "", act: toArr(n.act, "\u8D70\u4E86\u8FC7\u6765"), line: toArr(n.line, "\u300C\u4F60\u597D\u554A\u300D"), end: toArr(n.end, "\u8FD9\u6B21\u76F8\u9047\uFF0C\u6210\u4E86\u8FD9\u4E2A\u4E16\u754C\u91CC\u4E00\u4E2A\u5C0F\u5C0F\u7684\u6CE8\u811A\u3002") });
   });
-  if (!npcs.length) return makeFallbackWorld(pa);
+  if (!npcs.length) return null;
   return { name: String(data.name || pa.name + "\u7684\u4E16\u754C").slice(0, 16), desc: String(data.desc || "\u4E00\u4E2A\u5C5E\u4E8E" + pa.name + "\u7684\u4E16\u754C").slice(0, 60), style: data.style || "", places: places, npcs: npcs, status: "ready", source: source, wbUsed: !!wbUsed, generatedAt: Date.now() };
 }
-function pickTemplate(pa) {
-  var text = ((pa.system || "") + " " + (pa.intro || "") + " " + (pa.style || "") + " " + (pa.name || "")).toLowerCase();
-  var keys = [
-    { words: ["\u53E4\u98CE", "\u6C5F\u6E56", "\u6B66\u4FA0", "\u5251", "\u5BAB", "\u4ED9", "\u5996", "\u5BA2\u6808", "\u957F\u5B89"], tpl: "guxue" },
-    { words: ["\u9B54\u6CD5", "\u5947\u5E7B", "\u7CBE\u7075", "\u9F99", "\u52C7\u8005", "\u5F02\u4E16\u754C", "\u5192\u9669", "\u9A91\u58EB", "\u9B54"], tpl: "fantasy" },
-    { words: ["\u8D5B\u535A", "\u672A\u6765", "\u673A\u68B0", "\u673A\u5668\u4EBA", "\u4E49\u4F53", "\u9713\u8679", "\u9ED1\u5BA2", "\u79D1\u6280"], tpl: "cyber" },
-    { words: ["\u6821\u56ED", "\u5B66\u751F", "\u9752\u6625", "\u6559\u5BA4", "\u793E\u56E2", "\u540C\u5B66"], tpl: "school" },
-    { words: ["\u661F\u9645", "\u592A\u7A7A", "\u5B87\u5B99", "\u98DE\u8239", "\u661F\u7403", "\u5B87\u822A"], tpl: "space" }
-  ];
-  for (var i = 0; i < keys.length; i++) {
-    for (var j = 0; j < keys[i].words.length; j++) {
-      if (text.indexOf(keys[i].words[j]) >= 0) return META_WORLD_TEMPLATES[keys[i].tpl];
-    }
-  }
-  return META_WORLD_TEMPLATES.modern;
-}
-function makeFallbackWorld(pa) {
-  var tpl = pickTemplate(pa);
-  var places = [], npcs = [];
-  tpl.places.forEach(function(p, i) {
-    places.push({ id: "fp_" + i, name: p.name, icon: p.icon, desc: p.desc || "", x: MAP_SPOT_XY[i][0], y: MAP_SPOT_XY[i][1] });
-  });
-  if (tpl.npcIds) {
-    tpl.npcIds.forEach(function(id, i) {
-      var base = null;
-      META_WORLD_NPC.forEach(function(n) { if (n.id === id) base = n; });
-      if (!base) return;
-      npcs.push({ id: "fn_" + i, name: base.name, avatar: base.avatar, type: base.type, desc: "", act: base.act, line: base.line, end: base.end });
-    });
-  } else {
-    tpl.npcs.forEach(function(n, i) {
-      npcs.push({ id: "fn_" + i, name: n.name, avatar: n.avatar, type: n.type || "stranger", desc: "", act: toArr(n.act, "\u8D70\u4E86\u8FC7\u6765"), line: toArr(n.line, "\u300C\u4F60\u597D\u554A\u300D"), end: toArr(n.end, "\u8FD9\u6B21\u76F8\u9047\uFF0C\u6210\u4E86\u8FD9\u4E2A\u4E16\u754C\u91CC\u4E00\u4E2A\u5C0F\u5C0F\u7684\u6CE8\u811A\u3002") });
-    });
-  }
-  return { name: tpl.name + "\u00B7" + pa.name, desc: tpl.desc, style: tpl.style, places: places, npcs: npcs, status: "ready", source: "fallback", generatedAt: Date.now() };
-}
+/*
+[已移除] 本地模板保底：pickTemplate / makeFallbackWorld / META_WORLD_TEMPLATES。
+需求：大地图只允许 API 生成，不再提供系统保底；未接入或失败时地图进入 error 态并可手动重试。
+*/
 function renderMapPage() {
   ensureMapData();
   var pa = activePersona();
@@ -11352,6 +11318,9 @@ function renderMapPage() {
         return '<div class="map-pin" style="left:' + pl.x + '%;top:' + pl.y + '%" onclick="goExplore(\'' + pl.id + '\')"><span class="pin-ic">' + pl.icon + '</span><span class="pin-name">' + escapeHtml(pl.name) + '</span></div>';
       }).join("");
     }
+  } else if (w && w.status === "error") {
+    if (banner) banner.style.display = "none";
+    if (canvas) canvas.innerHTML = '<div class="map-loading" style="color:#b03050">\u4E16\u754C\u751F\u6210\u5931\u8D25\uFF1A\u672A\u63A5\u5165 AI \u6216\u751F\u6210\u51FA\u9519<br><span style="font-size:11px">\u5DF2\u79FB\u9664\u672C\u5730\u6A21\u677F\u4FDD\u5E95\uFF0C\u4E16\u754C\u53EA\u80FD\u901A\u8FC7 API \u751F\u6210</span><br><button class="sheet-btn primary small" style="margin-top:10px" onclick="retryRoleWorld()">\u91CD\u8BD5\u751F\u6210</button></div>';
   } else {
     if (banner) banner.style.display = "none";
     if (canvas) canvas.innerHTML = '<div class="map-loading"><div class="ld"></div>\u4E16\u754C\u751F\u6210\u4E2D\u2026\u2026</div>';
@@ -11469,6 +11438,10 @@ function goExplore(placeId) {
   }
   var w = roleWorld(pa);
   if (!w || w.status !== "ready") {
+    if (w && w.status === "error") {
+      toast(pa.name + " \u7684\u4E16\u754C\u751F\u6210\u5931\u8D25\uFF0C\u8BF7\u70B9\u91CD\u8BD5\u518D\u51FA\u53D1");
+      return;
+    }
     toast(pa.name + " \u7684\u4E16\u754C\u8FD8\u5728\u751F\u6210\u4E2D\uFF0C\u7A0D\u7B49\u4E00\u4E0B\uFF5E");
     return;
   }
@@ -14541,5 +14514,576 @@ idbGet("db").then(function(d) {
 })();
 
 </script>
+
+
+
+<style>
+/* ---- 关系网(58) ---- */
+.rel-scroll{position:absolute;top:0;left:0;right:0;bottom:0;overflow-y:auto;padding:10px 12px 34px;box-sizing:border-box;-webkit-overflow-scrolling:touch;}
+.rel-desc{font-size:12px;color:#8e8e96;margin:2px 2px 10px;line-height:1.6;}
+.rel-subject{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px;}
+.rel-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:14px;background:#f2f2f6;color:#45454d;font-size:12.5px;cursor:pointer;border:1px solid transparent;transition:.12s;}
+.rel-chip.on{background:#fff0f6;border-color:#ff8ab8;color:#d6336c;font-weight:600;}
+.rel-chip .n{max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rel-chip .c{font-size:10px;color:#a0a0a8;background:rgba(0,0,0,.05);padding:0 5px;border-radius:7px;flex:none;}
+.rel-toolbar{display:flex;align-items:center;gap:6px;margin:6px 0;}
+.rel-zoom-tip{flex:1;text-align:center;font-size:10px;color:#b5b5bd;letter-spacing:1px;}
+.sheet-btn.small{padding:3px 10px;font-size:12px;}
+.rel-graph{position:relative;width:100%;height:390px;background:linear-gradient(180deg,#fefdff,#f5f3fb);border:1px solid #eceaf3;border-radius:16px;overflow:hidden;touch-action:none;}
+#relSvg{position:absolute;inset:0;width:100%;height:100%;display:block;}
+.rel-empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#a6a6ae;font-size:13px;padding:0 26px;text-align:center;line-height:1.8;}
+.rel-legend{position:absolute;left:8px;bottom:6px;display:flex;flex-wrap:wrap;gap:5px;pointer-events:none;z-index:2;max-width:92%;}
+.rel-legend i{display:inline-flex;align-items:center;gap:4px;font-style:normal;font-size:9.5px;color:#8f8f98;background:rgba(255,255,255,.85);border-radius:8px;padding:2px 6px;}
+.rel-legend b{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;}
+.rel-node{cursor:pointer;}
+.rel-node .rel-ring{fill:#fff;stroke-width:2;}
+.rel-node .rel-emo{text-anchor:middle;dominant-baseline:central;}
+.rel-node .rel-name{text-anchor:middle;fill:#3a3a42;font-size:11px;}
+.rel-detail{margin-top:10px;background:#fff;border:1px solid #eee;border-radius:14px;padding:10px 12px;}
+.rel-card{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+.rel-card .av{width:42px;height:42px;border-radius:50%;overflow:hidden;background:#f0eef8;display:flex;align-items:center;justify-content:center;font-size:22px;flex:none;border:1px solid #e8e4f2;}
+.rel-card .av img{width:100%;height:100%;object-fit:cover;}
+.rel-card .nm{font-weight:700;font-size:15px;color:#232329;line-height:1.2;}
+.rel-card .tg{font-size:10px;color:#8a8a92;background:#f2f2f6;padding:1px 7px;border-radius:8px;margin-left:6px;flex:none;}
+.rel-card .sub{font-size:11.5px;color:#9a9aa2;margin-top:2px;}
+.rel-sec{font-size:12px;color:#6f6f77;font-weight:600;margin:11px 0 4px;display:flex;align-items:center;gap:6px;}
+.rel-sec:before{content:"";width:3px;height:12px;border-radius:2px;background:#e58caf;display:inline-block;}
+.rel-rel-row,.rel-mem-row{padding:7px 2px;border-bottom:1px dashed #f0f0f4;font-size:12.5px;color:#33333b;line-height:1.55;}
+.rel-rel-row:last-child,.rel-mem-row:last-child{border-bottom:none;}
+.rel-rel-row .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;flex:none;}
+.rel-ev{font-size:11px;color:#9a9aa2;margin-top:2px;padding-left:14px;word-break:break-all;}
+.rel-mem-row .mt{font-size:10px;color:#aaa;margin-left:6px;flex:none;}
+.rel-mem-row .mm{font-size:11px;color:#9a9aa2;margin-top:1px;}
+.rel-note{font-size:10.5px;color:#b0aec6;background:#faf9fd;border:1px dashed #e6e2f2;border-radius:8px;padding:5px 9px;margin-top:8px;line-height:1.6;}
+.rel-go{margin-left:auto;background:#fff0f6;color:#d6336c;border:1px solid #ffc2d8;font-size:12px;border-radius:12px;padding:5px 12px;cursor:pointer;flex:none;}
+</style>
+<script>
+/* ================= 关系网 58：节点记忆按角色隔离 ================= */
+var REL_VIEW = { subject:"me", pool:{}, edges:[], aiEdges:[], selected:null, zoom:1, tx:0, ty:0 };
+var REL_COLORS = {chat:"#3b82f6",maskchat:"#8b5cf6",group:"#22c55e",love:"#f43f5e",map:"#f59e0b",mention:"#b9b9c3",reveal:"#fb7185",mask:"#a78bfa",derive:"#b2a3ee",offline:"#14b8a6",ai:"#d946ef"};
+var REL_LABELS = {chat:"私聊",maskchat:"小号聊天",group:"同群",love:"情侣空间",map:"地图偶遇",mention:"记忆提及",reveal:"小号坦白",mask:"小号分身",derive:"NPC衍生",offline:"线下叙事",ai:"AI推断"};
+
+function relMasks(){ return DB.masks || []; }
+function relFindMask(id){ var a=relMasks(); for(var i=0;i<a.length;i++) if(a[i].id===id) return a[i]; return null; }
+function relSplit(nid){ var i=nid.indexOf(":"); return i<0 ? [nid,""] : [nid.slice(0,i), nid.slice(i+1)]; }
+function relIsImg(av){ return av && (av.indexOf("data:")===0 || /^https?:/.test(av)); }
+function relTimeStr(ms){ if(!ms) return ""; var d=new Date(ms); function p(x){return x<10?"0"+x:x;} return (d.getMonth()+1)+"月"+d.getDate()+"日 "+p(d.getHours())+":"+p(d.getMinutes()); }
+function relMeta(nid){
+  var sp=relSplit(nid), k=sp[0], raw=sp[1];
+  if(k==="me") return {nid:"me",kind:"me",name:"本尊",sub:"玩家本人",avatar:(typeof meAvatarUrl==="function"?meAvatarUrl():""),tag:"本尊",rawId:null};
+  if(k==="p"){ var p=findPersona(raw); if(!p) return null; return {nid:nid,kind:"persona",name:p.name,sub:p.style||"角色",avatar:personaAvatarUrl(p),tag:"角色",rawId:raw}; }
+  if(k==="n"){ var n=findNpc(raw); if(!n) return null; return {nid:nid,kind:"npc",name:n.name,sub:(n.originPersonaId?("衍生自 "+chatTargetName(n.originPersonaId)):"NPC"),avatar:npcAvatar(n),tag:"NPC",rawId:raw}; }
+  if(k==="m"){ var mk=relFindMask(raw); if(!mk) return null; var accs=(mk.accounts||[]).map(function(a){return a.name;}); return {nid:nid,kind:"mask",name:mk.name||"小号",sub:accs.length?accs.join("、"):"小号分身",avatar:mk.avatar||"🎭",tag:"小号",rawId:raw}; }
+  if(k==="g"){ var g=findGroup(raw); if(!g) return null; return {nid:nid,kind:"group",name:g.name,sub:(g.memberIds||[]).length+" 位成员",avatar:groupAvatar(g),tag:"群聊",rawId:raw}; }
+  if(k==="w"){ var arr=raw.split(":"), owner=arr[0], wid=arr[1]; var ww=DB.mapData&&DB.mapData.worlds&&DB.mapData.worlds[owner]; var wnp=null; if(ww&&ww.npcs){ for(var q=0;q<ww.npcs.length;q++) if(ww.npcs[q].id===wid) wnp=ww.npcs[q]; } if(!wnp) return null; var ow=findPersona(owner); return {nid:nid,kind:"world",name:wnp.name,sub:(ow?ow.name:"?")+" 的世界NPC",avatar:wnp.avatar||"",tag:"NPC",rawId:owner+"|"+wid}; }
+  return null;
+}
+function relToNode(rawId){ var k=chatKind(rawId); if(k==="group") return "g:"+rawId; if(k==="npc") return "n:"+rawId; return "p:"+rawId; }
+
+/* ---------- 记忆：按角色/群/小号/世界NPC 各自独立读取，绝不串档 ---------- */
+function relMemOf(nid){
+  var sp=relSplit(nid), k=sp[0], raw=sp[1], buckets=[];
+  function pb(label,list,note){ if(!list) list=[]; buckets.push({label:label,list:list,note:note||""}); }
+  if(k==="me"){ pb("本尊档案",[],"本尊是玩家本人，不参与 AI 记忆沉淀；TA 留下的痕迹分散在各角色档案里。"); return buckets; }
+  if(k==="g"){ var gmd=(DB.groupMemories||{})[raw]; pb("群聊记忆 · 独立群档案（不与单聊混）", gmd?gmd.entries:[]); return buckets; }
+  if(k==="m"){
+    var mm=(DB.maskMemories||{})[raw]||{}, any=false;
+    Object.keys(mm).forEach(function(pid){
+      var md2=mm[pid]; if(!md2) return;
+      var t=chatTarget(pid), nm=t?t.name:pid;
+      pb("小号与「"+nm+"」的相处记忆（按角色隔离）", md2.entries||[]);
+      if((md2.entries||[]).length) any=true;
+    });
+    if(!any) pb("小号记忆",[],"小号与角色聊天后，会按对方角色分别沉淀独立记忆，彼此不混。");
+    return buckets;
+  }
+  if(k==="p"||k==="n"){
+    var md=(DB.memories||{})[raw];
+    pb(k==="p" ? "角色记忆档案（独立归档）" : "NPC 记忆档案（独立归档，不与衍生角色混）", md?md.entries:[]);
+    return buckets;
+  }
+  if(k==="w"){
+    var arr=raw.split(":"), owner=arr[0], wid=arr[1];
+    var md=(DB.memories||{})["mapnpc:"+owner+":"+wid];
+    pb("世界 NPC 记忆（归所属角色世界）", md?md.entries:[]);
+    var sts=((DB.mapData&&DB.mapData.stories)||[]).filter(function(s){ return s.charId===owner && s.npcId===wid; }).slice().reverse();
+    var list=sts.map(function(s){ return {content:s.text, time:s.time, src:"map"}; });
+    pb("地图偶遇记录", list, list.length?"":"该 NPC 只属于 "+ (findPersona(owner)?findPersona(owner).name:"?") +" 的世界，偶遇记录单独保留，不会和其它世界 NPC 混档。");
+    return buckets;
+  }
+  pb("暂无档案"); return buckets;
+}
+function relTextsOf(rawId){ var out=[], md=DB.memories&&DB.memories[rawId]; if(md&&md.entries) md.entries.forEach(function(en){ var c=en.content||en.text||""; if(c) out.push(c); }); return out; }
+function relMemAllText(nid){
+  var out=[];
+  relMemOf(nid).forEach(function(b){ b.list.forEach(function(en){ var c=en.content||en.text||""; if(c) out.push(c); }); });
+  return out.join("\n");
+}
+function relMemCount(nid){ var c=0; relMemOf(nid).forEach(function(b){ c+=b.list.length; }); return c; }
+function relSourceLabel(s){
+  var map={chat:"聊天",memory:"自动记忆",group:"群聊",map:"地图",offline:"线下",auto:"自动",manual:"记录",mask:"小号",npc:"NPC",user:"手动"};
+  return map[s] || s || "";
+}
+
+/* ---------- 主体列表 ---------- */
+function relSubjects(){
+  var arr=[];
+  arr.push({nid:"me",name:"本尊",tag:"me"});
+  personaList().forEach(function(p){ arr.push({nid:"p:"+p.id, name:p.name, tag:"角色"}); });
+  (DB.npcs||[]).forEach(function(n){ arr.push({nid:"n:"+n.id, name:n.name, tag:"NPC"}); });
+  relMasks().forEach(function(m){ if(m.accounts&&m.accounts.length) arr.push({nid:"m:"+m.id, name:m.name||"小号", tag:"小号"}); });
+  (DB.groups||[]).forEach(function(g){ if((g.memberIds||[]).length) arr.push({nid:"g:"+g.id, name:g.name, tag:"群聊"}); });
+  return arr;
+}
+
+/* ---------- 建图：只收“真实关系”，来源全取真实数据 ---------- */
+function relBuild(subjectNid){
+  var self=relMeta(subjectNid); if(!self) return {pool:{},edges:[]};
+  var pool={}, edges=[], edgeKey={};
+  function metaOf(nid){ var m=relMeta(nid); if(!m) return null; if(!pool[nid]) pool[nid]=m; return m; }
+  function add(a,b,type,w,ev){
+    if(!a||!b||a===b) return;
+    if(!metaOf(a)||!metaOf(b)) return;
+    var key=a<b?a+"|"+b:b+"|"+a;
+    if(!edgeKey[key]){ edgeKey[key]={a:a,b:b,type:type,w:0,ev:[]}; edges.push(edgeKey[key]); }
+    edgeKey[key].w += (w||1);
+    if(ev) edgeKey[key].ev.push(ev);
+  }
+  function addIfPool(a,b,type,w,ev){ if(!pool[a]||!pool[b]) return; add(a,b,type,w,ev); }
+  function meChatCount(rawId){
+    var k=chatKind(rawId);
+    if(k==="npc") return ((DB.npcLogs||{})[rawId]||[]).length;
+    if(k==="group") return 0;
+    return ((DB.chatLogs||{})[rawId]||[]).length;
+  }
+  function maskChatsOf(mid){ return (DB.maskChats||{})[mid]||{}; }
+  metaOf(subjectNid);
+  var k=self.kind, raw=self.rawId;
+
+  if(k==="me"){
+    personaList().forEach(function(p){
+      var cnt=meChatCount(p.id);
+      if(cnt>0) add("me","p:"+p.id,"chat",cnt,"与 "+p.name+" 私聊 "+cnt+" 条");
+      var oh=DB.offlineByPersona&&DB.offlineByPersona[p.id];
+      if(oh&&oh.history&&oh.history.length) add("me","p:"+p.id,"offline",oh.history.length,"线下叙事 "+oh.history.length+" 段");
+      if(DB.meReveals&&DB.meReveals[p.id]) add("me","p:"+p.id,"reveal",1,"本尊向 TA 坦白过有小号");
+    });
+    (DB.npcs||[]).forEach(function(n){
+      var cnt=meChatCount(n.id);
+      if(cnt>0) add("me","n:"+n.id,"chat",cnt,"与 NPC "+n.name+" 私聊 "+cnt+" 条");
+    });
+    relMasks().forEach(function(m){
+      var ch=maskChatsOf(m.id), mm=(DB.maskMemories||{})[m.id]||{};
+      if(!(m.accounts&&m.accounts.length)&&!Object.keys(ch).length&&!Object.keys(mm).length) return;
+      add("me","m:"+m.id,"mask",1,"小号分身「"+(m.name||"")+"」");
+      Object.keys(ch).forEach(function(pid){
+        var c=(ch[pid]||[]).length; if(!c) return;
+        var tm=relMeta(relToNode(pid)); if(!tm) return;
+        add("me",relToNode(pid),"maskchat",c,"小号「"+(m.name||"")+"」与 "+tm.name+" 聊过 "+c+" 条");
+      });
+      Object.keys(m.revealed||{}).forEach(function(pid){
+        var tm=relMeta(relToNode(pid)); if(!tm) return;
+        add("me",relToNode(pid),"reveal",1,"TA 已知道小号「"+(m.name||"")+"」就是本尊");
+      });
+    });
+  }
+
+  if(k==="persona"||k==="npc"){
+    var meCnt=meChatCount(raw);
+    if(meCnt>0) add(subjectNid,"me","chat",meCnt,"与 "+self.name+" 的私聊 "+meCnt+" 条");
+    var oh=DB.offlineByPersona&&DB.offlineByPersona[raw];
+    if(oh&&oh.history&&oh.history.length) add(subjectNid,"me","offline",oh.history.length,"线下叙事 "+oh.history.length+" 段");
+    if(DB.meReveals&&DB.meReveals[raw]) add(subjectNid,"me","reveal",1,"本尊向 TA 坦白过有小号");
+    relMasks().forEach(function(m){
+      var ch=maskChatsOf(m.id);
+      var c=(ch[raw]||[]).length;
+      if(c>0) add(subjectNid,"m:"+m.id,"maskchat",c,"小号「"+(m.name||"")+"」与 TA 私聊 "+c+" 条");
+      if(m.revealed&&m.revealed[raw]) add(subjectNid,"m:"+m.id,"reveal",1,"小号「"+(m.name||"")+"」向 TA 坦白过就是本尊");
+    });
+    if(k==="persona"){
+      var sts=(DB.mapData&&DB.mapData.stories||[]).filter(function(s){ return s.charId===raw; });
+      var seen={};
+      sts.forEach(function(s){
+        if(seen[s.npcId]) return; seen[s.npcId]=1;
+        var nm=relMeta("w:"+raw+":"+s.npcId); if(!nm) return;
+        var cnt=sts.filter(function(x){ return x.npcId===s.npcId; }).length;
+        add(subjectNid,"w:"+raw+":"+s.npcId,"map",cnt,"在 "+s.place+" 偶遇 "+s.npcName+" "+cnt+" 次");
+      });
+      var lb=DB.love&&DB.love.bindings||{};
+      Object.keys(lb).forEach(function(mk){
+        var bs=lb[mk]; if(!bs) return;
+        Object.keys(bs).forEach(function(q){
+          var b=bs[q]; if(!b||b.status!=="bound") return;
+          if(q===raw&&personaById(mk)) add(subjectNid,"p:"+mk,"love",1,"情侣空间");
+          if(mk===raw&&personaById(q)) add(subjectNid,"p:"+q,"love",1,"情侣空间");
+        });
+      });
+    }
+    if(k==="npc"){
+      var nn=findNpc(raw);
+      if(nn&&nn.originPersonaId&&findPersona(nn.originPersonaId)) add(subjectNid,"p:"+nn.originPersonaId,"derive",1,"NPC 衍生自「"+chatTargetName(nn.originPersonaId)+"」");
+    }
+    (DB.groups||[]).forEach(function(g){
+      var mids=g.memberIds||[];
+      if(mids.indexOf(raw)<0) return;
+      mids.forEach(function(mid){
+        if(mid===raw) return; var kk=chatKind(mid); if(kk==="group") return;
+        var tn=relMeta(relToNode(mid)); if(!tn) return;
+        add(subjectNid,relToNode(mid),"group",1,"同群「"+g.name+"」");
+      });
+    });
+  }
+
+  if(k==="mask"){
+    add(subjectNid,"me","mask",1,"小号分身（隶属于本尊）");
+    var ch=maskChatsOf(raw);
+    Object.keys(ch).forEach(function(pid){
+      var c=(ch[pid]||[]).length; if(!c) return;
+      var tn=relMeta(relToNode(pid)); if(!tn) return;
+      add(subjectNid,relToNode(pid),"maskchat",c,"与 "+tn.name+" 聊天 "+c+" 条");
+    });
+    var m=relFindMask(raw);
+    if(m) Object.keys(m.revealed||{}).forEach(function(pid){
+      var tn=relMeta(relToNode(pid)); if(!tn) return;
+      add(subjectNid,relToNode(pid),"reveal",1,"向 "+tn.name+" 坦白过自己就是本尊");
+    });
+  }
+
+  if(k==="group"){
+    var g=findGroup(raw), mids=g?(g.memberIds||[]):[];
+    mids.forEach(function(mid){
+      var kk=chatKind(mid); if(kk==="group") return;
+      var tn=relMeta(relToNode(mid)); if(!tn) return;
+      add(subjectNid,relToNode(mid),"group",1,"群成员");
+    });
+  }
+
+  /* 补边：只补“两节点都已在图上”的关系，避免无限蔓延 */
+  var ids=Object.keys(pool);
+  function rawOf(nid){ return relSplit(nid)[1]; }
+  function kindOf(nid){ return relSplit(nid)[0]; }
+  relMasks().forEach(function(m){
+    var ch=maskChatsOf(m.id), mn="m:"+m.id;
+    Object.keys(ch).forEach(function(pid){
+      var c=(ch[pid]||[]).length; if(!c) return;
+      var tn=relMeta(relToNode(pid)); if(!tn) return;
+      addIfPool(mn,relToNode(pid),"maskchat",c,"小号「"+(m.name||"")+"」与 "+tn.name+" 聊天");
+    });
+  });
+  var lb2=DB.love&&DB.love.bindings||{};
+  Object.keys(lb2).forEach(function(mk){
+    var bs=lb2[mk]; if(!bs||!personaById(mk)) return;
+    Object.keys(bs).forEach(function(q){
+      var b=bs[q]; if(!b||b.status!=="bound"||!personaById(q)) return;
+      addIfPool("p:"+mk,"p:"+q,"love",1,"情侣空间");
+    });
+  });
+  (DB.npcs||[]).forEach(function(n){
+    if(n.originPersonaId&&findPersona(n.originPersonaId)) addIfPool("p:"+n.originPersonaId,"n:"+n.id,"derive",1,"NPC 衍生");
+  });
+  var chatables=ids.filter(function(x){ var kk=kindOf(x); return kk==="p"||kk==="n"; });
+  for(var i=0;i<chatables.length;i++){
+    for(var j=i+1;j<chatables.length;j++){
+      var a=chatables[i], b=chatables[j];
+      var ar=rawOf(a), br=rawOf(b), common=[];
+      (DB.groups||[]).forEach(function(g2){
+        var mids=g2.memberIds||[];
+        if(mids.indexOf(ar)>=0&&mids.indexOf(br)>=0) common.push(g2.name);
+      });
+      if(common.length) addIfPool(a,b,"group",common.length,"共同群："+common.join("、"));
+    }
+  }
+  for(var x=0;x<chatables.length;x++){
+    var xn=chatables[x], xm=pool[xn]; if(!xm) continue;
+    var texts=relTextsOf(rawOf(xn));
+    if(!texts.length) continue;
+    for(var y=0;y<chatables.length;y++){
+      if(x===y) continue;
+      var yn=chatables[y], ym=pool[yn]; if(!ym) continue;
+      var nm2=ym.name; if(!nm2||nm2.length<2) continue;
+      var hit=0;
+      for(var t2=0;t2<texts.length;t2++) if(texts[t2].indexOf(nm2)>=0) hit++;
+      if(hit>0) addIfPool(xn,yn,"mention",hit,"记忆提及「"+nm2+"」"+hit+" 次");
+    }
+  }
+  return {pool:pool, edges:edges};
+}
+
+/* ---------- 画图 ---------- */
+function relGraphDraw(){
+  var box=document.getElementById("relGraph"); if(!box) return;
+  var svg=document.getElementById("relSvg"); if(!svg) return;
+  var empty=document.getElementById("relEmpty");
+  var build=relBuild(REL_VIEW.subject);
+  REL_VIEW.pool=build.pool; REL_VIEW.edges=build.edges;
+  var keys=Object.keys(build.pool);
+  if(!keys.length){
+    if(empty){ empty.style.display="flex"; empty.textContent="还没有线索……先去和角色聊聊天、记点回忆、逛逛地图、开个群，关系线会自动织出来"; }
+    svg.innerHTML="";
+    relDetailRender();
+    return;
+  }
+  if(empty) empty.style.display="none";
+  var W=box.clientWidth||340, H=box.clientHeight||390;
+  var k=REL_VIEW.zoom||1;
+  svg.setAttribute("viewBox",REL_VIEW.tx+" "+REL_VIEW.ty+" "+(W/k)+" "+(H/k));
+  svg.setAttribute("width",W); svg.setAttribute("height",H);
+  var NS="http://www.w3.org/2000/svg";
+  svg.innerHTML="";
+  var defs=document.createElementNS(NS,"defs"); svg.appendChild(defs);
+  function clipIdFor(nid){ return "relc"+nid.replace(/[^A-Za-z0-9]/g,"_"); }
+  var cx=REL_VIEW.tx+W/(2*k), cy=REL_VIEW.ty+H/(2*k);
+  var subj=REL_VIEW.subject;
+  var others=keys.filter(function(n){ return n!==subj; });
+  var R=Math.min(W,H)/2-76; if(R<118) R=118;
+  var pos={}; pos[subj]={x:cx,y:cy};
+  var n=others.length;
+  others.forEach(function(nid,idx){
+    var ang=-Math.PI/2+idx*2*Math.PI/n;
+    pos[nid]={x:cx+R*Math.cos(ang), y:cy+R*Math.sin(ang)};
+  });
+  function edgeWidth(w){ var v=2+Math.log(w+1)*1.15; return Math.min(v,9); }
+  var drawn={};
+  build.edges.forEach(function(e){
+    var a=pos[e.a], b=pos[e.b]; if(!a||!b) return;
+    var key=e.a<e.b?e.a+"~"+e.b:e.b+"~"+e.a;
+    if(drawn[key]) return; drawn[key]=1;
+    var col=REL_COLORS[e.type]||"#cccccc";
+    var l=document.createElementNS(NS,"line");
+    l.setAttribute("x1",a.x); l.setAttribute("y1",a.y);
+    l.setAttribute("x2",b.x); l.setAttribute("y2",b.y);
+    l.setAttribute("stroke",col); l.setAttribute("stroke-width",edgeWidth(e.w));
+    l.setAttribute("stroke-opacity","0.6"); l.setAttribute("stroke-linecap","round");
+    var tt=document.createElementNS(NS,"title");
+    tt.textContent=(REL_LABELS[e.type]||e.type)+" · 权重 "+e.w+(e.ev.length?" · "+e.ev.join("；"):"");
+    l.appendChild(tt);
+    svg.appendChild(l);
+  });
+  REL_VIEW.aiEdges.forEach(function(e){
+    var a=pos[e.a], b=pos[e.b]; if(!a||!b) return;
+    var col=REL_COLORS.ai;
+    var l=document.createElementNS(NS,"line");
+    l.setAttribute("x1",a.x); l.setAttribute("y1",a.y);
+    l.setAttribute("x2",b.x); l.setAttribute("y2",b.y);
+    l.setAttribute("stroke",col); l.setAttribute("stroke-width","2");
+    l.setAttribute("stroke-opacity","0.85"); l.setAttribute("stroke-dasharray","5 4"); l.setAttribute("stroke-linecap","round");
+    var tt=document.createElementNS(NS,"title"); tt.textContent="AI 推断："+(e.reason||"");
+    l.appendChild(tt);
+    svg.appendChild(l);
+  });
+  function drawNode(nid,px,py,r,isSelf){
+    var m=build.pool[nid]; if(!m) return;
+    var g=document.createElementNS(NS,"g");
+    g.setAttribute("transform","translate("+px+","+py+")");
+    g.setAttribute("class","rel-node");
+    var ring=document.createElementNS(NS,"circle");
+    ring.setAttribute("r",r); ring.setAttribute("class","rel-ring");
+    var col= m.kind==="me"?"#2f2f35":m.kind==="persona"?"#e06b9c":(m.kind==="npc"||m.kind==="world")?"#e9a23b":m.kind==="mask"?"#8b5cf6":"#22c55e";
+    ring.setAttribute("stroke",col);
+    ring.setAttribute("stroke-width",(isSelf||m.kind==="me")?2.5:1.5);
+    g.appendChild(ring);
+    if(REL_VIEW.selected===nid){ var hl=document.createElementNS(NS,"circle"); hl.setAttribute("r",r+5); hl.setAttribute("fill","none"); hl.setAttribute("stroke","#ffb3d1"); hl.setAttribute("stroke-width","2"); hl.setAttribute("stroke-dasharray","3 3"); g.appendChild(hl); }
+    if(m.avatar&&relIsImg(m.avatar)){
+      var img=document.createElementNS(NS,"image");
+      img.setAttribute("x",-(r-2)); img.setAttribute("y",-(r-2));
+      img.setAttribute("width",(r-2)*2); img.setAttribute("height",(r-2)*2);
+      img.setAttribute("preserveAspectRatio","xMidYMid slice");
+      img.setAttribute("href",m.avatar);
+      var cl=document.createElementNS(NS,"clipPath"); cl.setAttribute("id",clipIdFor(nid));
+      var cc=document.createElementNS(NS,"circle"); cc.setAttribute("r",r-2); cl.appendChild(cc);
+      defs.appendChild(cl);
+      img.setAttribute("clip-path","url(#"+clipIdFor(nid)+")");
+      g.appendChild(img);
+    } else {
+      var em=document.createElementNS(NS,"text");
+      em.setAttribute("class","rel-emo"); em.setAttribute("y","1");
+      em.style.fontSize=(r*1.05)+"px";
+      em.textContent=m.avatar||"";
+      g.appendChild(em);
+    }
+    var nm=document.createElementNS(NS,"text");
+    nm.setAttribute("class","rel-name");
+    nm.setAttribute("y",r+14);
+    nm.textContent=(m.name&&m.name.length>7?m.name.slice(0,7)+"…":m.name);
+    var tt2=document.createElementNS(NS,"title"); tt2.textContent=m.name+" · "+m.sub; nm.appendChild(tt2);
+    g.appendChild(nm);
+    g.addEventListener("click",function(){ relPickNode(nid); });
+    svg.appendChild(g);
+  }
+  drawNode(subj,pos[subj].x,pos[subj].y,38,true);
+  others.forEach(function(nid){ var p=pos[nid]; drawNode(nid,p.x,p.y,25,false); });
+  var oldLg=box.querySelectorAll(".rel-legend");
+  for(var q=0;q<oldLg.length;q++) oldLg[q].parentNode.removeChild(oldLg[q]);
+  var used=[];
+  build.edges.forEach(function(e){ if(used.indexOf(e.type)<0) used.push(e.type); });
+  REL_VIEW.aiEdges.forEach(function(){ if(used.indexOf("ai")<0) used.push("ai"); });
+  if(used.length){
+    var lg=document.createElement("div"); lg.className="rel-legend";
+    used.forEach(function(t){
+      var i=document.createElement("i");
+      var b=document.createElement("b"); b.style.background=REL_COLORS[t]||"#ccc";
+      i.appendChild(b); i.appendChild(document.createTextNode(REL_LABELS[t]||t));
+      lg.appendChild(i);
+    });
+    box.appendChild(lg);
+  }
+  relDetailRender();
+}
+
+/* ---------- 详情 ---------- */
+function relDetailRender(){
+  var box=document.getElementById("relDetail"); if(!box) return;
+  var nid=REL_VIEW.selected||REL_VIEW.subject;
+  var m=relMeta(nid); if(!m) return;
+  var isSubject=(nid===REL_VIEW.subject);
+  var html="";
+  var av=m.avatar&&relIsImg(m.avatar)?'<img src="'+m.avatar+'" alt="">':escapeHtml(m.avatar||(m.name?m.name.slice(0,1):"?"));
+  var goBtn=(m.rawId&&(m.kind==="persona"||m.kind==="npc"||m.kind==="group"))?'<button class="rel-go" onclick="relGoChat(\''+nid+'\')">去聊天</button>':"";
+  html+='<div class="rel-card"><div class="av">'+av+'</div><div><div class="nm">'+escapeHtml(m.name)+'<span class="tg">'+m.tag+'</span></div><div class="sub">'+escapeHtml(m.sub)+'</div></div>'+goBtn+'</div>';
+  if(isSubject){
+    html+='<div class="rel-note">当前查看「'+escapeHtml(m.name)+'」的关系线：外圈是与 TA 有真实交集的角色 / NPC / 群 / 小号，线越粗交集越深。点击节点查看明细。</div>';
+  }
+  html+='<div class="rel-sec">与「'+escapeHtml(m.name)+'」相连的关系</div>';
+  var rows=REL_VIEW.edges.filter(function(e){ return e.a===nid||e.b===nid; });
+  var aiRows=REL_VIEW.aiEdges.filter(function(e){ return e.a===nid||e.b===nid; });
+  if(!rows.length&&!aiRows.length){
+    html+='<div class="rel-note">'+escapeHtml(m.name)+' 还没有连到任何关系线，先聊聊天 / 记段回忆 / 同个群试试。</div>';
+  }
+  rows.forEach(function(e){
+    var other=e.a===nid?e.b:e.a;
+    var om=relMeta(other); if(!om) return;
+    var col=REL_COLORS[e.type]||"#ccc";
+    html+='<div class="rel-rel-row"><span class="dot" style="background:'+col+'"></span><b>'+escapeHtml(om.name)+'</b> · '+escapeHtml(REL_LABELS[e.type]||e.type)+' · 权重 '+e.w+'<div class="rel-ev">'+escapeHtml((e.ev||[]).slice(0,3).join("；"))+'</div></div>';
+  });
+  aiRows.forEach(function(e){
+    var other=e.a===nid?e.b:e.a;
+    var om=relMeta(other); if(!om) return;
+    html+='<div class="rel-rel-row"><span class="dot" style="background:'+REL_COLORS.ai+'"></span><b>'+escapeHtml(om.name)+'</b> · AI 推断<div class="rel-ev">'+escapeHtml(e.reason||"")+'</div></div>';
+  });
+  html+='<div class="rel-sec">记忆档案（'+relMemCount(nid)+' 条，按角色独立存储）</div>';
+  var buckets=relMemOf(nid);
+  buckets.forEach(function(b){
+    html+='<div class="rel-rel-row" style="border-bottom:none"><b style="color:#8b5cf6">'+escapeHtml(b.label)+'</b></div>';
+    if(b.note&&!b.list.length){ html+='<div class="rel-ev">'+escapeHtml(b.note)+'</div>'; }
+    var shown=0;
+    b.list.slice(0,14).forEach(function(en){
+      var c=escapeHtml((en.content||en.text||"").slice(0,200));
+      var srcT=relSourceLabel(en.src);
+      html+='<div class="rel-mem-row">'+c+'<div class="mm">'+srcT+(en.time?(" · "+relTimeStr(en.time)):"")+'</div></div>';
+      shown++;
+    });
+    if(b.list.length>shown) html+='<div class="rel-ev">… 还有 '+(b.list.length-shown)+' 条，展开聊天与记忆页可看全部</div>';
+  });
+  html+='<div class="rel-note">记忆隔离说明：角色 / NPC / 群聊 / 小号各有独立档案（memories、groupMemories、maskMemories 按各自 key 归档），不同角色之间绝不串档。</div>';
+  box.innerHTML=html;
+}
+function relGoChat(nid){ var m=relMeta(nid); if(m&&m.rawId&&typeof openChat==="function") openChat(m.rawId); }
+function relPickNode(nid){ REL_VIEW.selected=nid; relGraphDraw(); }
+
+/* ---------- 页面 ---------- */
+function relMigrateMapNpcMem(){
+  if(window.__relMigDone) return; window.__relMigDone = true;
+  try {
+    if(!DB.mapData || !DB.mapData.stories || !DB.mapData.stories.length) return;
+    DB.memories = DB.memories || {};
+    var changed=false;
+    DB.mapData.stories.forEach(function(s){
+      if(!s||!s.charId||!s.npcId||!s.text) return;
+      var key="mapnpc:"+s.charId+":"+s.npcId;
+      if(!DB.memories[key]) DB.memories[key]={entries:[]};
+      var dup=DB.memories[key].entries.some(function(en){ return en.time===s.time && en.content===s.text; });
+      if(!dup){ DB.memories[key].entries.push({src:"map",content:s.text,time:s.time}); changed=true; }
+    });
+    if(changed) save();
+  } catch(e) {}
+}
+function renderRelationPage(){
+  relMigrateMapNpcMem();
+  var self=relMeta(REL_VIEW.subject); if(!self) REL_VIEW.subject="me";
+  var list=document.getElementById("relSubjectList");
+  if(list){
+    list.innerHTML=relSubjects().map(function(s){
+      return '<div class="rel-chip'+(s.nid===REL_VIEW.subject?" on":"")+'" onclick="relPickSubject(\''+s.nid+'\')"><span class="n">'+escapeHtml(s.name)+'</span><span class="c">'+s.tag+'</span></div>';
+    }).join("");
+  }
+  setTimeout(relGraphDraw,40);
+  relBindPan();
+}
+function relPickSubject(nid){ REL_VIEW.subject=nid; REL_VIEW.selected=null; REL_VIEW.zoom=1; REL_VIEW.tx=0; REL_VIEW.ty=0; renderRelationPage(); }
+function relZoomIn(){ REL_VIEW.zoom=Math.min(REL_VIEW.zoom*1.3,3); relGraphDraw(); }
+function relZoomOut(){ REL_VIEW.zoom=Math.max(REL_VIEW.zoom/1.3,0.55); relGraphDraw(); }
+function relCenter(){ REL_VIEW.zoom=1; REL_VIEW.tx=0; REL_VIEW.ty=0; relGraphDraw(); }
+function relBindPan(){
+  var box=document.getElementById("relGraph"); if(!box||box.getAttribute("data-relpan")) return;
+  box.setAttribute("data-relpan","1");
+  var pan=null;
+  box.addEventListener("pointerdown",function(e){
+    if(e.target&&e.target.closest&&e.target.closest(".rel-node")) return;
+    pan={x:e.clientX,y:e.clientY,tx:REL_VIEW.tx,ty:REL_VIEW.ty};
+    if(box.setPointerCapture) box.setPointerCapture(e.pointerId);
+  });
+  box.addEventListener("pointermove",function(e){
+    if(!pan) return;
+    REL_VIEW.tx=pan.tx-(e.clientX-pan.x);
+    REL_VIEW.ty=pan.ty-(e.clientY-pan.y);
+    relGraphDraw();
+  });
+  function end(){ pan=null; }
+  box.addEventListener("pointerup",end);
+  box.addEventListener("pointercancel",end);
+}
+function openRelInfo(){ var el=document.getElementById("relInfoMask"); if(el) el.classList.add("show"); }
+function closeRelInfo(){ var el=document.getElementById("relInfoMask"); if(el) el.classList.remove("show"); }
+
+/* ---------- AI 深挖：从记忆里推断隐藏关系，纯 API 不落库 ---------- */
+function relAiAnalyze(){
+  var self=relMeta(REL_VIEW.subject); if(!self) return;
+  if(typeof isConnected==="function"&&!isConnected("chat")){ toast("未接入 AI，无法深挖（深挖也走 API，无本地生成）"); return; }
+  var btn=document.getElementById("relAiBtn"); if(btn){ btn.disabled=true; btn.textContent="分析中…"; }
+  var nameMap={};
+  Object.keys(REL_VIEW.pool).forEach(function(nid){ var m=REL_VIEW.pool[nid]; if(m&&m.name) nameMap[m.name]=nid; });
+  var knownTxt=REL_VIEW.edges.slice(0,80).map(function(e){
+    var ma=REL_VIEW.pool[e.a], mb=REL_VIEW.pool[e.b];
+    return (ma?ma.name:e.a)+" — "+(mb?mb.name:e.b)+"（"+(REL_LABELS[e.type]||e.type)+" x"+e.w+"）";
+  }).join("；")||"暂无直接连线";
+  var memTxt=relMemAllText(REL_VIEW.subject).slice(0,2200);
+  var sys="你是刑侦关系分析师。下面给出手机主人的一个主体、它当前的已知关系与记忆片段。请从记忆中找出可能遗漏的角色间联系。只输出 JSON，不要多余文字。";
+  var user="主体："+self.name+"\n已知关系："+knownTxt+"\n\n记忆片段（"+REL_VIEW.subject+" 的独立档案）：\n"+(memTxt||"（暂无）")+"\n\n请只输出：{\"extra\":[{\"a\":\"角色名\",\"b\":\"角色名\",\"reason\":\"一句话原因\"}]}，a/b 必须在上述主体或记忆中出现的真实名字之间。";
+  var pa=activePersona();
+  callChat([{role:"system",content:sys},{role:"user",content:user}], pa).then(function(reply){
+    if(btn){ btn.disabled=false; btn.textContent="✨ AI 深挖"; }
+    var obj=relParseJson(reply);
+    var adds=0;
+    if(obj&&obj.extra&&obj.extra.length){
+      obj.extra.forEach(function(it){
+        if(!it||!it.a||!it.b) return;
+        var na=nameMap[it.a], nb=nameMap[it.b];
+        if(!na&&self.name===it.a) na=REL_VIEW.subject;
+        if(!nb&&self.name===it.b) nb=REL_VIEW.subject;
+        if(!na||!nb||na===nb) return;
+        var dup=REL_VIEW.aiEdges.some(function(x){ return (x.a===na&&x.b===nb)||(x.a===nb&&x.b===na); });
+        if(dup) return;
+        REL_VIEW.aiEdges.push({a:na,b:nb,type:"ai",reason:it.reason||"AI 推断"});
+        adds++;
+      });
+    }
+    relGraphDraw();
+    toast(adds?("AI 深挖补充 "+adds+" 条可能关系"):"AI 没有发现新线索");
+  }).catch(function(){
+    if(btn){ btn.disabled=false; btn.textContent="✨ AI 深挖"; }
+    toast("AI 深挖失败，请检查接入配置");
+  });
+}
+function relParseJson(text){
+  if(!text) return null;
+  var t=String(text).replace(/```json/g,"").replace(/```/g,"").trim();
+  var a=t.indexOf("{"); var b=t.lastIndexOf("}");
+  if(a<0||b<=a) return null;
+  try { return JSON.parse(t.slice(a,b+1)); } catch(e){ return null; }
+}
+</script>
+
+
+
 </body>
 </html>
