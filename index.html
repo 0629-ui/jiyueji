@@ -2377,7 +2377,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 
 <!-- 人设档案 -->
 <div class="page light-page" id="persona">
-  <div class="page-head"><span class="back" onclick="openApp('settings')">‹</span><div class="title">人设档案</div></div>
+  <div class="page-head"><span class="back" onclick="jySmartBack('settings')">‹</span><div class="title">人设档案</div></div>
   <div class="persona-tabs">
     <span class="pt-tab active" data-pt="char" onclick="switchPersonaTab('char')">人设</span>
     <span class="pt-tab" data-pt="me" onclick="switchPersonaTab('me')">我</span>
@@ -2466,7 +2466,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 
 <!-- 美化中心 -->
 <div class="page light-page" id="theme">
-  <div class="page-head"><span class="back" onclick="goHome()">‹</span><div class="title">美化</div></div>
+  <div class="page-head"><span class="back" onclick="jySmartBack('home')">‹</span><div class="title">美化</div></div>
   <div style="overflow-y:auto;flex:1;padding:12px 0 24px">
     <div class="theme-sec">
       <div class="theme-sec-head"><span class="ts-title">锁屏壁纸</span><button class="mini-btn danger" onclick="clearThemeWall('lock')">移除</button></div>
@@ -2512,7 +2512,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 
 <!-- 我的档案 -->
 <div class="page light-page" id="me">
-  <div class="page-head"><span class="back" onclick="goHome()">‹</span><div class="title">我的档案</div></div>
+  <div class="page-head"><span class="back" onclick="jySmartBack('home')">‹</span><div class="title">我的档案</div></div>
   <div style="overflow-y:auto;flex:1;padding:12px 0 24px">
     <div class="me-edit-head">
       <img class="avatar lg" id="meEditAvatar" src="https://i.pravatar.cc/100?img=12" alt="">
@@ -2541,7 +2541,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 
 <!-- 世界书 -->
 <div class="page light-page" id="worldbooks">
-  <div class="page-head"><span class="back" onclick="goHome()">‹</span><div class="title">世界书</div></div>
+  <div class="page-head"><span class="back" onclick="jySmartBack('home')">‹</span><div class="title">世界书</div></div>
   <div class="hint-box">世界书是 AI 游玩时一定会读到的设定，跟人设一起注入。全局世界书开启后所有角色都会读到；局部世界书需要在你的人设档案里勾选对应角色才会被读取。</div>
   <div class="persona-add-wrap">
     <button class="sheet-btn ghost" onclick="openWbImport()">导入 JSON</button>
@@ -2581,7 +2581,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 
 <!-- AI 方案列表 -->
 <div class="page light-page" id="aiplans">
-  <div class="page-head"><span class="back" onclick="openApp('settings')">‹</span><div class="title" id="planPageTitle">对话模型</div></div>
+  <div class="page-head"><span class="back" onclick="jySmartBack('settings')">‹</span><div class="title" id="planPageTitle">对话模型</div></div>
   <div class="hint-box" id="planHint">支持 OpenAI 兼容接口（/chat/completions、/images/generations 等）。可保存多个方案，点「启用」切换当前使用的模型。</div>
   <div class="plan-list" id="planList"></div>
   <div id="promptLibWrap" style="display:none">
@@ -15585,5 +15585,1042 @@ function closeDreamHelp() {
 
 
 
+
+<!-- ===================== 霁月机61 · 小游戏界面 ===================== -->
+<style>
+/* 小游戏大厅 */
+.jy-hall-body{flex:1;overflow-y:auto;padding:4px 14px 18px;-webkit-overflow-scrolling:touch}
+.jy-hall-tip{font-size:12px;color:var(--page-dim,#999);margin:8px 2px 12px;line-height:1.7}
+.jy-card{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line,#eee);border-radius:16px;padding:12px 14px;margin-bottom:12px;cursor:pointer;color:var(--page-text,#222);transition:transform .12s}
+.jy-card:active{transform:scale(.98)}
+.jy-card.soon{opacity:.62;cursor:default}
+.jy-card-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.jy-card-icon svg{width:24px;height:24px}
+.jy-card-icon.green{background:#e6f7ee;color:#0a9d58}
+.jy-card-icon.red{background:#fdeceb;color:#d4382f}
+.jy-card-icon.soon{background:#eef0f4;color:#9aa0ad}
+.jy-card-main{flex:1;min-width:0}
+.jy-card-name{font-size:16px;font-weight:700}
+.jy-card-tag{font-size:11px;color:var(--page-dim,#999);margin-top:4px}
+.jy-hall-head-extra{display:flex;align-items:center;gap:6px}
+.jy-mask-btn{border:none;border-radius:15px;background:#eef1ff;color:#3a4473;font-size:11px;padding:6px 10px;cursor:pointer;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jy-char-pick{max-height:60%;overflow-y:auto}
+.jy-char-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;cursor:pointer}
+.jy-char-item:active{background:#f2f3f7}
+.jy-char-item .avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0;background:#eee}
+.jy-char-item .pick-main{flex:1;min-width:0}
+.jy-char-item .pick-desc{font-size:11px;color:var(--page-dim,#999);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 对局页 */
+.jy-game-head{flex:none}
+.jy-game-title{font-size:15px;font-weight:700;line-height:1.2;text-align:center}
+.jy-game-sub{font-size:11px;color:var(--page-dim,#999);margin-top:3px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.jy-game-body{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;padding:8px 12px 18px;position:relative}
+#jyTurnTip{font-size:12px;color:#666;text-align:center;margin-top:8px;min-height:18px}
+.jy-btn-row{display:flex;gap:8px;justify-content:center;margin-top:6px}
+.jy-small-btn{border:none;border-radius:14px;background:#f2f3f7;color:#444;font-size:11px;padding:5px 12px;cursor:pointer}
+.jy-small-btn.quit{background:#fdeceb;color:#c0392b}
+.jy-small-btn.primary{background:#eef1ff;color:#3a4473}
+/* 五子棋 */
+.jy-g5board{display:grid;grid-template-columns:repeat(15,1fr);gap:1px;background:#d8c9a3;border:6px solid #b98d57;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.18);width:min(94vw,346px);touch-action:manipulation}
+.jy-g5board .cell{position:relative;aspect-ratio:1;background:#eddfc0;display:flex;align-items:center;justify-content:center;font-size:calc(min(94vw,346px)/16);line-height:1;cursor:pointer;-webkit-user-select:none;user-select:none}
+.jy-g5board .cell.dot::before{content:"";position:absolute;width:16%;height:16%;left:42%;top:42%;border-radius:50%;background:#b98d57;opacity:.55}
+.jy-g5board .cell.s1{color:#1d1d1f;cursor:default}
+.jy-g5board .cell.s2{color:#fff;cursor:default}
+.jy-g5board .cell.s1::before,.jy-g5board .cell.s2::before{display:none}
+/* 象棋 */
+.jy-xqwrap{display:flex;justify-content:center;width:100%}
+.jy-xqboard{display:grid;grid-template-columns:repeat(9,1fr);background:#f3dfb3;border:5px solid #a5754a;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.18);width:min(94vw,352px)}
+.jy-xqboard .xq-cell{height:calc(min(94vw,352px)/9 * .92);display:flex;align-items:center;justify-content:center;font-size:calc(min(94vw,352px)/13);font-weight:700;position:relative;cursor:pointer;-webkit-user-select:none;user-select:none}
+.jy-xqboard .xq-cell.red{color:#c0392b;text-shadow:0 0 1px #fff}
+.jy-xqboard .xq-cell.black{color:#1f2a44;text-shadow:0 0 1px #fff}
+.jy-xqboard .xq-cell.sel{background:rgba(90,130,255,.35);border-radius:6px}
+.jy-xqboard .xq-cell.hit::after{content:"";position:absolute;width:22%;height:22%;left:39%;top:39%;border-radius:50%;background:rgba(0,160,90,.45)}
+/* 结束浮层 */
+.jy-over{position:absolute;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);border-radius:0}
+.jy-over-card{width:min(80%,280px);background:#fff;border-radius:20px;padding:24px 18px;text-align:center;color:#222}
+.jy-over-card .t{font-size:19px;font-weight:800;margin-bottom:8px}
+.jy-over-card .s{font-size:12px;color:#888;margin-bottom:18px;line-height:1.7}
+.jy-over-card .row{display:flex;gap:10px;justify-content:center}
+/* 悬浮球 & 聊天窗 */
+.jy-float-ball{position:fixed;right:14px;bottom:calc(var(--home-indicator,18px) + 26px);width:54px;height:54px;z-index:60;display:none;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,#5b7cfa,#8a5bff);color:#fff;box-shadow:0 6px 18px rgba(80,90,220,.45);cursor:pointer;transition:transform .15s}
+.jy-float-ball:active{transform:scale(.94)}
+.jy-float-ball svg{width:26px;height:26px}
+.jy-chat-modal{position:fixed;inset:0;z-index:96;display:none;align-items:flex-end;justify-content:flex-end;padding:0 12px calc(var(--home-indicator,18px) + 76px) 0;background:transparent;pointer-events:none}
+.jy-chat-sheet{width:min(86vw,344px);height:min(58vh,430px);background:#fff;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;pointer-events:auto;box-shadow:0 10px 40px rgba(0,0,0,.35);animation:sheetUp .28s cubic-bezier(.2,.9,.3,1)}
+.jy-chat-head{display:flex;align-items:center;gap:8px;padding:8px 14px 4px;flex:none}
+.jy-chat-head .title{flex:1;font-size:15px;font-weight:700;color:#222;text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jy-chat-body{flex:1;overflow-y:auto;padding:6px 14px 10px;background:#f4f5fb;display:flex;flex-direction:column;gap:8px}
+.jy-chat-body .me-bubble{display:flex;justify-content:flex-end}
+.jy-chat-body .me-bubble .bub{max-width:76%;background:#5b7cfa;color:#fff;border-radius:14px 14px 4px 14px;padding:8px 12px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.jy-chat-body .ta-bubble{display:flex;justify-content:flex-start}
+.jy-chat-body .ta-bubble .bub{max-width:76%;background:#fff;color:#222;border:1px solid #e3e6f2;border-radius:14px 14px 14px 4px;padding:8px 12px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.jy-chat-input-row{display:flex;gap:8px;align-items:center;padding:8px 12px calc(var(--home-indicator,12px) + 8px);flex:none;background:#fff;border-top:1px solid #eee}
+.jy-chat-input{flex:1;min-width:0;border:1px solid #e2e4ee;border-radius:20px;padding:9px 14px;font-size:14px;outline:none;background:#f5f6fa;color:#222}
+.jy-chat-send{border:none;border-radius:20px;background:#5b7cfa;color:#fff;font-size:13px;padding:9px 16px;cursor:pointer;flex-shrink:0}
+.jy-chat-send:disabled{opacity:.6}
+</style>
+
+<!-- 大厅页 -->
+<div class="page light-page" id="jyGames">
+  <div class="page-head jy-game-head"><span class="back" onclick="goHome()">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800">小游戏</div><div class="jy-hall-head-extra"><button class="jy-mask-btn" id="jyHallMaskBtn" onclick="jy61OpenMaskPick()">玩家：本尊</button></div></div>
+  <div class="jy-hall-body">
+    <div class="jy-hall-tip">选一个小游戏，和你的 TA 边下棋边聊天。聊天和棋局都会记入 TA 的记忆。</div>
+    <div id="jyHallList"></div>
+    <div class="jy-hall-tip" id="jyHallNote"></div>
+  </div>
+</div>
+
+<!-- 对局页 -->
+<div class="page light-page" id="jyGame">
+  <div class="page-head jy-game-head"><span class="back" onclick="jy61ExitGame()">‹</span><div style="flex:1;min-width:0;text-align:center"><div class="jy-game-title" id="jyGameTitle">五子棋</div><div class="jy-game-sub" id="jyGameSub"></div></div><span class="jy-mask-btn" style="background:rgba(0,0,0,.06);color:inherit" onclick="jy61GameMenu()">重开</span></div>
+  <div class="jy-game-body">
+    <div id="jyBoardArea"></div>
+    <div id="jyTurnTip"></div>
+    <div class="jy-btn-row">
+      <button class="jy-small-btn" onclick="jy61CloseOver();jy61GameMenu()">重新开局</button>
+      <button class="jy-small-btn primary" onclick="jy61OpenFloat()">和TA聊聊</button>
+      <button class="jy-small-btn quit" onclick="jy61ExitGame()">退出游戏</button>
+    </div>
+    <div class="jy-over" id="jyOverBox">
+      <div class="jy-over-card"><div class="t" id="jyOverText"></div><div class="s" id="jyOverSub">棋局已记入TA的记忆。</div><div class="row"><button class="jy-small-btn primary" onclick="jy61RestartBtn()">再来一局</button><button class="jy-small-btn quit" onclick="jy61ExitGame()">返回大厅</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 选角色 -->
+<div class="modal-mask" id="jyCharMask" style="display:none">
+  <div class="modal-sheet"><div style="display:flex;align-items:center;gap:8px;padding-bottom:10px"><span class="back" onclick="jy61CloseCharPick()">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800">选择对战角色</div><span style="width:28px"></span></div><div class="jy-char-pick" id="jyCharPickList"></div></div>
+</div>
+
+<!-- 选面具 -->
+<div class="modal-mask" id="jyMaskPickMask" style="display:none">
+  <div class="modal-sheet"><div style="display:flex;align-items:center;gap:8px;padding-bottom:10px"><span class="back" onclick="document.getElementById('jyMaskPickMask').style.display='none'">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800">选择玩家身份</div><span style="width:28px"></span></div><div style="max-height:60%;overflow-y:auto" id="jyMaskPickList"></div></div>
+</div>
+
+<!-- 悬浮球 -->
+<div class="jy-float-ball" id="jyFloatBall" onclick="jy61OpenFloat()" style="display:none"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-9 7.9 8.5 8.5 0 0 1-3.4-.7L3 21l1.8-5.6A8 8 0 1 1 21 12Z"/></svg></div>
+
+<!-- 聊天小窗 -->
+<div class="jy-chat-modal" id="jyChatMask" style="display:none">
+  <div class="jy-chat-sheet">
+    <div class="jy-chat-head"><span class="back" onclick="jy61CloseChat()">‹</span><div class="title" id="jyChatTitle">和TA边玩边聊</div><span style="width:28px"></span></div>
+    <div class="jy-chat-body" id="jyChatBody"></div>
+    <div class="jy-chat-input-row"><input class="jy-chat-input" id="jyChatInput" placeholder="和TA说点什么…" onkeydown="jy61ChatKey(event)"><button class="jy-chat-send" id="jyChatSendBtn" onclick="jy61ChatSend()">发送</button></div>
+  </div>
+</div>
+
+<script>
+/* ===================== 霁月机61 · 小游戏模块 ===================== */
+(function () {
+  if (window.__jy61Inited) return;
+  window.__jy61Inited = true;
+
+  var DBG = null;
+  try { DBG = DB; } catch (e) {}
+  function db() { return window.DB || DBG; }
+  function save61() { try { save(); } catch (e) {} }
+  function toast61(t) { try { toast(t); } catch (e) {} }
+  function esc(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+
+  var JY61 = {
+    mode: null,       // gomoku | xiangqi | mahjong | wolf
+    pid: null,
+    over: false,
+    chatHist: [],
+    thinking: false,
+    startedAt: 0,
+    round: 0
+  };
+
+  var HALL_APPS = [
+    { id: "gomoku", name: "五子棋", tag: "双人 · 已开放", cls: "green", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="12" cy="20" r="2"/><path d="M5 9h14M8 16l-3-7M16 16l3-7M8 16l2.5 2.5M16 16l-2.5 2.5"/></svg>' },
+    { id: "xiangqi", name: "象棋", tag: "双人 · 已开放", cls: "red", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M4 15h16M9 4v16M15 4v16"/><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="9" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="15" r="1.4"/><circle cx="12" cy="19" r="1.4"/><path d="M12 9l-3-4M12 9l3-4M12 15l-3 4M12 15l3 4"/></svg>' },
+    { id: "mahjong", name: "麻将", tag: "多人 · 下一版开放", cls: "soon", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="9" height="12" rx="1.5"/><path d="m6 6 3 3M6 9l3-3"/><rect x="12" y="9" width="9" height="12" rx="1.5"/><path d="M15 12v3M16.5 13.5h-3"/></svg>' },
+    { id: "wolf", name: "狼人杀", tag: "多人 · 下一版开放", cls: "soon", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M12 4c2.5-1.8 6-1 8 .8-1.8 1-2.6 2.7-2.7 4.5C20 11 20 14 18 17l-2-2-1 3c-1 .6-3 .6-4 0l-1-3-2 2c-2-3-2-6-.3-7.7-.1-1.8-1-3.5-2.7-4.5C6 3 9.5 2.2 12 4Z"/><circle cx="9.5" cy="11" r=".9" fill="currentColor"/><circle cx="14.5" cy="11" r=".9" fill="currentColor"/></svg>' }
+  ];
+
+  /* ---------- 初始化 ---------- */
+  function init61() {
+    try {
+      if (PAGES.indexOf("jyGames") < 0) PAGES.push("jyGames", "jyGame");
+      HOME_APP_META.games = { name: "小游戏", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M6 12h4M8 10v4"/><circle cx="16" cy="11" r="1.4"/><circle cx="19" cy="13" r="1.4"/><path d="M17.5 7.5c-2.5-2.5-8.5-2.5-11 0C4 10 3.6 15.6 6.6 18.4a4 4 0 0 0 5.6-.2l.8-.9.8.9a4 4 0 0 0 5.6.2C22.2 15.9 21.6 11 17.5 7.5Z"/></svg>' };
+      if (DEFAULT_HOME_ORDER.indexOf("games") < 0) DEFAULT_HOME_ORDER.push("games");
+      var d = db();
+      if (d) {
+        if (!d.homeOrder || !d.homeOrder.length) d.homeOrder = DEFAULT_HOME_ORDER.slice();
+        if (d.homeOrder.indexOf("games") < 0) d.homeOrder.push("games");
+        save61();
+      }
+      try { renderHomeGrid(); } catch (e) {}
+      try { renderHomeWidgets(); } catch (e) {}
+      if (!window.__jy61BaseOpenApp) {
+        window.__jy61BaseOpenApp = window.openApp;
+        window.openApp = function (app) {
+          var prev = currentActivePage61();
+          if (app === "games") {
+            if (prev && prev !== "jyGames" && prev !== "jyGame") window.__jy61PrevMain = prev;
+            jyOpenGames();
+            return;
+          }
+          var r = window.__jy61BaseOpenApp.apply(this, arguments);
+          if (prev && prev !== app && prev !== "jyGames" && prev !== "jyGame") window.__jy61PrevMain = prev;
+          return r;
+        };
+      }
+      if (!window.__jy61BaseOpenPlans && typeof window.openPlans === "function") {
+        window.__jy61BaseOpenPlans = window.openPlans;
+        window.openPlans = function (type) {
+          var cur = currentActivePage61();
+          if (cur && cur !== "aiplans" && cur !== "jyGames" && cur !== "jyGame") window.__jy61PrevMain = cur;
+          return window.__jy61BaseOpenPlans.apply(this, arguments);
+        };
+      }
+    } catch (e) { console.error("jy61 init", e); }
+  }
+
+  function currentActivePage61() {
+    try {
+      var i;
+      for (i = 0; i < PAGES.length; i++) {
+        var el = document.getElementById(PAGES[i]);
+        if (el && el.classList && el.classList.contains("active")) return PAGES[i];
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function jySmartBack(fallback) {
+    var target = window.__jy61PrevMain || null;
+    if (!target || target === "jyGames" || target === "jyGame" || target === "lockscreen") target = null;
+    var map = { home: function(){ try{ goHome(); }catch(e){ showPage("home"); } }, messages: function(){ try{ openApp("messages"); }catch(e){ showPage("messages"); } }, settings: function(){ try{ renderSettings(); showPage("settings"); }catch(e){ showPage("settings"); } }, theme: function(){ try{ renderTheme(); showPage("theme"); }catch(e){ showPage("theme"); } } };
+    if (target && map[target]) { map[target](); return; }
+    if (target && PAGES.indexOf(target) > -1) { showPage(target); return; }
+    var fb = fallback || "settings";
+    if (map[fb]) { map[fb](); } else { showPage("home"); }
+  }
+  window.jySmartBack = jySmartBack;
+
+  /* ---------- 大厅 ---------- */
+  function jyOpenGames() {
+    JY61.mode = null;
+    jyRenderHall();
+    showPage("jyGames");
+  }
+  window.jyOpenGames = jyOpenGames;
+
+  function jyRenderHall() {
+    var box = document.getElementById("jyHallList");
+    if (!box) return;
+    box.innerHTML = HALL_APPS.map(function (a) {
+      var soon = a.cls === "soon" ? ' soon="1"' : "";
+      var onclick = a.cls === "soon" ? "" : ' onclick="jy61PickGame(\'' + a.id + '\')"';
+      return '<div class="jy-card' + (a.cls === "soon" ? " soon" : "") + '"' + soon + onclick + '><div class="jy-card-icon ' + a.cls + '">' + a.icon + '</div><div class="jy-card-main"><div class="jy-card-name">' + a.name + '</div><div class="jy-card-tag">' + a.tag + '</div></div><span class="set-arrow">' + (a.cls === "soon" ? "·" : "›") + "</span></div>";
+    }).join("");
+    var maskBtn = document.getElementById("jyHallMaskBtn");
+    if (maskBtn) {
+      var nm = "本尊";
+      try {
+        var a = currentAcc();
+        if (a && a.name) nm = a.name;
+      } catch (e) {}
+      maskBtn.textContent = "玩家：" + nm;
+    }
+    var note = document.getElementById("jyHallNote");
+    if (note) {
+      var multiSoon = HALL_APPS.filter(function (x) { return x.cls === "soon"; }).map(function (x) { return x.name; }).join("、");
+      note.textContent = multiSoon ? "多人桌「" + multiSoon + "」下一版开放：人数不够时角色可拉 NPC / 关系网好友入场。" : "";
+    }
+  }
+  window.jyRenderHall = jyRenderHall;
+
+  function jy61PickGame(id) {
+    JY61.mode = id;
+    jy61RenderCharPick();
+    var m = document.getElementById("jyCharMask");
+    if (m) m.style.display = "flex";
+  }
+  window.jy61PickGame = jy61PickGame;
+
+  function jy61CloseCharPick() { var m = document.getElementById("jyCharMask"); if (m) m.style.display = "none"; }
+  window.jy61CloseCharPick = jy61CloseCharPick;
+
+  function jy61RenderCharPick() {
+    var box = document.getElementById("jyCharPickList");
+    if (!box) return;
+    var ps = [];
+    try { ps = personaList() || []; } catch (e) {}
+    if (!ps.length) {
+      box.innerHTML = '<div class="pick-empty">还没有角色，先去「人设档案」添加你的 TA 吧。</div>';
+      return;
+    }
+    box.innerHTML = ps.map(function (p) {
+      var av = "";
+      try { av = personaAvatarUrl(p); } catch (e) {}
+      return '<div class="jy-char-item" onclick="jy61StartWith(\'' + String(p.id).replace(/'/g, "") + '\')"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc(p.name || "角色") + '</div><div class="pick-desc">' + esc(p.intro || "") + "</div></div></div>";
+    }).join("");
+  }
+
+  function jy61StartWith(pid) {
+    var pa = null;
+    try { pa = findPersona(pid); } catch (e) {}
+    if (!pa) { toast61("未找到该角色"); return; }
+    var m = document.getElementById("jyCharMask");
+    if (m) m.style.display = "none";
+    JY61.pid = pid;
+    JY61.over = false;
+    JY61.chatHist = [];
+    JY61.round = 0;
+    JY61.startedAt = Date.now();
+    var titleEl = document.getElementById("jyGameTitle");
+    var subEl = document.getElementById("jyGameSub");
+    if (JY61.mode === "gomoku") { if (titleEl) titleEl.textContent = "五子棋"; if (subEl) subEl.textContent = pa.name + " · 你执黑先行"; }
+    else if (JY61.mode === "xiangqi") { if (titleEl) titleEl.textContent = "象棋"; if (subEl) subEl.textContent = pa.name + " · 你执红先行"; }
+    showPage("jyGame");
+    if (JY61.mode === "gomoku") jyG5Init();
+    else if (JY61.mode === "xiangqi") jyXqInit();
+    jy61BallShow(true);
+    try { jy61MemLine(pa, "game", "你和玩家开始了一局「" + (JY61.mode === "gomoku" ? "五子棋" : "象棋") + "」，玩家和你对战。"); } catch (e) {}
+  }
+  window.jy61StartWith = jy61StartWith;
+
+  function jy61ExitGame() {
+    JY61.over = true;
+    jy61BallShow(false);
+    jy61CloseChat();
+    try { clearTimeout(window.__jy61Timer); } catch (e) {}
+    JY61.mode = null;
+    jyRenderHall();
+    showPage("jyGames");
+  }
+  window.jy61ExitGame = jy61ExitGame;
+
+  function jy61GameMenu() {
+    if (JY61.mode === "gomoku") jyG5Restart();
+    else if (JY61.mode === "xiangqi") jyXqRestart();
+  }
+  window.jy61GameMenu = jy61GameMenu;
+
+  function partner61() {
+    try { return findPersona(JY61.pid); } catch (e) { return null; }
+  }
+  function partnerName61() {
+    var p = partner61();
+    return p && p.name ? p.name : "TA";
+  }
+
+  /* ---------- 面具选择 ---------- */
+  function jy61OpenMaskPick() {
+    var list = document.getElementById("jyMaskPickList");
+    if (!list) return;
+    var cur = null;
+    try { cur = currentIdentity(); } catch (e) {}
+    var html = '<div class="pick-item' + (!cur ? " picked" : "") + '" onclick="jy61PickIdentity(null,null)"><div class="pick-main"><div class="pick-name">本尊</div><div class="pick-desc">用自己的真实身份游玩</div></div></div>';
+    var ms = [];
+    try { ms = maskList() || []; } catch (e) {}
+    ms.forEach(function (m) {
+      (m.accounts || []).forEach(function (a) {
+        var picked = cur && cur.maskId === m.id && cur.accId === a.id;
+        html += '<div class="pick-item' + (picked ? " picked" : "") + '" onclick="jy61PickIdentity(\'' + String(m.id).replace(/'/g, "") + '\',\'' + String(a.id).replace(/'/g, "") + '\')"><div class="pick-main"><div class="pick-name">' + esc(a.name) + ' <span style="opacity:.55;font-size:11px">(' + esc(m.name) + ")</span></div><div class=\"pick-desc\">" + (a.intro ? esc(a.intro) : "以这个小号身份游玩") + "</div></div></div>";
+      });
+    });
+    if (!ms.length) html += '<div class="pick-empty">还没有小号，去「我的档案 → 小号面具」创建。</div>';
+    list.innerHTML = html;
+    var m = document.getElementById("jyMaskPickMask");
+    if (m) m.style.display = "flex";
+  }
+  window.jy61OpenMaskPick = jy61OpenMaskPick;
+
+  function jy61PickIdentity(mid, accId) {
+    try {
+      DB.currentIdentity = mid && accId ? { maskId: mid, accId: accId } : null;
+      save61();
+      var a = currentAcc();
+      toast61("已切换为「" + (a && a.name ? a.name : "本尊") + "」");
+    } catch (e) {}
+    var m = document.getElementById("jyMaskPickMask");
+    if (m) m.style.display = "none";
+    jyRenderHall();
+  }
+  window.jy61PickIdentity = jy61PickIdentity;
+
+  /* ---------- 记忆 ---------- */
+  function jy61MemLine(pa, type, text) {
+    if (!pa || !text) return;
+    try {
+      addMemorySourceFor(pa, type, text);
+      save61();
+    } catch (e) {}
+  }
+
+  function jy61EndGame(winner, detail) {
+    if (JY61.over) return;
+    JY61.over = true;
+    var pa = partner61();
+    var isMe = winner === "me";
+    var gname = JY61.mode === "gomoku" ? "五子棋" : "象棋";
+    var line = isMe
+      ? "你和玩家下了一局" + gname + "，最后玩家赢了，玩家落子很快，你输得心服口服。"
+      : "你和玩家下了一局" + gname + "，最后你赢了，玩家夸你厉害。";
+    if (detail) line = "你和玩家下了一局" + gname + "（共" + (JY61.round || 1) + "个回合）。" + detail;
+    jy61MemLine(pa, "game", line);
+    var tip = document.getElementById("jyTurnTip");
+    if (tip) tip.textContent = winner === "draw" ? "平局～" : isMe ? "你赢了这局！" : "TA 赢了这局～";
+    var ov = document.getElementById("jyOverBox");
+    if (ov) {
+      ov.style.display = "flex";
+      document.getElementById("jyOverText").textContent = winner === "draw" ? "平局" : isMe ? "你赢了这局" : (partnerName61() + " 赢了这局");
+    }
+  }
+  window.jy61EndGame = jy61EndGame;
+
+  function jy61CloseOver() { var ov = document.getElementById("jyOverBox"); if (ov) ov.style.display = "none"; }
+  window.jy61CloseOver = jy61CloseOver;
+  function jy61RestartBtn() { jy61CloseOver(); if (JY61.mode === "gomoku") jyG5Restart(); else if (JY61.mode === "xiangqi") jyXqRestart(); }
+  window.jy61RestartBtn = jy61RestartBtn;
+
+  /* ================= 五子棋 ================= */
+  var G5 = { n: 15, board: null, turn: "me", meColor: "X", aiColor: "O" };
+  function jyG5Init() {
+    G5.board = [];
+    for (var y = 0; y < G5.n; y++) { G5.board.push([]); for (var x = 0; x < G5.n; x++) G5.board[y].push(0); }
+    G5.turn = "me";
+    JY61.over = false;
+    JY61.round = 0;
+    jyG5Render();
+  }
+  function jyG5Restart() { jyG5Init(); toast61("已重新开局"); }
+
+  function jyG5Build() {
+    var box = document.getElementById("jyBoardArea");
+    if (!box) return;
+    var html = '<div class="jy-g5board">';
+    for (var y = 0; y < G5.n; y++) {
+      for (var x = 0; x < G5.n; x++) {
+        var cls = "";
+        if ((x === 7 && y === 7) || (x === 3 && y === 3) || (x === 11 && y === 3) || (x === 3 && y === 11) || (x === 11 && y === 11)) cls = " dot";
+        var st = G5.board[y][x] ? " s" + G5.board[y][x] : "";
+        html += '<div class="cell' + cls + st + '" data-x="' + x + '" data-y="' + y + '"></div>';
+      }
+    }
+    html += "</div>";
+    box.innerHTML = html;
+    var tip = document.getElementById("jyTurnTip");
+    if (tip) tip.textContent = "轮到你落子（黑子）";
+  }
+
+  function jyG5Render() {
+    jyG5Build();
+    var boardEl = document.querySelector("#jyBoardArea .jy-g5board");
+    if (boardEl) {
+      var cells = boardEl.querySelectorAll(".cell");
+      for (var i = 0; i < cells.length; i++) {
+        var x = parseInt(cells[i].getAttribute("data-x"), 10);
+        var y = parseInt(cells[i].getAttribute("data-y"), 10);
+        var v = G5.board[y][x];
+        if (v) {
+          cells[i].classList.add("s" + v);
+          cells[i].textContent = v === 1 ? "●" : "○";
+        }
+      }
+    }
+  }
+
+  function jyG5Click(x, y) {
+    if (JY61.over || G5.turn !== "me") return;
+    if (G5.board[y][x]) return;
+    jyG5Place("me", x, y);
+    if (JY61.over) return;
+    G5.turn = "ai";
+    jyG5AiTurn();
+  }
+  window.jyG5Click = jyG5Click;
+
+  function jyG5Place(who, x, y) {
+    G5.board[y][x] = who === "me" ? 1 : 2;
+    JY61.round++;
+    jyG5Render();
+    var tip = document.getElementById("jyTurnTip");
+    if (jyG5Win(x, y, who === "me" ? 1 : 2)) {
+      jy61EndGame(who, null);
+    } else if (JY61.round >= G5.n * G5.n) {
+      jy61EndGame("draw", "棋盘下满了，你们下成了平局。");
+    } else if (tip) {
+      tip.textContent = who === "me" ? "轮到你落子（黑子）" : partnerName61() + " 思考中…";
+    }
+  }
+
+  function jyG5Win(x, y, who) {
+    var dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+    for (var i = 0; i < dirs.length; i++) {
+      var dx = dirs[i][0], dy = dirs[i][1];
+      var cnt = 1;
+      var nx = x + dx, ny = y + dy;
+      while (nx >= 0 && nx < G5.n && ny >= 0 && ny < G5.n && G5.board[ny][nx] === who) { cnt++; nx += dx; ny += dy; }
+      nx = x - dx; ny = y - dy;
+      while (nx >= 0 && nx < G5.n && ny >= 0 && ny < G5.n && G5.board[ny][nx] === who) { cnt++; nx -= dx; ny -= dy; }
+      if (cnt >= 5) return true;
+    }
+    return false;
+  }
+
+  function jyG5LocalAi() {
+    var best = null, bestScore = -1;
+    for (var y = 0; y < G5.n; y++) {
+      for (var x = 0; x < G5.n; x++) {
+        if (G5.board[y][x]) continue;
+        var sc = jyG5CellScore(x, y, 2) + jyG5CellScore(x, y, 1) * 0.9;
+        sc += Math.random() * 0.5;
+        if (sc > bestScore) { bestScore = sc; best = [x, y]; }
+      }
+    }
+    return best;
+  }
+
+  function jyG5CellScore(x, y, who) {
+    var dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+    var total = 0;
+    for (var i = 0; i < dirs.length; i++) {
+      var dx = dirs[i][0], dy = dirs[i][1];
+      var cnt = 1, open = 0;
+      var nx = x + dx, ny = y + dy;
+      while (nx >= 0 && nx < G5.n && ny >= 0 && ny < G5.n && G5.board[ny][nx] === who) { cnt++; nx += dx; ny += dy; }
+      if (nx >= 0 && nx < G5.n && ny >= 0 && ny < G5.n && G5.board[ny][nx] === 0) open++;
+      nx = x - dx; ny = y - dy;
+      while (nx >= 0 && nx < G5.n && ny >= 0 && ny < G5.n && G5.board[ny][nx] === who) { cnt++; nx -= dx; ny -= dy; }
+      if (nx >= 0 && nx < G5.n && ny >= 0 && ny < G5.n && G5.board[ny][nx] === 0) open++;
+      if (cnt >= 5) total += 1e7;
+      else if (cnt === 4 && open === 2) total += 1e6;
+      else if (cnt === 4 && open === 1) total += 9e4;
+      else if (cnt === 3 && open === 2) total += 5e3;
+      else if (cnt === 3 && open === 1) total += 800;
+      else if (cnt === 2 && open === 2) total += 120;
+      else if (cnt === 2 && open === 1) total += 20;
+    }
+    return total;
+  }
+
+  function jyG5BoardText() {
+    var lines = [];
+    for (var y = 0; y < G5.n; y++) {
+      var row = [];
+      for (var x = 0; x < G5.n; x++) {
+        var v = G5.board[y][x];
+        row.push(v === 0 ? "." : v === 1 ? "X" : "O");
+      }
+      lines.push(row.join(""));
+    }
+    return lines.join("\n");
+  }
+
+  function jyG5AiTurn() {
+    var tip = document.getElementById("jyTurnTip");
+    if (tip) tip.textContent = partnerName61() + " 思考中…";
+    var pa = partner61();
+    var canApi = false;
+    try {
+      var pl = personaPlan(pa);
+      canApi = !!(pa && pl && pl.baseUrl && pl.apiKey);
+    } catch (e) {}
+    var done = function (mv) {
+      if (!mv) mv = jyG5LocalAi();
+      if (!mv) return;
+      if (JY61.over || G5.turn !== "ai") return;
+      G5.board[mv[1]][mv[0]] = 2;
+      JY61.round++;
+      jyG5Render();
+      if (jyG5Win(mv[0], mv[1], 2)) {
+        jy61EndGame("ai", partnerName61() + "五子连珠赢了。");
+        return;
+      }
+      if (JY61.round >= G5.n * G5.n) { jy61EndGame("draw", "平局。"); return; }
+      G5.turn = "me";
+      var tip2 = document.getElementById("jyTurnTip");
+      if (tip2) tip2.textContent = "轮到你落子（黑子）";
+    };
+    if (!canApi) { setTimeout(function(){ done(null); }, 260); return; }
+    var prompt = "你正在和玩家下五子棋，你执白(O)，玩家执黑(X)。当前棋盘（15x15，从上到下第1行到第15行，每行 '.'=空、'X'=玩家、'O'=你）：\n" + jyG5BoardText() + "\n现在轮到你落子。请只回复一个你选择落子的坐标，格式为「列,行」，列0-14从左到右，行0-14从上到下。不要解释。";
+    callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+      var mv = null;
+      if (txt) {
+        var m = String(txt).match(/(\d{1,2})\s*[,，\s]\s*(\d{1,2})/);
+        if (m) {
+          var x = parseInt(m[1], 10), y = parseInt(m[2], 10);
+          if (x >= 1 && x <= 15 && m[1] !== "0") x--;
+          if (y >= 1 && y <= 15 && m[2] !== "0") y--;
+          if (x >= 0 && x < G5.n && y >= 0 && y < G5.n && !G5.board[y][x]) mv = [x, y];
+        }
+      }
+      done(mv);
+    }).catch(function () { done(null); });
+  }
+
+  /* ================= 象棋 ================= */
+  var XQ = { board: null, turn: "red" };
+  var XQ_PIECE = { K: "帅", A: "仕", E: "相", H: "马", R: "车", C: "炮", P: "兵", k: "将", a: "士", e: "象", h: "马", r: "车", c: "炮", p: "卒" };
+  var XQ_IS_RED = { K: 1, A: 1, E: 1, H: 1, R: 1, C: 1, P: 1 };
+  function xqSide(ch) { return XQ_IS_RED[ch] ? "red" : "black"; }
+  function xqInitBoard() {
+    var b = [];
+    for (var y = 0; y < 10; y++) { b.push([]); for (var x = 0; x < 9; x++) b[y].push(""); }
+    var top = ["r", "h", "e", "a", "k", "a", "e", "h", "r"];
+    for (var i = 0; i < 9; i++) { b[0][i] = top[i]; b[9][i] = top[i].toUpperCase(); }
+    b[2][1] = "c"; b[2][7] = "c"; b[7][1] = "C"; b[7][7] = "C";
+    for (var j = 0; j < 9; j += 2) { b[3][j] = "p"; b[6][j] = "P"; }
+    return b;
+  }
+  function xqIn(y, x) { return y >= 0 && y <= 9 && x >= 0 && x <= 8; }
+  function xqInPalace(side, y, x) {
+    if (x < 3 || x > 5) return false;
+    return side === "red" ? (y >= 7 && y <= 9) : (y >= 0 && y <= 2);
+  }
+  function xqSameSide(a, b) { return a && b && xqSide(a) === xqSide(b); }
+  function xqHomeY(side, y) { return side === "red" ? y >= 5 : y <= 4; }
+
+  function xqPseudo(board, side) {
+    var moves = [];
+    for (var y = 0; y < 10; y++) {
+      for (var x = 0; x < 9; x++) {
+        var ch = board[y][x];
+        if (!ch || xqSide(ch) !== side) continue;
+        var from = [y, x];
+        var add = function (yy, xx) {
+          if (!xqIn(yy, xx)) return;
+          var t = board[yy][xx];
+          if (t && xqSameSide(ch, t)) return;
+          moves.push([y, x, yy, xx]);
+        };
+        if (ch === "K" || ch === "k") {
+          if (xqInPalace(side, y - 1, x)) add(y - 1, x);
+          if (xqInPalace(side, y + 1, x)) add(y + 1, x);
+          if (xqInPalace(side, y, x - 1)) add(y, x - 1);
+          if (xqInPalace(side, y, x + 1)) add(y, x + 1);
+          // 将帅对脸
+          var yy2 = y + (side === "red" ? -1 : 1);
+          while (yy2 >= 0 && yy2 <= 9) { if (board[yy2][x]) break; yy2 += (side === "red" ? -1 : 1); }
+          if (yy2 >= 0 && yy2 <= 9 && board[yy2][x] === (side === "red" ? "k" : "K")) add(yy2, x);
+        } else if (ch === "A" || ch === "a") {
+          var ad = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+          for (var ai = 0; ai < ad.length; ai++) { var ay = y + ad[ai][0], ax = x + ad[ai][1]; if (xqInPalace(side, ay, ax)) add(ay, ax); }
+        } else if (ch === "E" || ch === "e") {
+          var ed = [[-2, -2], [-2, 2], [2, -2], [2, 2]];
+          for (var ei = 0; ei < ed.length; ei++) {
+            var ey = y + ed[ei][0], ex = x + ed[ei][1];
+            if (!xqIn(ey, ex)) continue;
+            if (!xqHomeY(side, ey)) continue;
+            var my = y + (ed[ei][0] > 0 ? 1 : -1), mx = x + (ed[ei][1] > 0 ? 1 : -1);
+            if (board[my][mx]) continue;
+            add(ey, ex);
+          }
+        } else if (ch === "H" || ch === "h") {
+          var hd = [[-2, -1], [-2, 1], [2, -1], [2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2]];
+          for (var hi = 0; hi < hd.length; hi++) {
+            var hy = y + hd[hi][0], hx = x + hd[hi][1];
+            if (!xqIn(hy, hx)) continue;
+            var legY = y + (Math.abs(hd[hi][0]) === 2 ? (hd[hi][0] > 0 ? 1 : -1) : 0);
+            var legX = x + (Math.abs(hd[hi][1]) === 2 ? (hd[hi][1] > 0 ? 1 : -1) : 0);
+            if (board[legY][legX]) continue;
+            add(hy, hx);
+          }
+        } else if (ch === "R" || ch === "r") {
+          var rd = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+          for (var ri = 0; ri < rd.length; ri++) {
+            var ry = y + rd[ri][0], rx = x + rd[ri][1];
+            while (xqIn(ry, rx)) {
+              if (board[ry][rx]) { if (!xqSameSide(ch, board[ry][rx])) add(ry, rx); break; }
+              add(ry, rx);
+              ry += rd[ri][0]; rx += rd[ri][1];
+            }
+          }
+        } else if (ch === "C" || ch === "c") {
+          var cd = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+          for (var ci = 0; ci < cd.length; ci++) {
+            var cy = y + cd[ci][0], cx = x + cd[ci][1];
+            var screen = false;
+            while (xqIn(cy, cx)) {
+              if (!screen) {
+                if (board[cy][cx]) screen = true;
+                else add(cy, cx);
+              } else {
+                if (board[cy][cx]) { if (!xqSameSide(ch, board[cy][cx])) add(cy, cx); break; }
+              }
+              cy += cd[ci][0]; cx += cd[ci][1];
+            }
+          }
+        } else if (ch === "P" || ch === "p") {
+          var dy = ch === "P" ? -1 : 1;
+          var crossed = ch === "P" ? y <= 4 : y >= 5;
+          if (xqIn(y + dy, x)) add(y + dy, x);
+          if (crossed) { if (xqIn(y, x - 1)) add(y, x - 1); if (xqIn(y, x + 1)) add(y, x + 1); }
+        }
+      }
+    }
+    return moves;
+  }
+
+  function xqKingPos(board, side) {
+    var k = side === "red" ? "K" : "k";
+    for (var y = 0; y < 10; y++) for (var x = 0; x < 9; x++) if (board[y][x] === k) return [y, x];
+    return null;
+  }
+
+  function xqAttacked(board, ty, tx, bySide) {
+    // 兵/卒 & 将 & 马 & 车 & 炮
+    var i;
+    for (var y = 0; y < 10; y++) {
+      for (var x = 0; x < 9; x++) {
+        var ch = board[y][x];
+        if (!ch || xqSide(ch) !== bySide) continue;
+        if (ch === "R" || ch === "r") {
+          if (y === ty || x === tx) {
+            var sy = y === ty ? 0 : (ty > y ? 1 : -1);
+            var sx = x === tx ? 0 : (tx > x ? 1 : -1);
+            var cy = y + sy, cx = x + sx;
+            var block = false;
+            while (!(cy === ty && cx === tx)) {
+              if (cy >= 0 && cy <= 9 && cx >= 0 && cx <= 8 && board[cy][cx]) { block = true; break; }
+              cy += sy; cx += sx;
+            }
+            if (!block) return true;
+          }
+        } else if (ch === "C" || ch === "c") {
+          if (y === ty || x === tx) {
+            var sy2 = y === ty ? 0 : (ty > y ? 1 : -1);
+            var sx2 = x === tx ? 0 : (tx > x ? 1 : -1);
+            var cy2 = y + sy2, cx2 = x + sx2;
+            var count = 0;
+            while (!(cy2 === ty && cx2 === tx)) {
+              if (cy2 >= 0 && cy2 <= 9 && cx2 >= 0 && cx2 <= 8 && board[cy2][cx2]) count++;
+              cy2 += sy2; cx2 += sx2;
+            }
+            if (count === 1) return true;
+          }
+        } else if (ch === "H" || ch === "h") {
+          var dy = ty - y, dx = tx - x;
+          if ((Math.abs(dy) === 2 && Math.abs(dx) === 1) || (Math.abs(dy) === 1 && Math.abs(dx) === 2)) {
+            var legY = y + (Math.abs(dy) === 2 ? (dy > 0 ? 1 : -1) : 0);
+            var legX = x + (Math.abs(dx) === 2 ? (dx > 0 ? 1 : -1) : 0);
+            if (!board[legY][legX]) return true;
+          }
+        } else if (ch === "P" || ch === "p") {
+          var crossed2 = ch === "P" ? y <= 4 : y >= 5;
+          var canY = ch === "P" ? y - 1 === ty : y + 1 === ty;
+          var canX = crossed2 && Math.abs(x - tx) === 1 && y === ty;
+          if ((canY && x === tx) || canX) return true;
+        } else if (ch === "K" || ch === "k") {
+          if (Math.abs(y - ty) + Math.abs(x - tx) === 1) return true;
+          // 对脸
+          if (x === tx) {
+            var yy3 = y + (ty > y ? 1 : -1);
+            var blocked = false;
+            while (yy3 !== ty) {
+              if (board[yy3][x]) { blocked = true; break; }
+              yy3 += (ty > y ? 1 : -1);
+            }
+            if (!blocked) return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  function xqInCheck(board, side) {
+    var kp = xqKingPos(board, side);
+    if (!kp) return false;
+    var opp = side === "red" ? "black" : "red";
+    return xqAttacked(board, kp[0], kp[1], opp);
+  }
+
+  function xqLegal(board, side) {
+    var raw = xqPseudo(board, side);
+    var out = [];
+    for (var i = 0; i < raw.length; i++) {
+      var m = raw[i];
+      var b2 = board.map(function (row) { return row.slice(); });
+      b2[m[2]][m[3]] = b2[m[0]][m[1]];
+      b2[m[0]][m[1]] = "";
+      if (!xqInCheck(b2, side)) out.push(m);
+    }
+    return out;
+  }
+
+  function xqHasKing(board, side) {
+    var k = side === "red" ? "K" : "k";
+    for (var y = 0; y < 10; y++) for (var x = 0; x < 9; x++) if (board[y][x] === k) return true;
+    return false;
+  }
+
+  var XQ_VAL = { P: 1, p: 1, A: 2, a: 2, E: 2, e: 2, H: 4, h: 4, C: 4, c: 4, R: 9, r: 9, K: 1e4, k: 1e4 };
+  function xqLocalAi(board, side) {
+    var moves = xqLegal(board, side);
+    if (!moves.length) return null;
+    var scored = [];
+    for (var i = 0; i < moves.length; i++) {
+      var m = moves[i];
+      var v = XQ_VAL[board[m[2]][m[3]]] || 0;
+      var b2 = board.map(function (row) { return row.slice(); });
+      b2[m[2]][m[3]] = b2[m[0]][m[1]];
+      b2[m[0]][m[1]] = "";
+      var opp = side === "red" ? "black" : "red";
+      if (!xqHasKing(b2, opp)) v += 1e6;
+      if (xqInCheck(b2, opp)) v += 120;
+      v += Math.random() * 1.5;
+      scored.push({ m: m, v: v });
+    }
+    scored.sort(function (a, b) { return b.v - a.v; });
+    return scored[0].m;
+  }
+
+  function jyXqInit() {
+    XQ.board = xqInitBoard();
+    XQ.turn = "red";
+    JY61.over = false;
+    JY61.round = 0;
+    jyXqRender();
+  }
+  function jyXqRestart() { jyXqInit(); toast61("已重新开局"); }
+  var xqSel = null;
+  function jyXqClick(y, x) {
+    if (JY61.over || XQ.turn !== "red") return;
+    var ch = XQ.board[y][x];
+    if (xqSel) {
+      var sy = xqSel[0], sx = xqSel[1];
+      var legal = xqLegal(XQ.board, "red");
+      var hit = null;
+      for (var i = 0; i < legal.length; i++) {
+        var m = legal[i];
+        if (m[0] === sy && m[1] === sx && m[2] === y && m[3] === x) { hit = m; break; }
+      }
+      if (hit) {
+        xqSel = null;
+        jyXqApply(hit);
+        return;
+      }
+      if (ch && xqSide(ch) === "red") { xqSel = [y, x]; jyXqRender(); return; }
+      xqSel = null;
+      jyXqRender();
+      return;
+    }
+    if (ch && xqSide(ch) === "red") { xqSel = [y, x]; jyXqRender(); }
+  }
+  window.jyXqClick = jyXqClick;
+
+  function jyXqApply(m) {
+    var fromCh = XQ.board[m[0]][m[1]];
+    var toCh = XQ.board[m[2]][m[3]];
+    XQ.board[m[2]][m[3]] = fromCh;
+    XQ.board[m[0]][m[1]] = "";
+    JY61.round++;
+    xqSel = null;
+    jyXqRender();
+    var tip = document.getElementById("jyTurnTip");
+    if (!xqHasKing(XQ.board, "black")) { jy61EndGame("me", "你用车马炮把TA的将吃了，赢了这局象棋。"); return; }
+    XQ.turn = "black";
+    if (tip) tip.textContent = partnerName61() + " 思考中…";
+    jyXqAiTurn();
+  }
+
+  function xqBoardText() {
+    var lines = [];
+    for (var y = 0; y < 10; y++) {
+      var row = [];
+      for (var x = 0; x < 9; x++) {
+        var ch = XQ.board[y][x];
+        row.push(ch || ".");
+      }
+      lines.push(row.join(""));
+    }
+    return lines.join("\n");
+  }
+
+  function jyXqAiTurn() {
+    var pa = partner61();
+    var canApi = false;
+    try {
+      var pl = personaPlan(pa);
+      canApi = !!(pa && pl && pl.baseUrl && pl.apiKey);
+    } catch (e) {}
+    var legal = xqLegal(XQ.board, "black");
+    if (!legal.length) {
+      jy61EndGame("me", "TA无子可走，这局你赢了。");
+      return;
+    }
+    var done = function (idx) {
+      if (JY61.over || XQ.turn !== "black") return;
+      var mv = null;
+      if (idx !== null && idx !== undefined) {
+        var n = parseInt(idx, 10);
+        if (!isNaN(n) && n >= 1 && n <= legal.length) mv = legal[n - 1];
+      }
+      if (!mv) mv = xqLocalAi(XQ.board, "black");
+      if (!mv) { jy61EndGame("me", "TA无子可走，你赢了。"); return; }
+      var fromCh = XQ.board[mv[0]][mv[1]];
+      var toCh = XQ.board[mv[2]][mv[3]];
+      XQ.board[mv[2]][mv[3]] = fromCh;
+      XQ.board[mv[0]][mv[1]] = "";
+      JY61.round++;
+      jyXqRender();
+      if (!xqHasKing(XQ.board, "red")) { jy61EndGame("ai", partnerName61() + "吃掉了你的帅，TA赢了这局。"); return; }
+      if (!xqLegal(XQ.board, "red").length) { jy61EndGame("ai", partnerName61() + "将死了你，TA赢了这局。"); return; }
+      XQ.turn = "red";
+      var tip = document.getElementById("jyTurnTip");
+      if (tip) tip.textContent = "轮到你走棋（红方）";
+    };
+    if (!canApi) { setTimeout(function () { done(null); }, 240); return; }
+    var cands = legal.map(function (m, i) {
+      return (i + 1) + ": (" + m[2] + "," + m[3] + ")";
+    }).join(" ");
+    var prompt = "你正在和玩家下中国象棋，你执黑（上方），玩家执红（下方）。当前棋盘用字母表示，红子大写（K帅 A仕 E相 H马 R车 C炮 P兵），黑子小写（k将 a士 e象 h马 r车 c炮 p卒），'.'为空。9列8行坐标用(行y,列x)，y0-9从上到下，x0-8从左到右。\n棋盘：\n" + xqBoardText() + "\n轮到你走棋。以下是所有合法走法编号（格式：编号: (目标行,目标列)）：" + cands + "\n请只回复一个合法走法的编号数字，不要解释。";
+    callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+      var idx = null;
+      if (txt) {
+        var mm = String(txt).match(/\d+/);
+        if (mm) idx = mm[0];
+      }
+      done(idx);
+    }).catch(function () { done(null); });
+  }
+
+  function jyXqRender() {
+    var box = document.getElementById("jyBoardArea");
+    if (!box) return;
+    var legal = null;
+    try { if (!JY61.over && XQ.turn === "red") legal = xqLegal(XQ.board, "red"); } catch (e) {}
+    var html = '<div class="jy-xqwrap"><div class="jy-xqboard">';
+    var hits = {};
+    if (legal) legal.forEach(function (m) {
+      if (xqSel && m[0] === xqSel[0] && m[1] === xqSel[1]) {
+        var key = m[2] + "_" + m[3];
+        hits[key] = 1;
+      }
+    });
+    for (var y = 0; y < 10; y++) {
+      for (var x = 0; x < 9; x++) {
+        var ch = XQ.board[y][x];
+        var cls = "";
+        if (xqSel && xqSel[0] === y && xqSel[1] === x) cls = " sel";
+        if (hits[y + "_" + x]) cls = " hit";
+        if (ch) {
+          var red = xqSide(ch) === "red";
+          cls += red ? " red" : " black";
+        }
+        html += '<div class="xq-cell' + cls + '" data-y="' + y + '" data-x="' + x + '" onclick="jyXqClick(' + y + "," + x + ')">' + (ch ? XQ_PIECE[ch] : "") + "</div>";
+      }
+    }
+    html += "</div></div>";
+    box.innerHTML = html;
+  }
+
+  /* ---------- 悬浮球 & 小窗聊天 ---------- */
+  function jy61BallShow(show) {
+    var ball = document.getElementById("jyFloatBall");
+    if (ball) ball.style.display = show ? "flex" : "none";
+  }
+  window.jy61BallShow = jy61BallShow;
+
+  function jy61OpenFloat() {
+    var mask = document.getElementById("jyChatMask");
+    if (mask) mask.style.display = "flex";
+    jy61RenderChat();
+  }
+  window.jy61OpenFloat = jy61OpenFloat;
+
+  function jy61CloseChat() {
+    var mask = document.getElementById("jyChatMask");
+    if (mask) mask.style.display = "none";
+  }
+  window.jy61CloseChat = jy61CloseChat;
+
+  function jy61RenderChat() {
+    var body = document.getElementById("jyChatBody");
+    if (!body) return;
+    var pa = partner61();
+    var nm = pa && pa.name ? pa.name : "TA";
+    body.innerHTML = "";
+    var empty = document.createElement("div");
+    empty.className = "sys-tip";
+    empty.textContent = "正在和 " + nm + " 边玩边聊，聊天会记入TA的记忆。";
+    body.appendChild(empty);
+    JY61.chatHist.forEach(function (m) {
+      var d = document.createElement("div");
+      if (m.role === "user") {
+        d.className = "me-bubble";
+        d.innerHTML = '<div class="bub">' + esc(m.content) + "</div>";
+      } else {
+        d.className = "ta-bubble";
+        d.innerHTML = '<div class="bub">' + esc(m.content) + "</div>";
+      }
+      body.appendChild(d);
+    });
+    body.scrollTop = body.scrollHeight;
+    var btn = document.getElementById("jyChatSendBtn");
+    var input = document.getElementById("jyChatInput");
+    if (btn) btn.disabled = !!JY61.thinking;
+    if (input) input.disabled = !!JY61.thinking;
+  }
+
+  function jy61ChatSend() {
+    var input = document.getElementById("jyChatInput");
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text || JY61.thinking) return;
+    var pa = partner61();
+    if (!pa) return;
+    input.value = "";
+    JY61.chatHist.push({ role: "user", content: text });
+    jy61RenderChat();
+    var body = document.getElementById("jyChatBody");
+    if (body) {
+      var d = document.createElement("div");
+      d.className = "sys-tip";
+      d.id = "jyChatLoading";
+      d.textContent = partnerName61() + " 正在回复…";
+      body.appendChild(d);
+      body.scrollTop = body.scrollHeight;
+    }
+    JY61.thinking = true;
+    jy61RenderChat();
+    callChat(JY61.chatHist.map(function (m) { return { role: m.role, content: m.content }; }), pa).then(function (reply) {
+      JY61.chatHist.push({ role: "assistant", content: reply });
+      var gname = JY61.mode === "gomoku" ? "五子棋" : JY61.mode === "xiangqi" ? "象棋" : "小游戏";
+      jy61MemLine(pa, "gameChat", "下" + gname + "时你和TA聊了几句：你说「" + text + "」，TA说「" + reply + "」。");
+      JY61.thinking = false;
+      jy61RenderChat();
+    }).catch(function (err) {
+      JY61.chatHist.pop();
+      JY61.thinking = false;
+      var tip = document.createElement("div");
+      tip.className = "sys-tip";
+      tip.textContent = "回复失败：" + (err && err.message ? err.message : "未知错误");
+      var body2 = document.getElementById("jyChatBody");
+      if (body2) { body2.appendChild(tip); body2.scrollTop = body2.scrollHeight; }
+      jy61RenderChat();
+    });
+  }
+  window.jy61ChatSend = jy61ChatSend;
+
+  function jy61ChatKey(e) {
+    if (e && e.key === "Enter") { e.preventDefault(); jy61ChatSend(); }
+  }
+  window.jy61ChatKey = jy61ChatKey;
+
+  /* ---------- DOM event delegation ---------- */
+  function bind61() {
+    var area = document.getElementById("jyBoardArea");
+    if (area) {
+      area.addEventListener("click", function (e) {
+        var cell = e.target.closest ? e.target.closest(".cell") : null;
+        if (cell && JY61.mode === "gomoku" && !cell.classList.contains("s1") && !cell.classList.contains("s2")) {
+          jyG5Click(parseInt(cell.getAttribute("data-x"), 10), parseInt(cell.getAttribute("data-y"), 10));
+        }
+      });
+    }
+  }
+
+  init61();
+  bind61();
+})();
+
+</script>
 </body>
 </html>
