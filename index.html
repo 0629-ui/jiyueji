@@ -1480,6 +1480,70 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
   <div class="modal-sheet wide"><h3>目录</h3><div class="book-toc" id="bookTocList"></div></div>
 </div>
 
+<!-- 梦境模块 CSS -->
+<style>
+.dream-body{flex:1;overflow-y:auto;padding:14px 16px 10px;background:linear-gradient(180deg,#f3f5fd 0%,#eef1fb 100%);display:flex;flex-direction:column;gap:4px}
+.dream-body::-webkit-scrollbar{display:none}
+.dream-narr{background:#fff;border:1px solid #dfe4fb;border-radius:16px;padding:16px 18px;margin-bottom:16px;font-size:15px;line-height:2.05;color:#23263a;white-space:pre-wrap;word-break:break-word;box-shadow:0 2px 10px rgba(90,110,210,.07)}
+.dream-narr::before{content:"\2726  ";color:#7b8df2;font-size:13px}
+.dream-me{display:flex;justify-content:flex-end;margin-bottom:16px}
+.dream-me .ob{max-width:78%;background:#e6ecff;color:#23263a;border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:13px;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+.dream-me .ob .ob-tag{display:block;font-size:9px;color:#7b8df2;margin-bottom:3px}
+.dream-sec-title{font-size:14px;font-weight:600;margin:20px 0 10px;color:var(--page-text,#222)}
+.dream-sec-sub{font-size:11px;font-weight:400;color:var(--page-dim,#999)}
+.dream-go{width:100%;margin-top:14px;padding:12px 0;font-size:15px}
+.dream-rec{background:#fff;border:1px solid var(--line,#eee);border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.dream-rec .t{font-size:15px;font-weight:600;color:var(--page-text,#222)}
+.dream-rec .m{font-size:12px;color:var(--page-dim,#888);margin-top:5px;line-height:1.8;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.modal-sheet #dreamRecDetail{max-height:52vh;overflow:auto;background:transparent}
+.dream-banner{background:#eef1ff;border:1px solid #d3dcfb;border-radius:14px;padding:12px 14px;margin-top:14px;font-size:13px;color:#3a4473;line-height:1.8}
+.dream-banner .btns{display:flex;gap:8px;margin-top:10px}
+.dream-pick-tip{display:none;background:#fff4e5;border:1px solid #ffd9a8;color:#8a5a12;font-size:12px;border-radius:10px;padding:8px 12px;margin-top:10px}
+</style>
+<!-- 梦境 -->
+<div class="page light-page" id="dream">
+  <div class="page-head">
+    <span class="back" onclick="goHome()">‹</span>
+    <div class="title">梦境</div>
+    <span class="map-story-btn" onclick="openDreamHelp()">说明</span>
+  </div>
+  <div class="settings-scroll" id="dreamHomeScroll">
+    <div class="rel-desc">和 TA 一起做一个梦：3~6 回合的短剧情，像夜里真实做梦一样。梦按角色分开存放：每个 TA 的梦境互相独立，同一角色的不同梦也是独立存档；进行中的梦随时自动保存，中途退出也不丢，梦醒或结束后整场完整入档。</div>
+    <div class="dream-sec-title">和谁一起做梦</div>
+    <div class="rel-subject" id="dreamPickList"></div>
+    <div class="dream-pick-tip" id="dreamPickTip">先选一位一起入梦的人哟</div>
+    <div id="dreamCharPanel"></div>
+  </div>
+</div>
+<!-- 梦境房间 -->
+<div class="page light-page" id="dreamplay">
+  <div class="page-head">
+    <span class="back" onclick="goHome()">‹</span>
+    <div style="flex:1;text-align:center;min-width:0"><div class="ch-name" id="dpName">梦境</div><div class="ch-state" id="dpState"></div></div>
+    <span class="map-story-btn" onclick="endDream()">梦醒并存档</span>
+  </div>
+  <div class="dream-body" id="dreamBody"></div>
+  <div class="offline-input-bar">
+    <input id="dreamInput" type="text" placeholder="在梦里，你会说什么、做什么…" autocomplete="off">
+    <button class="send-btn" onclick="sendDream()">↑</button>
+  </div>
+</div>
+<!-- 梦境 说明 -->
+<div class="modal-mask" id="dreamHelpMask" onclick="if(event.target===this)closeDreamHelp()">
+  <div class="modal-sheet">
+    <h3>梦境是什么？</h3>
+    <div class="sheet-desc">梦境是你和角色共同经历的短梦，一般 3~6 回合就会自然醒来。梦里可以超现实、跳跃、荒诞，没有逻辑限制；但梦境按角色分开保存：每个 TA 的梦境互相独立，同一个人做过的不同梦也各自成档，不混在一起。进行中的梦会随每一步自动保存，退出页面、中途离开都不会丢，随时回来可以接着做；点“梦醒并存档”或自然醒来时，整场梦会完整存入 TA 的梦的存档（没做完的也会注明并完整保留），并记入 TA 的记忆（小号、关系网按各自规则隔离），之后聊天时可以提起、API 调用时也能读到。不同于 IF 线（长剧情、另一种人生、不记录）。</div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeDreamHelp()">知道了</button></div>
+  </div>
+</div>
+<!-- 梦境 记录详情 -->
+<div class="modal-mask" id="dreamRecMask" onclick="if(event.target===this)closeDreamRec()">
+  <div class="modal-sheet wide" id="dreamRecSheet">
+    <h3 id="dreamRecTitle"></h3>
+    <div class="dream-body" id="dreamRecDetail" style="background:transparent"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="closeDreamRec()">关闭</button></div>
+  </div>
+</div>
 <!-- IF线 -->
 <div class="page light-page" id="ifline">
   <div class="page-head"><span class="back" onclick="goHome()">‹</span><div class="title">IF线 · 同人创作</div><span class="page-plus" onclick="openIfCreate()">新建</span></div>
@@ -3331,7 +3395,7 @@ function applyAvatars() {
 }
 __name(applyAvatars, "applyAvatars");
 let currentPersonaId = null;
-const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "groupOffline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map", "relation"];
+const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "groupOffline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map", "relation", "dream", "dreamplay"];
 function showPage(id) {
   PAGES.forEach(function(p) {
     document.getElementById(p).classList.toggle("active", p === id);
@@ -3715,7 +3779,7 @@ function addWidget(type) {
   toast("\u5DF2\u6DFB\u52A0\u300C" + widgetTypeName(type) + "\u300D\uFF1A\u70B9\u6587\u5B57\u6539\u5185\u5BB9\u3001\u70B9\u56FE\u7247\u6362\u56FE\u3001\u957F\u6309\u7EC4\u4EF6\u53EF\u5220\u9664");
 }
 __name(addWidget, "addWidget");
-var DEFAULT_HOME_ORDER = ["messages", "photos", "music", "calendar", "love", "theme", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map", "relations"];
+var DEFAULT_HOME_ORDER = ["messages", "photos", "music", "calendar", "love", "theme", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map", "relations", "dream"];
 var HOME_APP_META = {
   messages: { name: "\u4FE1\u606F", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>' },
   photos: { name: "\u76F8\u518C", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 16-5-5L6 21"/></svg>' },
@@ -3729,7 +3793,8 @@ var HOME_APP_META = {
   watch: { name: "\u4E00\u8D77\u770B", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="13" rx="3"/><path d="M10 9l6 3.5-6 3.5Z" fill="currentColor" stroke="none"/><path d="M8 21h8"/></svg>' },
   phonecheck: { name: "\u67E5\u624B\u673A", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="8" y="3" width="10" height="18" rx="2"/><path d="M12 20h2"/><path d="M4 7s1.5-2 3-2 3 2 3 2-1.5 2-3 2-3-2-3-2Z"/></svg>' },
   map: { name: "\u5927\u5730\u56FE", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' },
-  relations: { name: "\u5173\u7CFB\u7F51", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M7 7.2 10.5 16M17 7.2 13.5 16M7.4 6h9.2"/></svg>' }
+  relations: { name: "\u5173\u7CFB\u7F51", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="5" cy="6" r="2.4"/><circle cx="19" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><path d="M7 7.2 10.5 16M17 7.2 13.5 16M7.4 6h9.2"/></svg>' },
+  dream: { name: "\u68A6\u5883", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M20.5 14.4A8.7 8.7 0 1 1 9.6 3.5a7 7 0 0 0 10.9 10.9Z"/><path d="M17 3v3.2M15.4 4.6h3.2"/><path d="M19.5 17.8l.9 1.7-1.7.9 1.7.9-.9 1.7-1.8-.9.9 1.8-1.7.9v-1.8h1.7z"/></svg>' }
 };
 var homeDrag = null;
 function homeOrderArr() {
@@ -4032,6 +4097,12 @@ function openApp(app) {
     case "relations":
       renderRelationPage();
       showPage("relation");
+      break;
+    case "dream":
+      openDreamPage();
+      break;
+    case "dreamplay":
+      openDreamPlayUI();
       break;
     case "phonecheck":
       renderPhoneCheck();
@@ -15081,6 +15152,435 @@ function relParseJson(text){
   if(a<0||b<=a) return null;
   try { return JSON.parse(t.slice(a,b+1)); } catch(e){ return null; }
 }
+
+/* ========== 梦境模块 v60 · 按角色隔离 + 全流程保存 ========== */
+var DR_PICK = null;
+
+function dreamDb() {
+  if (!DB.dreams) DB.dreams = { ongoing: {}, records: [] };
+  var d = DB.dreams;
+  if (!d.ongoing || typeof d.ongoing !== "object") d.ongoing = {};
+  if (!d.records || !Array.isArray(d.records)) d.records = [];
+  // 兼容旧结构：active 单槽迁移为按角色 ongoing
+  if (d.active) {
+    var oa = d.active;
+    if (oa && oa.pid && !oa.done && !d.ongoing[oa.pid]) d.ongoing[oa.pid] = oa;
+    delete d.active;
+  }
+  return d;
+}
+function dreamOngoing(pid) { return dreamDb().ongoing[pid] || null; }
+function dreamCurPid() { return DB._dreamCur || ""; }
+function dreamActive() {
+  var p = dreamCurPid();
+  return p ? dreamDb().ongoing[p] || null : null;
+}
+function dreamFmt(t) {
+  var d = new Date(t);
+  var m = String(d.getMonth() + 1).padStart(2, "0");
+  var day = String(d.getDate()).padStart(2, "0");
+  var h = String(d.getHours()).padStart(2, "0");
+  var mi = String(d.getMinutes()).padStart(2, "0");
+  return m + "-" + day + " " + h + ":" + mi;
+}
+function dreamRecText(rec) {
+  return (rec.story || []).filter(function(m) { return m.role === "assistant"; }).map(function(m) { return m.content; }).join("\n\n");
+}
+function dreamThemeText() {
+  var el = document.getElementById("dreamThemeInput");
+  return el ? el.value.trim() : "";
+}
+function dreamRecDone(r) {
+  return !(r.finish === false || (r.turn !== undefined && r.turn < (r.total || 99)));
+}
+function dreamRecId(r, i) {
+  return r.id || ("drx_" + (r.time || 0) + "_" + (r.doneAt || 0) + "_" + i);
+}
+
+function renderDreamChips() {
+  var list = document.getElementById("dreamPickList");
+  if (!list) return;
+  var db = dreamDb();
+  var ps = personaList() || [];
+  if (!ps.length) {
+    list.innerHTML = '<div class="rel-desc" style="margin-top:0">还没有角色，先去添加你的 TA 吧。</div>';
+    return;
+  }
+  list.innerHTML = ps.map(function(p) {
+    var on = DR_PICK === p.id ? " on" : "";
+    var o = db.ongoing[p.id];
+    var sub = o ? "梦中·" + o.turn + "/" + o.total + "段" : "角色";
+    return '<div class="rel-chip' + on + '" onclick="dreamPick(\'' + p.id + '\')"><span class="n">' + escapeHtml(p.name || "角色") + '</span><span class="c">' + escapeHtml(sub) + "</span></div>";
+  }).join("");
+}
+
+function openDreamPage() {
+  var db = dreamDb();
+  var ps = personaList() || [];
+  if (!DR_PICK) {
+    DR_PICK = "";
+    // 默认选中：优先有进行中梦的角色，其次最近做过梦的角色，最后第一个角色
+    for (var k in db.ongoing) { if (db.ongoing[k] && findPersona(k)) { DR_PICK = k; break; } }
+    if (!DR_PICK) {
+      var rr = (db.records || []).slice(0).sort(function(a, b) { return (b.doneAt || b.time || 0) - (a.doneAt || a.time || 0); });
+      for (var i = 0; i < rr.length; i++) { if (findPersona(rr[i].pid)) { DR_PICK = rr[i].pid; break; } }
+    }
+    if (!DR_PICK && ps.length) DR_PICK = ps[0].id;
+  }
+  renderDreamChips();
+  renderDreamCharPanel();
+  showPage("dream");
+}
+
+function dreamPick(pid) {
+  DR_PICK = pid;
+  var tip = document.getElementById("dreamPickTip");
+  if (tip) tip.style.display = "none";
+  renderDreamChips();
+  renderDreamCharPanel();
+}
+
+function renderDreamCharPanel() {
+  var panel = document.getElementById("dreamCharPanel");
+  if (!panel) return;
+  var db = dreamDb();
+  var pid = DR_PICK;
+  if (!pid) { panel.innerHTML = ""; return; }
+  var pa = findPersona(pid);
+  var name = pa ? (pa.name || "角色") : "对方";
+  var o = db.ongoing[pid];
+  var html = "";
+  if (o) {
+    html += '<div class="dream-banner">有一场进行中的梦：与 <b>' + escapeHtml(name) + '</b> · 第 ' + o.turn + ' / ' + o.total + ' 段 · 每一步都已自动保存<div class="btns"><button class="sheet-btn primary" style="flex:1;padding:9px 0" onclick="openDreamPlayUI(\'' + pid + '\')">继续做梦</button><button class="sheet-btn ghost" style="flex:1;padding:9px 0" onclick="endDream(\'' + pid + '\')">结束并存档</button></div></div>';
+    html += '<div class="dream-sec-title">和 ' + escapeHtml(name) + ' 开始一场新梦</div>';
+    html += '<div class="sheet-input-row"><input id="dreamThemeInput" type="text" placeholder="例如：梦见我们回到第一次见面的那天…" autocomplete="off"></div>';
+    html += '<button class="sheet-btn primary dream-go" onclick="startDream()">开始新梦（上一场会自动存档）</button>';
+  } else {
+    html += '<div class="dream-sec-title">和 ' + escapeHtml(name) + ' 一起做梦</div>';
+    html += '<div class="sheet-input-row"><input id="dreamThemeInput" type="text" placeholder="例如：梦见我们回到第一次见面的那天…" autocomplete="off"></div>';
+    html += '<button class="sheet-btn primary dream-go" onclick="startDream()">一起入梦</button>';
+  }
+  var recs = (db.records || []).filter(function(r) { return r.pid === pid; });
+  html += '<div class="dream-sec-title">' + escapeHtml(name) + ' 的梦的存档' + (recs.length ? ' <span class="dream-sec-sub">共 ' + recs.length + ' 场</span>' : '') + '</div>';
+  if (!recs.length) {
+    html += '<div class="rel-desc" style="margin-top:0">和 ' + escapeHtml(name) + ' 还没有存档的梦。无论梦有没有做完，只要开始了就会完整保存下来。</div>';
+  } else {
+    html += recs.map(function(r, i) {
+      var id = dreamRecId(r, i);
+      var st = dreamRecText(r);
+      var prev = st.slice(0, 110) + (st.length > 110 ? "……" : "");
+      var tag = dreamRecDone(r) ? "" : ' <span class="dr-tag" style="color:#e07a5f;font-size:11px">未做完</span>';
+      var meta = dreamFmt(r.doneAt || r.time) + (r.theme ? " · " + escapeHtml(r.theme) : "");
+      return '<div class="dream-rec" onclick="openDreamRec(\'' + id + '\')"><div class="t">与 ' + escapeHtml(r.name || name) + ' 的梦' + tag + '</div><div class="m">' + meta + "</div><div class=\"m\">" + escapeHtml(prev) + "</div></div>";
+    }).join("");
+  }
+  panel.innerHTML = html;
+}
+
+function startDream() {
+  var pid = DR_PICK;
+  var tip = document.getElementById("dreamPickTip");
+  if (!pid) { if (tip) tip.style.display = "block"; return; }
+  var pa = findPersona(pid);
+  if (!pa) { dreamTip("角色不存在，请重新选择。"); return; }
+  if (!isConnected("chat")) {
+    dreamTip("角色还未接入对话模型，暂时无法入梦。去设置里配置 API 后就能玩啦~");
+    return;
+  }
+  var db = dreamDb();
+  var old = db.ongoing[pid];
+  if (old) {
+    finishDreamObj(old);
+    toast("上一场与 " + pa.name + " 的梦已先完整存档");
+  }
+  var theme = dreamThemeText();
+  var total = 3 + Math.floor(Math.random() * 4); // 3~6
+  var A = { id: "dr_" + Date.now().toString(36), pid: pa.id, name: pa.name, total: total, turn: 0, hist: [], theme: theme, time: Date.now() };
+  db.ongoing[pa.id] = A;
+  DB._dreamCur = pa.id;
+  save();
+  var th = document.getElementById("dreamThemeInput");
+  if (th) th.value = "";
+  if (tip) tip.style.display = "none";
+  openDreamPlayUI(pa.id);
+  dreamAppendLoading();
+  callDream().then(function(reply) {
+    removeDreamLoading();
+    var db2 = dreamDb();
+    var A2 = db2.ongoing[pid];
+    if (!A2 || A2.id !== A.id) return;
+    A2.hist.push({ role: "assistant", content: reply, time: Date.now() });
+    A2.turn += 1;
+    save();
+    dreamAppendNarr(reply, A2.hist.length - 1);
+    dreamSyncState();
+    if (A2.turn >= A2.total) {
+      finishDreamObj(A2);
+      dreamAppendTip("—— 梦自然醒了。整场梦已存入 TA 的梦的存档，TA 记得梦里的画面。");
+      dreamSyncState();
+    }
+  }).catch(function(err) {
+    removeDreamLoading();
+    var db3 = dreamDb();
+    if (db3.ongoing[pid] && db3.ongoing[pid].id === A.id) {
+      delete db3.ongoing[pid];
+      if (DB._dreamCur === pid) DB._dreamCur = "";
+      save();
+    }
+    dreamAppendTip("入梦失败：" + (err && err.message ? err.message : "未知错误"));
+  });
+}
+
+function openDreamPlayUI(pid) {
+  pid = pid || DR_PICK || DB._dreamCur;
+  if (!pid) { openDreamPage(); return; }
+  var A = dreamOngoing(pid);
+  if (!A) { openDreamPage(); return; }
+  DB._dreamCur = pid;
+  save();
+  var pa = findPersona(pid);
+  var nm = A.name || (pa && pa.name) || "角色";
+  document.getElementById("dpName").textContent = nm + " 的梦境";
+  document.getElementById("dpState").textContent = "梦中 · 第 " + A.turn + " / " + A.total + " 段";
+  var body = document.getElementById("dreamBody");
+  if (body) {
+    body.innerHTML = "";
+    A.hist.forEach(function(m, i) {
+      if (m.role === "user") dreamAppendMe(m.content, i);
+      else dreamAppendNarr(m.content, i);
+    });
+  }
+  showPage("dreamplay");
+}
+
+function dreamSyncState() {
+  var A = dreamActive();
+  var st = document.getElementById("dpState");
+  if (!A) { if (st) st.textContent = "梦醒了 · TA 记得这场梦"; return; }
+  document.getElementById("dpName").textContent = (A.name || "角色") + " 的梦境";
+  if (st) st.textContent = "梦中 · 第 " + A.turn + " / " + A.total + " 段";
+}
+
+function sendDream() {
+  var input = document.getElementById("dreamInput");
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  var A = dreamActive();
+  if (!A) { dreamAppendTip("这场梦已经醒了。"); return; }
+  if (!isConnected("chat")) { dreamAppendTip("角色还未接入对话模型，暂时无法继续这场梦。"); return; }
+  A.hist.push({ role: "user", content: text, time: Date.now() });
+  save();
+  dreamAppendMe(text, A.hist.length - 1);
+  dreamAppendLoading();
+  callDream().then(function(reply) {
+    removeDreamLoading();
+    var A2 = dreamActive();
+    if (!A2) return;
+    A2.hist.push({ role: "assistant", content: reply, time: Date.now() });
+    A2.turn += 1;
+    save();
+    dreamAppendNarr(reply, A2.hist.length - 1);
+    dreamSyncState();
+    if (A2.turn >= A2.total) {
+      finishDreamObj(A2);
+      dreamAppendTip("—— 梦自然醒了。整场梦已存入 TA 的梦的存档，TA 记得梦里的画面。");
+      dreamSyncState();
+    }
+  }).catch(function(err) {
+    removeDreamLoading();
+    dreamAppendTip("生成失败：" + (err && err.message ? err.message : "未知错误"));
+  });
+}
+
+function finishDreamObj(A) {
+  if (!A) return;
+  var db = dreamDb();
+  delete db.ongoing[A.pid];
+  if (DB._dreamCur === A.pid) DB._dreamCur = "";
+  var pa = findPersona(A.pid);
+  var story = dreamRecText(A);
+  if (story) {
+    var short = story.length > 480 ? story.slice(0, 480) + "……" : story;
+    var mem = "你和玩家一起做过一场梦（" + dreamFmt(A.time) + "），那是你们共同经历的梦：" + short + "。醒来后你还记得梦里的画面和情绪，记得是和你眼前这个人一起做的。";
+    addMemorySourceFor(pa, "dream", mem);
+  }
+  db.records.unshift({
+    id: A.id || ("dr_" + Date.now().toString(36)),
+    pid: A.pid,
+    name: A.name || (pa ? pa.name : "角色"),
+    theme: A.theme || "",
+    time: A.time,
+    doneAt: Date.now(),
+    turn: A.turn || 0,
+    total: A.total || 0,
+    finish: A.turn >= A.total,
+    story: (A.hist || []).slice()
+  });
+  if (db.records.length > 60) db.records = db.records.slice(0, 60);
+  save();
+}
+
+function endDream(pid) {
+  var A = pid ? dreamOngoing(pid) : dreamActive();
+  if (!A) { openDreamPage(); return; }
+  var has = A.hist && A.hist.length;
+  finishDreamObj(A);
+  if (has) toast("梦已结束并存档，TA 记得这场梦");
+  else toast("已结束这场空梦");
+  openDreamPage();
+}
+
+function openDreamRec(id) {
+  var db = dreamDb();
+  var recs = db.records || [];
+  var r = null;
+  var idx = -1;
+  for (var i = 0; i < recs.length; i++) {
+    if (dreamRecId(recs[i], i) === String(id)) { r = recs[i]; idx = i; break; }
+  }
+  if (!r && !isNaN(Number(id))) { r = recs[Number(id)]; }
+  if (!r) return;
+  var flag = dreamRecDone(r) ? "" : "（这场梦没做完）";
+  document.getElementById("dreamRecTitle").textContent = "与 " + r.name + " 的梦 · " + dreamFmt(r.doneAt || r.time) + (flag ? " " + flag : "");
+  var box = document.getElementById("dreamRecDetail");
+  box.innerHTML = "";
+  (r.story || []).forEach(function(m) {
+    var d = document.createElement("div");
+    if (m.role === "user") {
+      d.className = "dream-me";
+      d.innerHTML = '<div class="ob"><span class="ob-tag">你在梦里</span>' + escapeHtml(m.content) + "</div>";
+    } else {
+      d.className = "dream-narr";
+      d.textContent = m.content;
+    }
+    box.appendChild(d);
+  });
+  box.scrollTop = 0;
+  document.getElementById("dreamRecMask").style.display = "flex";
+}
+
+function closeDreamRec() {
+  document.getElementById("dreamRecMask").style.display = "none";
+}
+
+function dreamTip(msg) {
+  var tip = document.getElementById("dreamTip");
+  if (!tip) return;
+  tip.textContent = msg;
+  tip.style.display = "block";
+}
+
+function callDream() {
+  return new Promise(function(resolve, reject) {
+    var A = dreamActive();
+    if (!A) return reject(new Error("没有进行中的梦"));
+    var p = activePlan("chat");
+    if (!p || !p.baseUrl || !p.apiKey) return reject(new Error("未接入对话模型"));
+    var pa = findPersona(A.pid);
+    if (!pa) return reject(new Error("角色不存在"));
+    var sys = "";
+    if (pa.system) sys += pa.system + "\n";
+    sys += "角色名：" + (pa.name || "") + "；说话风格：" + (pa.style || "自然") + "。";
+    sys += buildWorldBooks(pa);
+    var me = meProfile();
+    if (me && (me.nickname || me.wangname || me.intro || me.persona)) {
+      sys += "\n【关于“我”——你必须读取的用户档案】";
+      if (me.nickname) sys += "\n- 称呼：" + me.nickname;
+      if (me.wangname) sys += "\n- 网名：" + me.wangname;
+      if (me.intro) sys += "\n- 简介：" + me.intro;
+      if (me.persona) sys += "\n- 人设面具：" + me.persona;
+    }
+    if (isMaskChat()) {
+      var idt = DB.currentIdentity;
+      var mk = idt && findMask ? findMask(idt.maskId) : null;
+      if (mk && mk.name) sys += "\n【身份提示】玩家此刻正以 TA 的小号「" + mk.name + "」的身份与你相处。";
+    }
+    sys += buildMemoryInject(pa);
+    var cur = A.turn + 1;
+    var total = A.total || 5;
+    var isLast = cur >= total;
+    sys += "\n\n【梦境模式·共同做梦】你现在正和玩家共同经历一场梦（这不是普通聊天，不是线下叙事，也不是 IF 线）。这是一场真实的、你们一起做的短梦。";
+    sys += "\n- 这场梦一共 " + total + " 个片段，当前写到第 " + cur + " 段。" + (isLast ? "这是最后一段：请让梦自然醒来——画面逐渐模糊、光线漫进来、你们回到现实，TA 还能记得梦里那些画面和一起经历过的人与情绪，不必解释太多。" : "不要在这一段强行醒来，给梦境留一点悬念或画面，让玩家能在梦里继续回应。");
+    if (A.theme) sys += "\n- 【梦的种子】玩家希望梦见：" + A.theme + "。请把这颗种子自然地织进梦里，不要生硬报题。";
+    sys += "\n- 每次输出一大段连贯、有画面感的梦境文字（450~1000字），允许超现实、跳跃、荒诞与隐喻；但角色依然是角色本人，若角色在梦里开口说话，就保持 TA 的口吻。";
+    sys += "\n- 梦的素材可以从你们真实相处与记忆里长出来（过去的事、说过的话、共同的经历），也可以完全天马行空。";
+    sys += "\n- 用旁白式的第三人称+角色视角交错描写，把玩家的输入自然织进梦里，不要复读玩家的原话。";
+    var url = p.baseUrl.replace(/\/+$/, "") + "/chat/completions";
+    var ac = new AbortController();
+    var timer = setTimeout(function() { ac.abort(); }, 90000);
+    var messages = A.hist.map(function(m) {
+      return { role: m.role === "user" ? "user" : "assistant", content: m.content };
+    });
+    fetch(url, { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + p.apiKey }, body: JSON.stringify({ model: p.model || "gpt-3.5-turbo", messages: [{ role: "system", content: sys }].concat(messages), temperature: 0.95 }) }).then(function(res) {
+      clearTimeout(timer);
+      if (!res.ok) {
+        return res.text().then(function(t) {
+          reject(new Error("HTTP " + res.status + " " + (t ? t.slice(0, 80) : "")));
+        });
+      }
+      return res.json();
+    }).then(function(data) {
+      if (data && data.choices && data.choices.length && data.choices[0].message) resolve(data.choices[0].message.content);
+      else reject(new Error("返回格式异常"));
+    }).catch(function(e) {
+      clearTimeout(timer);
+      if (e && e.name === "AbortError") reject(new Error("请求超时（90s），请检查网络或 Base URL"));
+      else reject(e);
+    });
+  });
+}
+function dreamAppendLoading() {
+  var body = document.getElementById("dreamBody");
+  if (!body) return;
+  var d = document.createElement("div");
+  d.className = "dream-narr";
+  d.id = "dreamLoading";
+  d.textContent = "梦里正在生成画面…";
+  d.style.opacity = ".55";
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+function removeDreamLoading() {
+  var d = document.getElementById("dreamLoading");
+  if (d) d.remove();
+}
+function dreamAppendNarr(text, idx) {
+  var body = document.getElementById("dreamBody");
+  if (!body) return;
+  var d = document.createElement("div");
+  d.className = "dream-narr";
+  d.textContent = text;
+  if (idx !== void 0) d.setAttribute("data-idx", idx);
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+function dreamAppendMe(text, idx) {
+  var body = document.getElementById("dreamBody");
+  if (!body) return;
+  var d = document.createElement("div");
+  d.className = "dream-me";
+  if (idx !== void 0) d.setAttribute("data-idx", idx);
+  d.innerHTML = '<div class="ob"><span class="ob-tag">你在梦里</span>' + escapeHtml(text) + "</div>";
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+function dreamAppendTip(text) {
+  var body = document.getElementById("dreamBody");
+  if (!body) return;
+  var d = document.createElement("div");
+  d.className = "sys-tip";
+  d.textContent = text;
+  body.appendChild(d);
+  body.scrollTop = body.scrollHeight;
+}
+function openDreamHelp() {
+  document.getElementById("dreamHelpMask").style.display = "flex";
+}
+function closeDreamHelp() {
+  document.getElementById("dreamHelpMask").style.display = "none";
+}
+
 </script>
 
 
