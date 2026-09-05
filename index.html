@@ -25,7 +25,11 @@
     } catch (e) {}
   }
   window.addEventListener('error', function (ev) { show(ev.message || 'Script error', ev.error && ev.error.stack ? ev.error.stack : ''); });
-  window.addEventListener('unhandledrejection', function (ev) { show('Promise 未处理错误: ' + (ev && ev.reason ? (ev.reason.message || ev.reason) : ev), ''); });
+  window.addEventListener('unhandledrejection', function (ev) {
+    var rmsg = ev && ev.reason ? (ev.reason.message || ev.reason) : ev;
+    if (rmsg && String(rmsg).indexOf('screen.orientation.lock') !== -1) return;
+    show('Promise 未处理错误: ' + rmsg, '');
+  });
 })();
 </script>
 <style>
@@ -2905,7 +2909,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     var ls = isLandscape();
     mask.style.display = ls ? 'flex' : 'none';
     if(!ls && window.screen && screen.orientation && screen.orientation.lock){
-      try{ screen.orientation.lock('portrait'); }catch(e){}
+      try{ var lp = screen.orientation.lock('portrait'); if(lp && lp['catch']){ lp['catch'](function(){}); } }catch(e){}
     }
   }
   window.addEventListener('orientationchange', apply);
