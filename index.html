@@ -15896,7 +15896,10 @@ function closeDreamHelp() {
     box.innerHTML = ps.map(function (p) {
       var av = "";
       try { av = personaAvatarUrl(p); } catch (e) {}
-      return '<div class="jy-char-item" onclick="jy61StartWith(\'' + String(p.id).replace(/'/g, "") + '\')"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc(p.name || "角色") + '</div><div class="pick-desc">' + esc(p.intro || "") + "</div></div></div>";
+      var ok = false;
+      try { ok = jy62CanApi(p); } catch (e) {}
+      var tag = ok ? "" : ' <span style="color:#c0392b;font-size:11px">未接模型·不可开局</span>';
+      return '<div class="jy-char-item' + (ok ? "" : " off") + '"' + (ok ? ' onclick="jy61StartWith(\'' + String(p.id).replace(/'/g, "") + '\')"' : '') + '><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc(p.name || "角色") + tag + '</div><div class="pick-desc">' + (ok ? esc(p.intro || "") : "该角色还没配置模型 API，不能参与需要 AI 决策的对局") + "</div></div></div>";
     }).join("");
   }
 
@@ -15904,6 +15907,9 @@ function closeDreamHelp() {
     var pa = null;
     try { pa = findPersona(pid); } catch (e) {}
     if (!pa) { toast61("未找到该角色"); return; }
+    var __pl61 = null;
+    try { __pl61 = personaPlan(pa); } catch (e) {}
+    if (!(__pl61 && __pl61.baseUrl && __pl61.apiKey)) { toast61("「" + pa.name + "」还没接入模型 API，去「人设档案」配置好才能对弈"); return; }
     var m = document.getElementById("jyCharMask");
     if (m) m.style.display = "none";
     JY61.pid = pid;
@@ -16152,6 +16158,19 @@ function closeDreamHelp() {
     return lines.join("\n");
   }
 
+  function jy61ApiFail() {
+    var tip = document.getElementById("jyTurnTip");
+    if (!tip) return;
+    var g = JY61.mode === "xiangqi" ? "象棋" : JY61.mode === "gomoku" ? "五子棋" : "棋局";
+    tip.innerHTML = "TA 那边没回应（可能断线了），点重试让 TA 重新思考： <button class=\"jy-small-btn\" style=\"margin-left:8px;vertical-align:middle\" onclick=\"window.__jy61RetryG && window.__jy61RetryG()\">让 TA 重试</button>";
+  }
+  window.__jy61RetryG = function () {
+    if (!JY61 || JY61.over) return;
+    var tip = document.getElementById("jyTurnTip");
+    if (tip) tip.textContent = "TA 重新思考中…";
+    if (JY61.mode === "gomoku") { try { jyG5AiTurn(); } catch (e) {} }
+    else if (JY61.mode === "xiangqi") { try { jyXqAiTurn(); } catch (e) {} }
+  };
   function jyG5AiTurn() {
     var tip = document.getElementById("jyTurnTip");
     if (tip) tip.textContent = partnerName61() + " 思考中…";
@@ -16162,8 +16181,7 @@ function closeDreamHelp() {
       canApi = !!(pa && pl && pl.baseUrl && pl.apiKey);
     } catch (e) {}
     var done = function (mv) {
-      if (!mv) mv = jyG5LocalAi();
-      if (!mv) return;
+      if (!mv) { jy61ApiFail(); return; }
       if (JY61.over || G5.turn !== "ai") return;
       G5.board[mv[1]][mv[0]] = 2;
       JY61.round++;
@@ -16177,7 +16195,7 @@ function closeDreamHelp() {
       var tip2 = document.getElementById("jyTurnTip");
       if (tip2) tip2.textContent = "轮到你落子（黑子）";
     };
-    if (!canApi) { setTimeout(function(){ done(null); }, 260); return; }
+    if (!canApi) { jy61ApiFail(); return; }
     var prompt = "你正在和玩家下五子棋，你执白(O)，玩家执黑(X)。当前棋盘（15x15，从上到下第1行到第15行，每行 '.'=空、'X'=玩家、'O'=你）：\n" + jyG5BoardText() + "\n现在轮到你落子。请只回复一个你选择落子的坐标，格式为「列,行」，列0-14从左到右，行0-14从上到下。不要解释。";
     callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
       var mv = null;
@@ -16492,8 +16510,7 @@ function closeDreamHelp() {
         var n = parseInt(idx, 10);
         if (!isNaN(n) && n >= 1 && n <= legal.length) mv = legal[n - 1];
       }
-      if (!mv) mv = xqLocalAi(XQ.board, "black");
-      if (!mv) { jy61EndGame("me", "TA无子可走，你赢了。"); return; }
+      if (!mv) { jy61ApiFail(); return; }
       var fromCh = XQ.board[mv[0]][mv[1]];
       var toCh = XQ.board[mv[2]][mv[3]];
       XQ.board[mv[2]][mv[3]] = fromCh;
@@ -16506,7 +16523,7 @@ function closeDreamHelp() {
       var tip = document.getElementById("jyTurnTip");
       if (tip) tip.textContent = "轮到你走棋（红方）";
     };
-    if (!canApi) { setTimeout(function () { done(null); }, 240); return; }
+    if (!canApi) { jy61ApiFail(); return; }
     var cands = legal.map(function (m, i) {
       return (i + 1) + ": (" + m[2] + "," + m[3] + ")";
     }).join(" ");
@@ -16957,7 +16974,9 @@ function closeDreamHelp() {
     { id: "gomoku", name: "五子棋", tag: "双人 · 已开放", cls: "green", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="9" r="2"/><circle cx="19" cy="9" r="2"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/><circle cx="12" cy="20" r="2"/><path d="M5 9h14M8 16l-3-7M16 16l3-7M8 16l2.5 2.5M16 16l-2.5 2.5"/></svg>' },
     { id: "xiangqi", name: "象棋", tag: "双人 · 已开放", cls: "red", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M4 15h16M9 4v16M15 4v16"/><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="9" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="15" r="1.4"/><circle cx="12" cy="19" r="1.4"/><path d="M12 9l-3-4M12 9l3-4M12 15l-3 4M12 15l3 4"/></svg>' },
     { id: "mahjong", name: "麻将", tag: "多人 · 已开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="9" height="12" rx="1.5"/><path d="m6 6 3 3M6 9l3-3"/><rect x="12" y="9" width="9" height="12" rx="1.5"/><path d="M15 12v3M16.5 13.5h-3"/></svg>' },
-    { id: "wolf", name: "狼人杀", tag: "多人 · 已开放", cls: "dark", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M12 4c2.5-1.8 6-1 8 .8-1.8 1-2.6 2.7-2.7 4.5C20 11 20 14 18 17l-2-2-1 3c-1 .6-3 .6-4 0l-1-3-2 2c-2-3-2-6-.3-7.7-.1-1.8-1-3.5-2.7-4.5C6 3 9.5 2.2 12 4Z"/><circle cx="9.5" cy="11" r=".9" fill="currentColor"/><circle cx="14.5" cy="11" r=".9" fill="currentColor"/></svg>' }
+    { id: "wolf", name: "狼人杀", tag: "多人 · 已开放", cls: "dark", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M12 4c2.5-1.8 6-1 8 .8-1.8 1-2.6 2.7-2.7 4.5C20 11 20 14 18 17l-2-2-1 3c-1 .6-3 .6-4 0l-1-3-2 2c-2-3-2-6-.3-7.7-.1-1.8-1-3.5-2.7-4.5C6 3 9.5 2.2 12 4Z"/><circle cx="9.5" cy="11" r=".9" fill="currentColor"/><circle cx="14.5" cy="11" r=".9" fill="currentColor"/></svg>' },
+    { id: "chess", name: "国际象棋", tag: "双人 · 已开放", cls: "red", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 9h16M4 13h16M9 5v14M15 5v14"/><path d="M12 3.2c-.9 0-1.3.7-1.3 1.4 0 .8.6 1 1.3 1s1.3-.2 1.3-1c0-.7-.4-1.4-1.3-1.4Z"/></svg>' },
+    { id: "gold", name: "黄金矿工", tag: "双人 · 已开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 20h16M6 20V8h12v12"/><circle cx="12" cy="6.6" r="1.2"/><path d="M4 8h16l-1.4-3.4H5.4z"/><path d="M9 20v-4h2v4M13 20v-4h2v4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="4.5" r=".7" fill="currentColor" stroke="none"/></svg>' }
   ];
   window.HALL62 = HALL62;
 
@@ -17026,7 +17045,7 @@ function closeDreamHelp() {
       maskBtn.textContent = "玩家：" + nm;
     }
     var note = document.getElementById("jyHallNote");
-    if (note) note.textContent = "五子棋/象棋双人开黑，麻将 4 人桌、狼人杀 5 人局可拉其他角色与 NPC 好友入场，边玩边聊都会记入大家的记忆。";
+    if (note) note.textContent = "五子棋/象棋/国际象棋可和 TA 双人对弈，黄金矿工和 TA 比赛挖矿，麻将 4 人桌、狼人杀 5 人局可拉好友入场。所有棋牌均由模型 API 驱动对弈决策，未接入模型的角色不能入场。边玩边聊都会记入大家的记忆。";
   }
   window.jy62RenderHall = jy62RenderHall;
 
@@ -17040,6 +17059,14 @@ function closeDreamHelp() {
     if (id === "gomoku" || id === "xiangqi") {
       if (typeof jy61PickGame === "function") { jy61PickGame(id); return; }
       toast62("请从旧版入口游玩双人对局");
+      return;
+    }
+    if (id === "chess" || id === "gold") {
+      JY62.hostId = null;
+      JY62.friends = [];
+      jy62RenderHostPick();
+      var m2 = document.getElementById("jy62CharMask");
+      if (m2) m2.style.display = "flex";
       return;
     }
     JY62.hostId = null;
@@ -17067,7 +17094,10 @@ function closeDreamHelp() {
     box.innerHTML = ps.map(function (p) {
       var av = "";
       try { av = personaAvatarUrl(p); } catch (e) {}
-      return '<div class="jy-char-item" onclick="jy62PickHost(\'' + String(p.id).replace(/'/g, "") + '\')"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc62(p.name || "角色") + '</div><div class="pick-desc">' + esc62(p.intro || "") + "</div></div></div>";
+      var ok = false;
+      try { ok = jy62CanApi(p); } catch (e) {}
+      var tag = ok ? "" : ' <span style="color:#c0392b;font-size:11px">未接模型·不可开局</span>';
+      return '<div class="jy-char-item' + (ok ? "" : " off") + '"' + (ok ? ' onclick="jy62PickHost(\'' + String(p.id).replace(/'/g, "") + '\')"' : '') + '><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc62(p.name || "角色") + tag + '</div><div class="pick-desc">' + (ok ? esc62(p.intro || "") : "该角色还没配置模型 API，不能参与需要 AI 决策的对局") + "</div></div></div>";
     }).join("");
   }
 
@@ -17075,8 +17105,10 @@ function closeDreamHelp() {
     var pa = null;
     try { pa = findPersona(pid); } catch (e) {}
     if (!pa) { toast62("未找到该角色"); return; }
+    if (!jy62CanApi(pa)) { toast62("「" + (pa.name || "该角色") + "」还没接入模型 API，去「人设档案」配置后才能开局"); return; }
     JY62.hostId = pid;
     jy62CloseCharMask();
+    if (JY62.mode === "chess" || JY62.mode === "gold") { jy62StartDuo(); return; }
     jy62RenderFriendPick();
     var m = document.getElementById("jy62FriendMask");
     if (m) m.style.display = "flex";
@@ -17127,6 +17159,12 @@ function closeDreamHelp() {
   function jy62NeedFriends() {
     return JY62.mode === "mahjong" ? 2 : 3;
   }
+  function jy62FriendPlayable(c) {
+    if (!c || !c.pa) return false;
+    try { return jy62CanApi(c.pa); } catch (e) { return false; }
+  }
+  window.jy62FriendPlayable = jy62FriendPlayable;
+
   function jy62RenderFriendPick() {
     var box = document.getElementById("jy62FriendList");
     if (!box) return;
@@ -17134,16 +17172,20 @@ function closeDreamHelp() {
     var cands = jy62FriendCandidates();
     var hint = document.getElementById("jy62FriendHint");
     var gname = JY62.mode === "mahjong" ? "麻将（4人桌）" : "狼人杀（5人局）";
-    if (hint) hint.innerHTML = "你正和 <b>" + esc62(JY62.hostId ? (findPersona(JY62.hostId) || {}).name || "TA" : "TA") + "</b> 一起玩" + gname + "，还差 <b>" + need + "</b> 位朋友，可从你的其他角色 / NPC 好友里拉人入场：";
+    if (hint) hint.innerHTML = "你正和 <b>" + esc62(JY62.hostId ? (findPersona(JY62.hostId) || {}).name || "TA" : "TA") + "</b> 一起玩" + gname + "，还差 <b>" + need + "</b> 位朋友。<span style='color:#c0392b'>对局 AI 决策全部走模型 API，只有接入模型 API 的角色能入场（NPC 无法入场）。</span>";
     if (!cands.length) {
-      box.innerHTML = '<div class="pick-empty">还没有可拉的朋友，去「人设档案」添加更多角色或 NPC 吧。</div>';
+      box.innerHTML = '<div class="pick-empty">还没有可拉的朋友，去「人设档案」添加更多已接入模型 API 的角色吧。</div>';
       var go = document.getElementById("jy62FriendGo");
       if (go) { go.disabled = true; go.textContent = "好友不足"; }
       return;
     }
     box.innerHTML = cands.map(function (c, i) {
       var av = c.avatar || "";
-      return '<div class="jy-char-item" data-fk="' + c.key + '" onclick="jy62ToggleFriend(this,\'' + c.key + '\')"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc62(c.name) + (c.kind === "npc" ? ' <span style="opacity:.55;font-size:11px">(NPC)</span>' : "") + "</div><div class=\"pick-desc\">" + (c.pa && c.pa.intro ? esc62(c.pa.intro) : c.n && c.n.intro ? esc62(c.n.intro) : "") + '</div></div><span class="jy62-fk-check">＋</span></div>';
+      var ok = jy62FriendPlayable(c);
+      var tag = "";
+      if (!ok) tag = ' <span style="color:#c0392b;font-size:11px">未接模型·不可入场</span>';
+      else if (c.kind === "npc") tag = ' <span style="opacity:.55;font-size:11px">(NPC)</span>';
+      return '<div class="jy-char-item' + (ok ? "" : " off") + '" data-fk="' + c.key + '"' + (ok ? ' onclick="jy62ToggleFriend(this,\'' + c.key + '\')"' : '') + '"><img class="avatar" src="' + av + '" alt=""><div class="pick-main"><div class="pick-name">' + esc62(c.name) + tag + "</div><div class=\"pick-desc\">" + (ok && c.pa && c.pa.intro ? esc62(c.pa.intro) : !ok ? "该角色还没配置模型 API，无法参与需要 AI 决策的对局" : c.n && c.n.intro ? esc62(c.n.intro) : "") + '</div></div><span class="jy62-fk-check">＋</span></div>';
     }).join("");
     var go = document.getElementById("jy62FriendGo");
     if (go) { go.disabled = true; go.textContent = "选择 " + need + " 位朋友"; }
@@ -17152,6 +17194,12 @@ function closeDreamHelp() {
 
   function jy62ToggleFriend(el, key) {
     var need = jy62NeedFriends();
+    var c = null;
+    try {
+      var cs = jy62FriendCandidates();
+      for (var i = 0; i < cs.length; i++) if (cs[i].key === key) { c = cs[i]; break; }
+    } catch (e) {}
+    if (!jy62FriendPlayable(c)) { toast62("这个角色还没接入模型 API，不能入场对局"); return; }
     var has = JY62.friends.indexOf(key);
     if (has > -1) {
       JY62.friends.splice(has, 1);
@@ -17180,6 +17228,25 @@ function closeDreamHelp() {
     return arr;
   }
 
+  function jy62StartDuo() {
+    var hostPa = jy62HostPa();
+    if (!hostPa) { toast62("未找到主角色"); return; }
+    if (!jy62CanApi(hostPa)) { toast62("「" + hostPa.name + "」还没接入模型 API，去「人设档案」配置后才能开局"); return; }
+    JY62.over = false;
+    JY62.startedAt = Date.now();
+    JY62.chatHist = [];
+    jy62CloseFriendMask();
+    var titleEl = document.getElementById("jy62GameTitle");
+    var subEl = document.getElementById("jy62GameSub");
+    if (JY62.mode === "chess") { if (titleEl) titleEl.textContent = "国际象棋"; if (subEl) subEl.textContent = hostPa.name + " · 你执白先行，TA执黑"; }
+    else if (JY62.mode === "gold") { if (titleEl) titleEl.textContent = "黄金矿工 · 双人"; if (subEl) subEl.textContent = hostPa.name + " 和你比赛挖矿，限时比拼"; }
+    showPage("jyGame62");
+    jy62BallShow(true);
+    if (JY62.mode === "chess") { if (window.jy68ChessStart) window.jy68ChessStart(); }
+    else if (JY62.mode === "gold") { if (window.jy68GoldStart) window.jy68GoldStart(); }
+  }
+  window.jy62StartDuo = jy62StartDuo;
+
   function jy62StartMulti() {
     var need = jy62NeedFriends();
     if (JY62.friends.length !== need) { toast62("还差 " + (need - JY62.friends.length) + " 位朋友"); return; }
@@ -17187,6 +17254,19 @@ function closeDreamHelp() {
     try { hostPa = findPersona(JY62.hostId); } catch (e) {}
     if (!hostPa) { toast62("未找到主角色"); return; }
     var friends = jy62ResolveFriends();
+    var noApi = [];
+    if (!jy62CanApi(hostPa)) noApi.push(hostPa.name || "TA");
+    friends.forEach(function (f) {
+      if (!f.pa || !jy62CanApi(f.pa)) noApi.push((f.name || "某位朋友") + (f.kind === "npc" ? "(NPC)" : ""));
+    });
+    if (noApi.length) {
+      toast62("无法开局：以下玩家没接入模型 API：" + noApi.join("、"));
+      jy62CloseFriendMask();
+      jy62RenderFriendPick();
+      var mm = document.getElementById("jy62FriendMask");
+      if (mm) mm.style.display = "flex";
+      return;
+    }
     jy62CloseFriendMask();
     JY62.over = false;
     JY62.startedAt = Date.now();
@@ -17213,6 +17293,7 @@ function closeDreamHelp() {
     JY62.over = true;
     try { if (typeof jy62MjAbortAll === "function") jy62MjAbortAll(); } catch (e) {}
     try { if (typeof jy62WolfAbortAll === "function") jy62WolfAbortAll(); } catch (e) {}
+    try { if (window.jy68AbortAll) window.jy68AbortAll(); } catch (e) {}
     jy62BallShow(false);
     jy62CloseChat();
     jy62CloseCharMask();
@@ -17257,19 +17338,16 @@ function closeDreamHelp() {
   window.jy62CanApi = jy62CanApi;
 
   function jy62SayFor(actor, prompt, localTexts) {
-    // 返回 Promise<string>；能 API 则请求，失败/无则本地随机文案
-    return new Promise(function (resolve) {
+    // 硬性 API：无 API / 失败均拒绝，绝不本地兜底
+    return new Promise(function (resolve, reject) {
       var pa = actor && actor.pa ? actor.pa : null;
-      if (pa && jy62CanApi(pa) && typeof callChat === "function") {
-        var timer = setTimeout(function () { resolve(jy62LocalSay(localTexts)); }, 20000);
-        callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
-          clearTimeout(timer);
-          if (txt && String(txt).trim().length > 1 && String(txt).length < 400) resolve(String(txt).trim());
-          else resolve(jy62LocalSay(localTexts));
-        }).catch(function () { clearTimeout(timer); resolve(jy62LocalSay(localTexts)); });
-      } else {
-        resolve(jy62LocalSay(localTexts));
-      }
+      if (!pa || !jy62CanApi(pa) || typeof callChat !== "function") { reject(new Error("该角色未接入模型 API")); return; }
+      var timer = setTimeout(function () { reject(new Error("TA 响应超时")); }, 25000);
+      callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+        clearTimeout(timer);
+        if (txt && String(txt).trim().length > 1 && String(txt).length < 400) resolve(String(txt).trim());
+        else reject(new Error("TA 没有有效回应"));
+      }).catch(function (e) { clearTimeout(timer); reject(e); });
     });
   }
   window.jy62SayFor = jy62SayFor;
@@ -17387,6 +17465,95 @@ function closeDreamHelp() {
 (function () {
   if (window.__jy62MjInited) return;
   window.__jy62MjInited = true;
+
+  // ==== v68 强制 API：麻将所有 AI 自主行为（打牌/碰/杠）都走模型 API ====
+  var mjRetry = null;
+  window.jy62MjRetry = function () { var f = mjRetry; mjRetry = null; if (f) { try { f(); } catch (e) {} } };
+  function mjApiAsk(seat, prompt) {
+    return new Promise(function (res, rej) {
+      var pa = S && S.actors[seat] && S.actors[seat].pa ? S.actors[seat].pa : null;
+      if (!pa || !window.jy68CanApi || !window.jy68CanApi(pa)) { rej(new Error("未接入模型 API")); return; }
+      if (!window.jy68AI) { rej(new Error("系统错误")); return; }
+      window.jy68AI(pa, prompt).then(res).catch(rej);
+    });
+  }
+  function mjApiFail(tip) {
+    if (!S) return;
+    S.state = "apiwait";
+    S.message = tip || "网络中断，TA 没有回应";
+    mjRender();
+    var actions = document.getElementById("mjActions");
+    if (actions) actions.innerHTML = '<div class="mj-tip">' + (tip || "TA 那边没回应…") + '</div><div class="mj-btn-row"><button class="jy-small-btn" onclick="jy62MjRetry()">重试</button><button class="jy-small-btn gray" onclick="jy62ExitGame()">结束游戏</button></div>';
+  }
+  function mjParseTile(hand, txt) {
+    if (!txt) return null;
+    var s = String(txt).trim();
+    if (!s) return null;
+    for (var i = 0; i < hand.length; i++) { if (s === hand[i] || s === tileName(hand[i])) return hand[i]; }
+    var hit = null;
+    for (var j = 0; j < hand.length; j++) {
+      var nm = tileName(hand[j]);
+      if (nm && s.indexOf(nm) > -1) { if (hit) return hand[j]; hit = hand[j]; }
+    }
+    return hit;
+  }
+  function mjHandPrompt(hand) {
+    return hand.map(function (t) { return tileName(t); }).join(" ");
+  }
+  // AI 出牌（摸牌后 / 碰杠后），失败可重试
+  function mjAiDiscardThen(seat) {
+    var token = S.token;
+    var hand = S.hands[seat];
+    var step = function () {
+      if (!S || S.token !== token || S.roundEnd) return;
+      mjRetry = step;
+      var prompt = "你正在和朋友们打麻将，轮到你出牌。你是「" + S.actors[seat].name + "」，手牌：" + mjHandPrompt(hand) + "。请只回复你决定打出的那张牌的名字（必须在你手牌里，如「七万」「三条」「白板」），不要解释任何理由。";
+      mjApiAsk(seat, prompt).then(function (txt) {
+        var out = mjParseTile(hand, txt);
+        if (!out) { mjApiFail(S.actors[seat].name + " 没有从手牌里选牌，重试一次"); return; }
+        var ix = hand.indexOf(out);
+        if (ix > -1) hand.splice(ix, 1);
+        S.last = { seat: seat, tile: out };
+        S.discards[seat].push(out);
+        S.message = S.actors[seat].name + " 打出了" + tileName(out);
+        mjRender();
+        delay(500).then(function () {
+          if (S && S.token === token && !S.roundEnd) mjScanClaims(out, seat);
+        });
+      }).catch(function () { mjApiFail(S.actors[seat].name + " 出牌失败（没连上模型 API）"); });
+    };
+    step();
+  }
+  // 串行问 AI 是否碰/杠（胡已在规则层强制）
+  function mjAskAiClaimChain(tile, aiSeats, fromSeat, after) {
+    var idx = 0;
+    function next() {
+      if (!S || S.roundEnd) return;
+      if (idx >= aiSeats.length) { if (after) after(); return; }
+      var seat = aiSeats[idx++];
+      var c = cnt(S.hands[seat]);
+      var canGang = c[tile] === 3;
+      var canPeng = c[tile] === 2;
+      if (!canGang && !canPeng) { next(); return; }
+      var step = function () {
+        if (!S || S.roundEnd) return;
+        mjRetry = step;
+        var opts = "";
+        if (canGang) opts += "【杠】用你手里的三张" + tileName(tile) + "开杠 ";
+        if (canPeng) opts += "【碰】用你手里的两张" + tileName(tile) + "碰 ";
+        opts += "或【过】";
+        var prompt = "你和朋友们打麻将，上家打出了" + tileName(tile) + "，轮到你是否碰/杠。你是「" + S.actors[seat].name + "」，手牌：" + mjHandPrompt(S.hands[seat]) + "。你可以选择 " + opts + "。请只回复一个词：杠 或 碰 或 过，不要解释。";
+        mjApiAsk(seat, prompt).then(function (txt) {
+          var s = String(txt || "").trim();
+          if (s.indexOf("杠") > -1 && canGang) { doAIClaim(seat, tile, "gang", fromSeat); return; }
+          if (s.indexOf("碰") > -1 && canPeng) { doAIClaim(seat, tile, "peng", fromSeat); return; }
+          next();
+        }).catch(function () { mjApiFail(S.actors[seat].name + " 没回应碰/杠询问"); });
+      };
+      step();
+    }
+    next();
+  }
 
   var SUITS = ["w", "t", "b"];
   var ZI = ["东", "南", "西", "北", "中", "发", "白"];
@@ -17555,7 +17722,7 @@ function closeDreamHelp() {
       if (window.jy62SayFor && hostPa) {
         window.jy62SayFor(actors[1], "我们刚开局打麻将，请用一两句话轻松地开场招呼一下（口语，短）。", ["来来来，都坐好，这把我可要好好赢你一把。", "哈，今天手气感觉不错，你们可别放水啊。", "开局了开局了，输的人请奶茶哦。"]).then(function (txt) {
           if (S && S.token === token && txt) mjChat(1, txt);
-        });
+        }).catch(function () {});
       }
     })();
     setTimeout(function () { if (S && S.token === token) mjDrawAndAct(); }, 600);
@@ -17658,7 +17825,6 @@ function closeDreamHelp() {
       if (!S || S.token !== token || S.roundEnd) return;
       var hand = S.hands[seat];
       if (canWin(hand)) {
-        // 自摸
         S.hands[seat] = hand;
         S.message = S.actors[seat].name + " 自摸！";
         mjRender();
@@ -17667,16 +17833,7 @@ function closeDreamHelp() {
         });
         return;
       }
-      var out = discardSuggest(hand);
-      var idx = hand.indexOf(out);
-      if (idx > -1) hand.splice(idx, 1);
-      S.last = { seat: seat, tile: out };
-      S.discards[seat].push(out);
-      S.message = S.actors[seat].name + " 打出了" + tileName(out);
-      mjRender();
-      delay(500).then(function () {
-        if (S && S.token === token && !S.roundEnd) mjScanClaims(out, seat);
-      });
+      mjAiDiscardThen(seat);
     });
   }
 
@@ -17699,17 +17856,14 @@ function closeDreamHelp() {
       mjRender();
       return;
     }
-    // AI 决策
+    // AI 决策（v68 硬 API）：能胡按规则强制胡；碰/杠由模型 API 逐个决定
     var aiSeats = [1, 2, 3].filter(function (s) { return s !== fromSeat; });
-    // 按回合顺序找胡
     var huSeat = -1;
     for (var i = 0; i < aiSeats.length; i++) {
       var s = aiSeats[i];
       if (canHuWith(S.hands[s], tile)) { huSeat = s; break; }
     }
     if (huSeat > -1) {
-      var outIdx = S.hands[huSeat].indexOf(tile);
-      // 胡需“吃进”此牌：13 张手牌 + 该牌 = 14
       S.hands[huSeat].push(tile);
       S.message = S.actors[huSeat].name + " 胡了！";
       mjRender();
@@ -17718,33 +17872,12 @@ function closeDreamHelp() {
       });
       return;
     }
-    // 杠/碰（顺序从下家起）
-    var claimSeat = -1, claimType = "";
-    for (var j = 0; j < aiSeats.length; j++) {
-      var s2 = aiSeats[j];
-      var c2 = cnt(S.hands[s2]);
-      if (c2[tile] === 3) { claimSeat = s2; claimType = "gang"; break; }
-    }
-    if (claimSeat > -1 && Math.random() < 0.8) {
-      doAIClaim(claimSeat, tile, "gang", fromSeat);
-      return;
-    }
-    for (var k = 0; k < aiSeats.length; k++) {
-      var s3 = aiSeats[k];
-      var c3 = cnt(S.hands[s3]);
-      if (c3[tile] === 2) { claimSeat = s3; claimType = "peng"; break; }
-    }
-    if (claimSeat > -1 && Math.random() < 0.5) {
-      doAIClaim(claimSeat, tile, "peng", fromSeat);
-      return;
-    }
-    mjAdvanceTurn();
+    mjAskAiClaimChain(tile, aiSeats, fromSeat, function () { mjAdvanceTurn(); });
   }
 
   function doAIClaim(seat, tile, type, fromSeat) {
     var token = S.token;
     var hand = S.hands[seat];
-    // 移除两张做碰、三张做杠
     for (var i = 0; i < (type === "peng" ? 2 : 3); i++) {
       var ix = hand.indexOf(tile);
       if (ix > -1) hand.splice(ix, 1);
@@ -17757,7 +17890,6 @@ function closeDreamHelp() {
     delay(700).then(function () {
       if (!S || S.token !== token || S.roundEnd) return;
       if (type === "gang") {
-        // 杠后补一张再打
         if (!S.wall.length) { mjEndGame(null, "流局（牌摸完了）"); return; }
         var t = S.wall.pop();
         S.hands[seat].push(t);
@@ -17766,29 +17898,10 @@ function closeDreamHelp() {
         delay(650).then(function () {
           if (!S || S.token !== token || S.roundEnd) return;
           if (canWin(S.hands[seat])) { S.message = S.actors[seat].name + " 杠上开花自摸！"; mjRender(); delay(700).then(function () { if (S && S.token === token) mjEndGame(seat, "杠上开花"); }); return; }
-          var out = discardSuggest(S.hands[seat]);
-          var ix2 = S.hands[seat].indexOf(out);
-          if (ix2 > -1) S.hands[seat].splice(ix2, 1);
-          S.last = { seat: seat, tile: out };
-          S.discards[seat].push(out);
-          S.message = S.actors[seat].name + " 打出了" + tileName(out);
-          mjRender();
-          delay(450).then(function () {
-            if (S && S.token === token && !S.roundEnd) mjScanClaims(out, seat);
-          });
+          mjAiDiscardThen(seat);
         });
       } else {
-        // 碰后直接打
-        var out2 = discardSuggest(S.hands[seat]);
-        var ix3 = S.hands[seat].indexOf(out2);
-        if (ix3 > -1) S.hands[seat].splice(ix3, 1);
-        S.last = { seat: seat, tile: out2 };
-        S.discards[seat].push(out2);
-        S.message = S.actors[seat].name + " 打出了" + tileName(out2);
-        mjRender();
-        delay(450).then(function () {
-          if (S && S.token === token && !S.roundEnd) mjScanClaims(out2, seat);
-        });
+        mjAiDiscardThen(seat);
       }
     });
   }
@@ -17825,8 +17938,8 @@ function closeDreamHelp() {
     S.message = "你打出了" + tileName(tile);
     mjRender();
     // 检查其他人能不能胡你/碰杠你：简化只处理 AI 胡/碰/杠与下一轮
-    if (mjScanClaimsByAIForMe(tile)) return;
-    mjAdvanceTurn();
+    mjScanClaimsByAIForMe(tile, function () { mjAdvanceTurn(); });
+    return;
   };
   window.jy62MjCancelPick = function () {
     if (!S) return;
@@ -17834,7 +17947,7 @@ function closeDreamHelp() {
     S.state = "player";
     mjRender();
   };
-  function mjScanClaimsByAIForMe(tile) {
+  function mjScanClaimsByAIForMe(tile, after) {
     var aiSeats = [1, 2, 3];
     var huSeat = -1;
     for (var i = 0; i < aiSeats.length; i++) {
@@ -17847,21 +17960,9 @@ function closeDreamHelp() {
       mjRender();
       var token = S.token;
       delay(700).then(function () { if (S && S.token === token) mjEndGame(huSeat, "点炮胡"); });
-      return true;
+      return;
     }
-    // 杠/碰
-    var claimSeat = -1, type = "";
-    for (var j = 0; j < aiSeats.length; j++) {
-      var c = cnt(S.hands[aiSeats[j]]);
-      if (c[tile] === 3) { claimSeat = aiSeats[j]; type = "gang"; break; }
-    }
-    if (claimSeat > -1 && Math.random() < 0.8) { doAIClaim(claimSeat, tile, "gang", 0); return true; }
-    for (var k = 0; k < aiSeats.length; k++) {
-      var c2 = cnt(S.hands[aiSeats[k]]);
-      if (c2[tile] === 2) { claimSeat = aiSeats[k]; type = "peng"; break; }
-    }
-    if (claimSeat > -1 && Math.random() < 0.5) { doAIClaim(claimSeat, tile, "peng", 0); return true; }
-    return false;
+    mjAskAiClaimChain(tile, aiSeats, 0, after || function () {});
   }
 
   window.jy62MjMeChoose = function (act) {
@@ -17927,23 +18028,13 @@ function closeDreamHelp() {
       delay(700).then(function () { if (S && S.token === token) mjEndGame(huSeat, "点炮胡"); });
       return;
     }
-    var claimSeat = -1, type = "";
-    for (var j = 0; j < aiSeats.length; j++) {
-      var c = cnt(S.hands[aiSeats[j]]);
-      if (c[tile] === 3) { claimSeat = aiSeats[j]; type = "gang"; break; }
-    }
-    if (claimSeat > -1 && Math.random() < 0.8) { doAIClaim(claimSeat, tile, "gang", fromSeat); return; }
-    for (var k = 0; k < aiSeats.length; k++) {
-      var c2 = cnt(S.hands[aiSeats[k]]);
-      if (c2[tile] === 2) { claimSeat = aiSeats[k]; type = "peng"; break; }
-    }
-    if (claimSeat > -1 && Math.random() < 0.5) { doAIClaim(claimSeat, tile, "peng", fromSeat); return; }
-    // 无人要：从打出者下家继续
-    var next = (fromSeat + 1) % 4;
-    S.turn = next;
-    S.state = "turn";
-    mjRender();
-    mjDrawAndAct();
+    mjAskAiClaimChain(tile, aiSeats, fromSeat, function () {
+      var next = (fromSeat + 1) % 4;
+      S.turn = next;
+      S.state = "turn";
+      mjRender();
+      mjDrawAndAct();
+    });
   }
 
   function mjLog(t) {
@@ -18004,7 +18095,7 @@ function closeDreamHelp() {
       var a = actors[winnerSeat];
       window.jy62SayFor(a, "这局" + type + "赢得很开心，用一两句话得意地炫耀或调侃大家（口语，短）。", ["哈哈哈运气好运气好，承让承让。", "这把牌抓得顺，不好意思啦～", "看到没，这就是实力，回头奶茶安排上。"]).then(function (txt) {
         if (txt) { var msg = document.getElementById("mjMsg"); if (msg) msg.textContent = a.name + "：" + txt; }
-      });
+      }).catch(function () {});
     }
   }
 
@@ -18027,8 +18118,63 @@ function closeDreamHelp() {
 
   var W = null; // 状态
   var wToken = 0;
+  var wRetry = null;
 
-  window.jy62WolfAbortAll = function () { wToken++; W = null; };
+  window.jy62WolfAbortAll = function () { wToken++; W = null; wRetry = null; };
+
+  window.jy62WolfRetry = function () { var f = wRetry; wRetry = null; if (f) { try { f(); } catch (e) {} } };
+
+  function wAsk(pl, prompt) {
+    return new Promise(function (res, rej) {
+      var pa = pl && pl.pa ? pl.pa : null;
+      if (!pl || pl.isMe) { rej(new Error("真人无需决策")); return; }
+      if (!pa || !window.jy68CanApi || !window.jy68CanApi(pa)) { rej(new Error("该角色未接入模型 API")); return; }
+      if (!window.jy68AI) { rej(new Error("系统错误")); return; }
+      window.jy68AI(pa, prompt).then(res).catch(rej);
+    });
+  }
+
+  function wApiFail(tip) {
+    if (!W) return;
+    logToBoard('<span style="color:#c0392b">' + tip + "</span>");
+    setAction('<div class="wolf-log-line" style="color:#c0392b">' + tip + '</div><div class="mj-btn-row"><button class="jy-small-btn" onclick="jy62WolfRetry()">重试</button><button class="jy-small-btn gray" onclick="jy62ExitGame()">结束游戏</button></div>');
+  }
+
+  function wolfParseName(list, txt) {
+    if (!txt) return null;
+    var s = String(txt).trim();
+    if (!s) return null;
+    for (var i = 0; i < list.length; i++) if (s === list[i].name || s === list[i].key) return list[i].key;
+    var hit = null;
+    for (var j = 0; j < list.length; j++) {
+      var nm = list[j].name;
+      if (nm && s.indexOf(nm) > -1) { if (hit) return list[j].key; hit = list[j].key; }
+    }
+    return hit;
+  }
+
+  function wolfHunterShootAI(hunter, after) {
+    if (!W) return;
+    var token = W.token;
+    var stage = function () {
+      if (!W || W.token !== token) return;
+      wRetry = stage;
+      var others = aliveExcept(hunter.key);
+      var prompt = "狼人杀中你是猎人「" + hunter.name + "」，你死了，临终可以开枪带走一名玩家（也可以选择不开枪）。当前存活：" + others.map(function (o) { return o.name; }).join("、") + "。请只回复一名玩家名字，或回复「不开」，不要解释。";
+      wAsk(hunter, prompt).then(function (txt) {
+        var t = wolfParseName(others, txt);
+        var tp = t ? findP(t) : null;
+        if (tp && !tp.dead) {
+          tp.dead = true;
+          logToBoard(esc(hunter.name) + " 开枪带走了 " + esc(tp.name) + "！");
+        } else {
+          logToBoard(esc(hunter.name) + " 选择了不开枪。");
+        }
+        if (after) after();
+      }).catch(function () { wApiFail("猎人开枪决策失败（没连上模型 API）"); });
+    };
+    stage();
+  }
 
   function logToBoard(html) {
     var box = document.getElementById("jy62WolfLog");
@@ -18172,19 +18318,24 @@ function closeDreamHelp() {
       setAction('<div class="mj-btn-row">' + opts + "</div>");
       return;
     }
-    // AI 狼：随机咬一个非狼好人
     logToBoard("狼人正在密谋袭击对象…");
-    delay(900).then(function () {
+    var stage = function () {
       if (!W || W.token !== token) return;
+      wRetry = stage;
       var wolves = W.players.filter(function (p) { return p.role === "wolf"; });
       var wolfKeys = wolves.map(function (p) { return p.key; });
       var targets = aliveExcept(wolf.key).filter(function (p) { return wolfKeys.indexOf(p.key) < 0; });
       if (!targets.length) targets = aliveExcept(wolf.key);
-      var victim = pick(targets);
-      W.wolfVictim = victim.key;
-      logToBoard("狼人已经决定了袭击目标…");
-      wolfNextAfterWolf();
-    });
+      var prompt = "狼人杀黑夜行动，你是狼人「" + wolf.name + "」，今晚要和狼队友决定袭击哪名好人。当前存活且非狼人的玩家：" + targets.map(function (p) { return p.name; }).join("、") + "。请判断谁最像神职（预言家/女巫/猎人）或威胁最大，只回复你要袭击的那名玩家名字，不要解释。";
+      wAsk(wolf, prompt).then(function (txt) {
+        var t = wolfParseName(targets, txt);
+        if (!t) { wApiFail("狼人没有给出有效袭击目标，重试"); return; }
+        W.wolfVictim = t;
+        logToBoard("狼人已经决定了袭击目标…");
+        wolfNextAfterWolf();
+      }).catch(function () { wApiFail("狼人夜袭决策失败（没连上模型 API）"); });
+    };
+    stage();
   }
 
   function wolfNextAfterWolf() {
@@ -18200,14 +18351,21 @@ function closeDreamHelp() {
           setAction('<div class="mj-btn-row">' + opts + "</div>");
           return;
         }
-        // AI 预言家随机验
-        delay(800).then(function () {
+        var stage = function () {
           if (!W || W.token !== token) return;
-          var target = pick(aliveExcept(seer.key));
-          W.seerCheck = { key: target.key, wolf: target.role === "wolf" };
-          logToBoard("预言家悄悄睁开了眼睛…");
-          wolfNextAfterSeer();
-        });
+          wRetry = stage;
+          var targets = aliveExcept(seer.key);
+          var prompt = "狼人杀黑夜，你是预言家「" + seer.name + "」，每晚可以查验一名玩家的阵营（狼人/好人）。当前存活玩家：" + targets.map(function (p) { return p.name; }).join("、") + "。请选择今晚要查验谁，只回复玩家名字，不要解释。";
+          wAsk(seer, prompt).then(function (txt) {
+            var t = wolfParseName(targets, txt);
+            if (!t) { wApiFail("预言家没给出查验目标，重试"); return; }
+            var tp = findP(t);
+            W.seerCheck = { key: t, wolf: !!(tp && tp.role === "wolf") };
+            logToBoard("预言家悄悄查验了 " + esc(tp ? tp.name : t) + "…");
+            wolfNextAfterSeer();
+          }).catch(function () { wApiFail("预言家查验失败（没连上模型 API）"); });
+        };
+        stage();
         return;
       }
       wolfNextAfterSeer();
@@ -18235,16 +18393,33 @@ function closeDreamHelp() {
           setAction(act);
           return;
         }
-        // AI 女巫：第一晚大概率救，毒药不乱用
-        delay(800).then(function () {
+        var stage = function () {
           if (!W || W.token !== token) return;
-          if (victim && !W.witchSaveUsed && Math.random() < 0.6) {
-            W.witchSaveUsed = true;
-            W.wolfVictim = null;
-            logToBoard("女巫悄悄使用了解药…");
-          }
-          wolfNightEnd();
-        });
+          wRetry = stage;
+          var left = "你还有" + (W.witchSaveUsed ? "" : "一瓶解药、") + (W.witchPoisonUsed ? "" : "一瓶毒药") + (W.witchSaveUsed && W.witchPoisonUsed ? "" : "。");
+          var prompt = "狼人杀黑夜，你是女巫「" + witch.name + "」。今晚狼人袭击了" + (victim ? "「" + victim.name + "」" : "（无人被袭击）") + "。" + left + "请回复：救（对袭击对象用解药）/ 不救；若想用毒药，回复 毒：玩家名字。只回复：救 / 不救 / 毒：玩家名，不要解释。";
+          wAsk(witch, prompt).then(function (txt) {
+            var s = String(txt || "");
+            if (victim && !W.witchSaveUsed && s.indexOf("救") > -1) {
+              W.witchSaveUsed = true;
+              W.wolfVictim = null;
+              logToBoard("女巫悄悄使用了解药…");
+              wolfNightEnd();
+              return;
+            }
+            if (!W.witchPoisonUsed && s.indexOf("毒") > -1) {
+              var pt = wolfParseName(aliveExcept(witch.key), s);
+              var pp = pt ? findP(pt) : null;
+              if (pp && !pp.dead) {
+                W.witchPoisonUsed = true;
+                W.witchPoisonTarget = pt;
+                logToBoard("女巫悄悄撒下了毒药…");
+              }
+            }
+            wolfNightEnd();
+          }).catch(function () { wApiFail("女巫决策失败（没连上模型 API）"); });
+        };
+        stage();
         return;
       }
       wolfNightEnd();
@@ -18283,20 +18458,7 @@ function closeDreamHelp() {
           setAction('<div class="mj-btn-row">' + opts2 + "</div>");
           return true;
         }
-        delay(1000).then(function () {
-          if (!W || W.token !== token) return;
-          if (Math.random() < 0.8) {
-            var t = pick(aliveExcept(hunter.key));
-            var tp = findP(t.key);
-            if (tp && !tp.dead) {
-              tp.dead = true;
-              logToBoard(esc(hunter.name) + " 开枪带走了 " + esc(tp.name) + "！");
-            }
-          } else {
-            logToBoard(esc(hunter.name) + " 选择了不开枪。");
-          }
-          wolfAfterDawn();
-        });
+        wolfHunterShootAI(hunter, function () { wolfAfterDawn(); });
         return true;
       }
     }
@@ -18334,35 +18496,30 @@ function closeDreamHelp() {
         setAction('<div style="display:flex;gap:8px"><input id="jy62WolfSay" class="wolf-input" placeholder="说点什么…" onkeydown="if(event.key===\'Enter\')jy62WolfSpeakDone()"><button class="jy-small-btn" onclick="jy62WolfSpeakDone()">发言</button></div><button class="jy-small-btn gray" onclick="jy62WolfSpeakSkip()">跳过发言</button>');
         return;
       }
-      var txt = aiSpeech(p);
-      logToBoard('<b>' + esc(p.name) + "：</b>" + esc(txt));
-      delay(1100).then(next);
+      var stage = function () {
+        if (!W || W.token !== token) return;
+        wRetry = stage;
+        logToBoard("<i>" + esc(p.name) + " 思考着怎么说…</i>");
+        var others = aliveExcept(p.key);
+        var info = "";
+        if (p.role === "wolf") info = "你是狼人阵营，白天要伪装成好人带节奏，别暴露自己，最好把怀疑引向好人。";
+        else if (p.role === "seer") {
+          if (W.seerCheck && findP(W.seerCheck.key) && !findP(W.seerCheck.key).dead) {
+            var ck = findP(W.seerCheck.key);
+            info = "你是预言家，昨晚查验了「" + ck.name + "」，" + (W.seerCheck.wolf ? "TA 是狼！请号召大家投TA。" : "TA 是好人，可以保护TA。");
+          } else info = "你是预言家，昨晚没有有效的查验结果，凭直觉发言。";
+        } else if (p.role === "witch") info = "你是女巫" + (W.witchSaveUsed ? "，解药已用" : "，还有解药") + (W.witchPoisonUsed ? "，毒药已用" : "，还有毒药") + "，注意别暴露身份，发言要稳。";
+        else if (p.role === "hunter") info = "你是猎人，可以硬气一点施压，但别暴露身份。";
+        else info = "你是普通村民，没有额外信息，理性分析谁可疑。";
+        var prompt = "狼人杀白天发言环节，你是「" + p.name + "」，身份：" + roleName(p.role) + "。" + info + " 当前存活玩家：" + others.map(function (o) { return o.name; }).join("、") + "。请用一两句口语、像微信打字那样简短自然的话发言（不超过 40 字），可以试探、带节奏、分析或藏身份。只输出发言内容，不要加任何前缀。";
+        wAsk(p, prompt).then(function (txt) {
+          logToBoard('<b>' + esc(p.name) + "：</b>" + esc(String(txt || "").slice(0, 140)));
+          delay(600).then(next);
+        }).catch(function () { wApiFail("TA 发言失败（没连上模型 API）"); });
+      };
+      stage();
     }
     next();
-  }
-
-  function aiSpeech(p) {
-    var r = p.role;
-    var others = aliveExcept(p.key);
-    var othersName = others.map(function (o) { return o.name; }).join("、");
-    if (r === "wolf") {
-      var t = pick(["今晚的风有点凉…我觉得" + othersName + "里有人在带节奏。", "我是普通村民，先跟着大家听听看。", "我没什么信息，不过谁急着投我谁就可疑。", "大家都冷静点，别被带了节奏，先听听预言家怎么说。"]);
-      return t;
-    }
-    if (r === "seer") {
-      if (W.seerCheck && findP(W.seerCheck.key) && !findP(W.seerCheck.key).dead) {
-        var tgt = findP(W.seerCheck.key);
-        return W.seerCheck.wolf ? "我是预言家，昨晚我验了 " + tgt.name + "，TA 是狼！大家投TA！" : "我是预言家，昨晚验了 " + tgt.name + "，TA 是好人，可以先放一放。";
-      }
-      return pick(["我是预言家，昨晚验到了一个好人，先不说名字，保护TA。", "我还在观察，谁比较可疑我心里有数。"]);
-    }
-    if (r === "witch") {
-      return pick(["我昨晚救过人，细节不方便说，但我心里有数。", "我是一个有信息的人，先听大家发言再表态。", "别急，让子弹飞一会儿。"]);
-    }
-    if (r === "hunter") {
-      return pick(["我是猎人，不怕死，谁乱跳我带走谁。", "大家理性一点，狼人会藏在话多的人里。", "我暂时没信息，先站好人这边。", "我怀疑 " + pick(others).name + "，发言太急了。"]);
-    }
-    return pick(["我是村民，暂时没信息，再看看。", "我觉得 " + pick(others).name + " 有点可疑。", "我跟着预言家走。", "过，先听你们的。"]);
   }
 
   window.jy62WolfSpeakDone = function () {
@@ -18393,44 +18550,27 @@ function closeDreamHelp() {
     wolfVoteResolve();
   }
 
-  function aiVote(p) {
-    var others = aliveExcept(p.key);
-    // 狼投好人；好人尽量投怀疑对象；无信息随机
-    if (p.role === "wolf") {
-      var good = others.filter(function (o) { return roleSide(o.role) === "good"; });
-      return pick(good.length ? good : others).key;
-    }
-    if (p.role === "seer" && W.seerCheck) {
-      var chk = findP(W.seerCheck.key);
-      if (chk && !chk.dead && chk.key !== p.key) return chk.key;
-    }
-    return pick(others).key;
-  }
-
   function wolfVoteResolve() {
     if (!W) return;
     var token = W.token;
     var votes = {};
     var alive = aliveList();
-    alive.forEach(function (p) {
-      var v = p.isMe ? W.playerVote : aiVote(p);
-      if (!v || findP(v) && findP(v).dead) {
-        var others = aliveExcept(p.key);
-        v = pick(others).key;
-      }
-      votes[v] = (votes[v] || 0) + 1;
-    });
-    var keys = Object.keys(votes);
-    var maxV = 0, top = [];
-    keys.forEach(function (k) { if (votes[k] > maxV) { maxV = votes[k]; top = [k]; } else if (votes[k] === maxV) top.push(k); });
-    var out = top.length === 1 ? findP(top[0]) : null;
-    var desc = keys.map(function (k) { return esc(findP(k) ? findP(k).name : k) + " " + votes[k] + "票"; }).join("，");
-    logToBoard("投票结果：" + desc);
-    delay(900).then(function () {
+    var idx = 0;
+    function finishVotes() {
       if (!W || W.token !== token) return;
-      if (!out) {
-        logToBoard("平票无人被放逐，进入下一个夜晚。");
-      } else {
+      var keys = Object.keys(votes);
+      var maxV = 0, top = [];
+      keys.forEach(function (k) { if (votes[k] > maxV) { maxV = votes[k]; top = [k]; } else if (votes[k] === maxV) top.push(k); });
+      var out = top.length === 1 ? findP(top[0]) : null;
+      var desc = keys.map(function (k) { return esc(findP(k) ? findP(k).name : k) + " " + votes[k] + "票"; }).join("，");
+      logToBoard("投票结果：" + desc);
+      delay(900).then(function () {
+        if (!W || W.token !== token) return;
+        if (!out) {
+          logToBoard("平票无人被放逐，进入下一个夜晚。");
+          wolfGoNight();
+          return;
+        }
         out.dead = true;
         logToBoard((out.isMe ? "你被大家投了出去" : esc(out.name) + " 被放逐了") + "，TA的身份是：" + roleName(out.role) + "。");
         if (out.role === "hunter" && out.hunterGun) {
@@ -18441,20 +18581,48 @@ function closeDreamHelp() {
             W.hunterToShoot = out;
             return;
           }
-          delay(800).then(function () {
-            if (!W || W.token !== token) return;
-            if (Math.random() < 0.75) {
-              var t = pick(aliveExcept(out.key));
-              t.dead = true;
-              logToBoard(esc(out.name) + " 开枪带走了 " + esc(t.name) + "！");
-            }
-            wolfGoNight();
-          });
+          wolfHunterShootAI(out, function () { wolfGoNight(); });
           return;
         }
+        wolfGoNight();
+      });
+    }
+    function askNext() {
+      if (!W || W.token !== token) return;
+      if (idx >= alive.length) { finishVotes(); return; }
+      var p = alive[idx];
+      if (p.isMe) {
+        var v0 = W.playerVote;
+        if (v0 && findP(v0) && !findP(v0).dead) votes[v0] = (votes[v0] || 0) + 1;
+        idx++;
+        askNext();
+        return;
       }
-      wolfGoNight();
-    });
+      var stage = function () {
+        if (!W || W.token !== token) return;
+        wRetry = stage;
+        var others = aliveExcept(p.key);
+        var hint = "";
+        if (p.role === "wolf") hint = "你是狼人阵营，场上好人还活着不少，为了赢要说服大家投掉一个好人（别暴露自己），投最像神职或最有威胁的好人。";
+        else if (p.role === "seer") {
+          if (W.seerCheck && findP(W.seerCheck.key) && !findP(W.seerCheck.key).dead) hint = "你是预言家，你验过「" + findP(W.seerCheck.key).name + "」（" + (W.seerCheck.wolf ? "是狼" : "是好人") + "），按查验结果投票。";
+          else hint = "你是预言家，还没有明确查验结果，凭感觉投一个可疑的人。";
+        } else if (p.role === "witch") hint = "你是女巫，握有解药/毒药信息但不能乱说，凭感觉投一个可疑的人。";
+        else if (p.role === "hunter") hint = "你是猎人，说话硬气，投一个你觉得可疑的人。";
+        else hint = "你是普通村民，没有额外信息，尽量投可疑的人，别误伤好人。";
+        var prompt = "狼人杀白天投票阶段，你是「" + p.name + "」，身份：" + roleName(p.role) + "。" + hint + "当前存活玩家：" + others.map(function (o) { return o.name; }).join("、") + "。请只回复你要投的玩家名字，不要解释。";
+        wAsk(p, prompt).then(function (txt) {
+          var v = wolfParseName(alive, txt);
+          var vp = v ? findP(v) : null;
+          if (!v || !vp || vp.dead) { wApiFail("TA 没给出有效投票，重试"); return; }
+          votes[v] = (votes[v] || 0) + 1;
+          idx++;
+          askNext();
+        }).catch(function () { wApiFail("TA 投票失败（没连上模型 API）"); });
+      };
+      stage();
+    }
+    askNext();
   }
 
   /* ---------- 进入夜晚 ---------- */
@@ -18566,11 +18734,808 @@ function closeDreamHelp() {
 
 </script>
 <script>
-(function(){
+/* ===================== 霁月机68 · 硬API基建 + 国际象棋 ===================== */
+(function () {
+  if (window.__jy68Inited) return;
+  window.__jy68Inited = true;
+
+  function esc68(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function toast68(t) { try { toast(t); } catch (e) {} }
+  function pa68() { try { return window.jy62HostPa ? jy62HostPa() : null; } catch (e) { return null; } }
+  function nm68() { var p = pa68(); return p && p.name ? p.name : "TA"; }
+  function canApi68(pa) { try { if (window.jy62CanApi) return !!window.jy62CanApi(pa); } catch (e) {} return false; }
+  function api68(pa, prompt) {
+    return new Promise(function (res, rej) {
+      if (!canApi68(pa) || typeof callChat !== "function") { rej(new Error("NO_API")); return; }
+      var t = setTimeout(function () { rej(new Error("timeout")); }, 30000);
+      callChat([{ role: "user", content: prompt }], pa).then(function (x) { clearTimeout(t); if (x && String(x).trim().length) res(String(x).trim()); else rej(new Error("EMPTY")); }).catch(function (e) { clearTimeout(t); rej(e); });
+    });
+  }
+
+  var CSS68 = "#jy68Area{display:flex;flex-direction:column;gap:10px;align-items:center;padding:8px 0} #csWrap{width:min(92vw,352px);user-select:none} #csMsg{width:100%;min-height:20px;text-align:center;font-size:13px;color:#555;line-height:1.5;padding:2px 0} #csBoard{display:grid;grid-template-columns:repeat(8,1fr);width:100%;aspect-ratio:1;border:2px solid #5b4636;border-radius:6px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.12);background:#f0d9b5} .cs-cell{display:flex;align-items:center;justify-content:center;font-size:min(9.2vw,34px);line-height:1;cursor:pointer;position:relative} .cs-cell.dark{background:#b58863} .cs-cell.light{background:#f0d9b5} .cs-cell.sel{outline:3px solid #f7c948;outline-offset:-3px;z-index:2} .cs-cell.lm{background:#f6e27f!important} .cs-cell.lm:after{content:\"\";position:absolute;width:24%;height:24%;border-radius:50%;background:rgba(0,0,0,.18)} .cs-cell.can-capture.lm:after{background:rgba(0,0,0,.28);box-shadow:inset 0 0 0 3px rgba(0,0,0,.22);width:88%;height:88%} .cs-cell.lc{border-bottom:4px solid #e74c3c} #csRow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;width:100%} .cs-actions{display:flex;gap:10px;justify-content:center} .jy68-btn{padding:7px 14px;border:none;border-radius:20px;background:#3b82f6;color:#fff;font-size:13px;cursor:pointer} .jy68-btn.gray{background:#95a5a6} .jy68-btn.red{background:#e74c3c} .jy68-btn:disabled{opacity:.55}";
+  try { var st = document.createElement("style"); st.textContent = CSS68; document.head.appendChild(st); } catch (e) {}
+
+  var running = { chess: false, gold: false };
+  window.jy68AbortAll = function () {
+    running.chess = false; running.gold = false;
+    if (window.__jy68GoldAbort) window.__jy68GoldAbort();
+  };
+
+  function failUI(gm, tip, retry) {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box) return;
+    box.innerHTML = '<div id="jy68Area"><div class="jy68-tip" style="color:#c0392b;font-size:14px;margin:8px 0;text-align:center">' + esc68(tip) + '</div><div class="cs-actions"><button class="jy68-btn" onclick="window.__jy68Retry && window.__jy68Retry()">重试</button><button class="jy68-btn gray" onclick="jy62ExitGame()">回大厅</button></div></div>';
+    window.__jy68Retry = retry;
+  }
+
+  /* ---------------- 国际象棋引擎（完整规则：易位/过路兵/升变/将军/将杀） ---------------- */
+  var CS_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
+  var CS = { board: null, turn: "w", castling: null, ep: null, moveNo: 1, over: null, sel: null, legal: [], selMoves: [], last: null, hist: [], status: "" };
+  window.__jy68CS = CS;
+  var CS_SYM = { K: "\u265A", Q: "\u265B", R: "\u265C", B: "\u265D", N: "\u265E", P: "\u265F", k: "\u2654", q: "\u2655", r: "\u2656", b: "\u2657", n: "\u2658", p: "\u2659" };
+  var CS_NAME = { K: "王", Q: "后", R: "车", B: "象", N: "马", P: "兵", k: "王", q: "后", r: "车", b: "象", n: "马", p: "兵" };
+
+  function csInit() {
+    var b = [];
+    var back = ["r", "n", "b", "q", "k", "b", "n", "r"];
+    for (var r = 0; r < 8; r++) { b.push([]); for (var c = 0; c < 8; c++) b[r].push(""); }
+    for (var c0 = 0; c0 < 8; c0++) { b[0][c0] = back[c0]; b[1][c0] = "p"; b[6][c0] = "P"; b[7][c0] = back[c0].toUpperCase(); }
+    CS.board = b;
+    CS.turn = "w"; CS.castling = { K: true, Q: true, k: true, q: true }; CS.ep = null; CS.moveNo = 1; CS.over = null; CS.sel = null; CS.selMoves = []; CS.last = null; CS.hist = []; CS.status = "";
+  }
+  function csCol(ch) { if (!ch) return ""; return ch >= "a" && ch <= "z" ? "b" : "w"; }
+  function csIn(r, c) { return r >= 0 && r <= 7 && c >= 0 && c <= 7; }
+  function csKing(color) { for (var r = 0; r < 8; r++) for (var c = 0; c < 8; c++) { var ch = CS.board[r][c]; if (ch && csCol(ch) === color && ch.toLowerCase() === "k") return { r: r, c: c }; } return null; }
+  function csIsAttacked(board, r, c, by) {
+    function on(pr, pc) { if (!csIn(pr, pc)) return false; var pch = board[pr][pc]; return !!pch && csCol(pch) === by; }
+    for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+      if (!dr && !dc) continue;
+      var pr = r + dr, pc = c + dc;
+      if (csIn(pr, pc)) {
+        var pch = board[pr][pc];
+        if (pch && csCol(pch) === by) {
+          var t = pch.toLowerCase();
+          if (t === "k" && Math.abs(dr) <= 1 && Math.abs(dc) <= 1) return true;
+          if (t === "p") { var pd = by === "w" ? -1 : 1; if (dr === pd && Math.abs(dc) === 1) return true; }
+          if (t === "n") { if ((Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2)) return true; }
+        }
+      }
+    }
+    var rays = [{ dr: -1, dc: 0 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: 0, dc: 1 }, { dr: -1, dc: -1 }, { dr: -1, dc: 1 }, { dr: 1, dc: -1 }, { dr: 1, dc: 1 }];
+    for (var i = 0; i < rays.length; i++) {
+      var rr = r + rays[i].dr, cc = c + rays[i].dc;
+      while (csIn(rr, cc)) {
+        var ch2 = board[rr][cc];
+        if (ch2) {
+          if (csCol(ch2) === by) {
+            var t2 = ch2.toLowerCase();
+            var diag = rays[i].dr !== 0 && rays[i].dc !== 0;
+            if (t2 === "q") return true;
+            if (diag && t2 === "b") return true;
+            if (!diag && t2 === "r") return true;
+          }
+          break;
+        }
+        rr += rays[i].dr; cc += rays[i].dc;
+      }
+    }
+    return false;
+  }
+  function csInCheck(color) { var k = csKing(color); if (!k) return false; return csIsAttacked(CS.board, k.r, k.c, color === "w" ? "b" : "w"); }
+  function csPseudo(r, c) {
+    var moves = [];
+    var ch = CS.board[r][c];
+    if (!ch) return moves;
+    var color = csCol(ch), t = ch.toLowerCase();
+    function push(r2, c2, prom, castle, ep) { if (csIn(r2, c2)) { var d = CS.board[r2][c2]; if (d && csCol(d) === color) return; moves.push({ r: r, c: c, r2: r2, c2: c2, prom: prom || "", castle: castle || "", ep: !!ep, cap: !!d }); } }
+    function ray(dr, dc) { var rr = r + dr, cc = c + dc; while (csIn(rr, cc)) { var d = CS.board[rr][cc]; if (!d) { moves.push({ r: r, c: c, r2: rr, c2: cc, prom: "", castle: "", ep: false, cap: false }); } else { if (csCol(d) !== color) moves.push({ r: r, c: c, r2: rr, c2: cc, prom: "", castle: "", ep: false, cap: true }); break; } rr += dr; cc += dc; } }
+    if (t === "p") {
+      var dir = color === "w" ? -1 : 1;
+      var home = color === "w" ? 6 : 1;
+      var promo = color === "w" ? 0 : 7;
+      var f1 = CS.board[r + dir][c];
+      if (!f1) {
+        if (r + dir === promo) { moves.push({ r: r, c: c, r2: r + dir, c2: c, prom: "q", castle: "", ep: false, cap: false }); moves.push({ r: r, c: c, r2: r + dir, c2: c, prom: "r", castle: "", ep: false, cap: false }); moves.push({ r: r, c: c, r2: r + dir, c2: c, prom: "b", castle: "", ep: false, cap: false }); moves.push({ r: r, c: c, r2: r + dir, c2: c, prom: "n", castle: "", ep: false, cap: false }); }
+        else {
+          moves.push({ r: r, c: c, r2: r + dir, c2: c, prom: "", castle: "", ep: false, cap: false });
+          if (r === home) { var f2 = CS.board[r + dir * 2][c]; if (!f2) moves.push({ r: r, c: c, r2: r + dir * 2, c2: c, prom: "", castle: "", ep: false, cap: false }); }
+        }
+      }
+      for (var dc = -1; dc <= 1; dc += 2) {
+        var cc2 = c + dc;
+        if (!csIn(r + dir, cc2)) continue;
+        var d2 = CS.board[r + dir][cc2];
+        if (d2 && csCol(d2) !== color) {
+          if (r + dir === promo) { moves.push({ r: r, c: c, r2: r + dir, c2: cc2, prom: "q", castle: "", ep: false, cap: true }); moves.push({ r: r, c: c, r2: r + dir, c2: cc2, prom: "r", castle: "", ep: false, cap: true }); moves.push({ r: r, c: c, r2: r + dir, c2: cc2, prom: "b", castle: "", ep: false, cap: true }); moves.push({ r: r, c: c, r2: r + dir, c2: cc2, prom: "n", castle: "", ep: false, cap: true }); }
+          else moves.push({ r: r, c: c, r2: r + dir, c2: cc2, prom: "", castle: "", ep: false, cap: true });
+        }
+        if (CS.ep && CS.ep.r === r + dir && CS.ep.c === cc2 && CS.board[r][cc2] && csCol(CS.board[r][cc2]) !== color && CS.board[r][cc2].toLowerCase() === "p") {
+          moves.push({ r: r, c: c, r2: r + dir, c2: cc2, prom: "", castle: "", ep: true, cap: true });
+        }
+      }
+      return moves;
+    }
+    if (t === "n") {
+      var nd = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+      for (var ni = 0; ni < nd.length; ni++) push(r + nd[ni][0], c + nd[ni][1]);
+      return moves;
+    }
+    if (t === "b") { ray(-1, -1); ray(-1, 1); ray(1, -1); ray(1, 1); return moves; }
+    if (t === "r") { ray(-1, 0); ray(1, 0); ray(0, -1); ray(0, 1); return moves; }
+    if (t === "q") { ray(-1, -1); ray(-1, 1); ray(1, -1); ray(1, 1); ray(-1, 0); ray(1, 0); ray(0, -1); ray(0, 1); return moves; }
+    if (t === "k") {
+      for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) if (dr || dc) push(r + dr, c + dc);
+      var homeR = color === "w" ? 7 : 0;
+      if (r === homeR && c === 4) {
+        var kKey = color === "w" ? "K" : "k", qKey = color === "w" ? "Q" : "q";
+        if (CS.castling[kKey] && CS.board[homeR][5] === "" && CS.board[homeR][6] === "" && CS.board[homeR][7] === (color === "w" ? "R" : "r") &&
+          !csIsAttacked(CS.board, homeR, 4, color === "w" ? "b" : "w") && !csIsAttacked(CS.board, homeR, 5, color === "w" ? "b" : "w") && !csIsAttacked(CS.board, homeR, 6, color === "w" ? "b" : "w")) {
+          moves.push({ r: r, c: c, r2: homeR, c2: 6, prom: "", castle: "k", ep: false, cap: false });
+        }
+        if (CS.castling[qKey] && CS.board[homeR][3] === "" && CS.board[homeR][2] === "" && CS.board[homeR][1] === "" && CS.board[homeR][0] === (color === "w" ? "R" : "r") &&
+          !csIsAttacked(CS.board, homeR, 4, color === "w" ? "b" : "w") && !csIsAttacked(CS.board, homeR, 3, color === "w" ? "b" : "w") && !csIsAttacked(CS.board, homeR, 2, color === "w" ? "b" : "w")) {
+          moves.push({ r: r, c: c, r2: homeR, c2: 2, prom: "", castle: "q", ep: false, cap: false });
+        }
+      }
+    }
+    return moves;
+  }
+  function csSimApply(move) {
+    var b = [];
+    for (var r = 0; r < 8; r++) { b.push([]); for (var c = 0; c < 8; c++) b[r].push(CS.board[r][c]); }
+    var ch = b[move.r][move.c];
+    b[move.r][move.c] = "";
+    b[move.r2][move.c2] = move.prom ? (csCol(ch) === "w" ? move.prom.toUpperCase() : move.prom) : ch;
+    if (move.ep) b[move.r][move.c2] = "";
+    if (move.castle === "k") { b[move.r][5] = b[move.r][7]; b[move.r][7] = ""; }
+    if (move.castle === "q") { b[move.r][3] = b[move.r][0]; b[move.r][0] = ""; }
+    return b;
+  }
+  function csLegalFor(r, c) {
+    var out = [];
+    var ch = CS.board[r][c];
+    if (!ch || csCol(ch) !== CS.turn) return out;
+    var color = csCol(ch);
+    var ps = csPseudo(r, c);
+    for (var i = 0; i < ps.length; i++) {
+      var mv = ps[i];
+      var sim = csSimApply(mv);
+      var kp = null;
+      for (var rr = 0; rr < 8; rr++) for (var cc = 0; cc < 8; cc++) { var pch = sim[rr][cc]; if (pch && csCol(pch) === color && pch.toLowerCase() === "k") kp = { r: rr, c: cc }; }
+      if (!kp) continue;
+      if (!csIsAttacked(sim, kp.r, kp.c, color === "w" ? "b" : "w")) out.push(mv);
+    }
+    return out;
+  }
+  function csAllLegal(color) {
+    var out = [];
+    for (var r = 0; r < 8; r++) for (var c = 0; c < 8; c++) {
+      var ch = CS.board[r][c];
+      if (!ch || csCol(ch) !== color) continue;
+      var L = csLegalFor(r, c);
+      for (var i = 0; i < L.length; i++) out.push(L[i]);
+    }
+    return out;
+  }
+  function csUci(m) {
+    return CS_FILES[m.c] + (8 - m.r) + CS_FILES[m.c2] + (8 - m.r2) + m.prom;
+  }
+  function csFindLegal(uci) {
+    var all = csAllLegal(CS.turn);
+    for (var i = 0; i < all.length; i++) if (csUci(all[i]) === uci) return all[i];
+    return null;
+  }
+  function csApplyMove(m) {
+    var ch = CS.board[m.r][m.c];
+    CS.last = { ch: ch, uci: csUci(m), cap: m.cap || m.ep };
+    CS.hist.push(csUci(m));
+    CS.board[m.r][m.c] = "";
+    CS.board[m.r2][m.c2] = m.prom ? (csCol(ch) === "w" ? m.prom.toUpperCase() : m.prom) : ch;
+    if (m.ep) CS.board[m.r][m.c2] = "";
+    if (m.castle === "k") { CS.board[m.r][5] = CS.board[m.r][7]; CS.board[m.r][7] = ""; }
+    if (m.castle === "q") { CS.board[m.r][3] = CS.board[m.r][0]; CS.board[m.r][0] = ""; }
+    var prevEp = CS.ep;
+    CS.ep = null;
+    if (ch.toLowerCase() === "p" && Math.abs(m.r2 - m.r) === 2) CS.ep = { r: (m.r + m.r2) / 2, c: m.c };
+    if (ch.toLowerCase() === "k") { CS.castling[ch === "K" ? "K" : "k"] = false; CS.castling[ch === "K" ? "Q" : "q"] = false; }
+    if (ch.toLowerCase() === "r") {
+      if (m.r === 7 && m.c === 0) CS.castling.Q = false;
+      if (m.r === 7 && m.c === 7) CS.castling.K = false;
+      if (m.r === 0 && m.c === 0) CS.castling.q = false;
+      if (m.r === 0 && m.c === 7) CS.castling.k = false;
+    }
+    var opp = CS.turn === "w" ? "b" : "w";
+    if (opp === "w" && CS.castling.K && CS.board[7][7] !== "R") CS.castling.K = false;
+    if (opp === "w" && CS.castling.Q && CS.board[7][0] !== "R") CS.castling.Q = false;
+    if (opp === "b" && CS.castling.k && CS.board[0][7] !== "r") CS.castling.k = false;
+    if (opp === "b" && CS.castling.q && CS.board[0][0] !== "r") CS.castling.q = false;
+    CS.turn = opp;
+    if (opp === "w") CS.moveNo++;
+    return prevEp;
+  }
+  function csStatusAfter() {
+    var color = CS.turn;
+    var inChk = csInCheck(color);
+    var all = csAllLegal(color);
+    if (inChk && !all.length) return { over: true, winner: color === "w" ? "b" : "w", reason: "checkmate" };
+    if (!inChk && !all.length) return { over: true, winner: null, reason: "stalemate" };
+    return { over: false, check: inChk };
+  }
+  function csBoardText() {
+    var lines = [];
+    for (var r = 0; r < 8; r++) {
+      var row = [];
+      for (var c = 0; c < 8; c++) row.push(CS.board[r][c] || ".");
+      lines.push(row.join(""));
+    }
+    return lines.join("\n");
+  }
+  function csRankLabel(r) { return 8 - r; }
+
+  function csRender() {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box || running.chess === false) return;
+    var h = '<div id="jy68Area" style="width:100%">';
+    h += '<div id="csMsg">' + (CS.status || "") + "</div>";
+    h += '<div id="csWrap"><div id="csBoard">';
+    for (var r = 0; r < 8; r++) {
+      for (var c = 0; c < 8; c++) {
+        var ch = CS.board[r][c] || "";
+        var dark = (r + c) % 2 === 1;
+        var cls = "cs-cell " + (dark ? "dark" : "light");
+        var isSel = CS.sel && CS.sel.r === r && CS.sel.c === c;
+        var isLegal = false, isCap = false;
+        for (var i = 0; i < CS.selMoves.length; i++) if (CS.selMoves[i].r2 === r && CS.selMoves[i].c2 === c) { isLegal = true; if (CS.selMoves[i].cap || CS.selMoves[i].ep) isCap = true; }
+        var isLast = CS.last && ((CS.last.rr === r && CS.last.cc === c) || (CS.last.rr2 === r && CS.last.cc2 === c));
+        if (isSel) cls += " sel";
+        if (isLegal) cls += " lm" + (isCap ? " can-capture" : "");
+        if (isLast) cls += " lc";
+        h += '<div class="' + cls + '" data-r="' + r + '" data-c="' + c + '" onclick="window.__jy68Click &amp;&amp; window.__jy68Click(' + r + ',' + c + ')">' + (ch ? CS_SYM[ch] : "") + "</div>";
+      }
+    }
+    h += "</div></div>";
+    h += '<div id="csRow"><button class="jy68-btn gray" onclick="window.__jy68Resign ? window.__jy68Resign() : jy62ExitGame()">认输</button><button class="jy68-btn" onclick="window.__jy68Restart ? window.__jy68Restart() : jy62ExitGame()">再来一局</button><button class="jy68-btn gray" onclick="jy62ExitGame()">回大厅</button></div>';
+    h += "</div>";
+    box.innerHTML = h;
+  }
+
+  function csSayEnd(win) {
+    var hostPa = pa68();
+    var me = "你", ta = nm68();
+    if (!hostPa || !canApi68(hostPa)) return;
+    var txt = "";
+    if (win === "me") { txt = "刚那局国际象棋你赢了TA" + (CS.hist ? "（" + CS.hist.length + "步）" : ""); window.jy62LogFriend ? jy62LogFriend({ kind: "persona", pa: hostPa }, "你输了这局国际象棋，" + me + " 赢了。") : null; }
+    else if (win === "ai") { txt = "刚那局国际象棋TA赢了你"; }
+    if (window.jy62MemLine) jy62MemLine(hostPa, "game", "你和" + ta + "下了一局国际象棋，" + (win === "me" ? "你赢了" : win === "ai" ? ta + "赢了" : "平局") + "。");
+    api68(hostPa, "你们刚下完一局国际象棋，" + (win === "me" ? "你赢了。用一两句得意或调侃的话说说（口语短句）。" : win === "ai" ? "TA赢了。用一两句鼓励或俏皮的话说说（口语短句）。" : "平局。用一两句轻松的话说说（口语短句）。")).then(function (s) {
+      var msg = document.getElementById("csMsg");
+      if (msg && s) msg.innerHTML = esc68(s);
+    }).catch(function () {});
+  }
+
+  function csCheckEnd() {
+    var st = csStatusAfter();
+    if (!st.over) { CS.status = st.check ? "将军！" : (CS.turn === "w" ? "轮到你走（白方）" : "TA 思考中…"); return false; }
+    CS.over = st.winner ? (st.winner === "w" ? "me" : "ai") : "draw";
+    CS.status = st.reason === "checkmate" ? (CS.over === "me" ? "将军将杀，你赢了！" : "被将杀，" + nm68() + " 赢了。") : "无子可动，平局。";
+    csRender();
+    csSayEnd(CS.over);
+    return true;
+  }
+
+  function csDoHuman(m) {
+    if (running.chess === false) return;
+    CS.sel = null; CS.selMoves = [];
+    csApplyMove(m);
+    CS.last.rr = m.r; CS.last.cc = m.c; CS.last.rr2 = m.r2; CS.last.cc2 = m.c2;
+    csRender();
+    if (csCheckEnd()) return;
+    csAiTurn();
+  }
+  window.__jy68Click = function (r, c) {
+    if (running.chess === false || CS.over || CS.turn !== "w") return;
+    var ch = CS.board[r][c];
+    if (CS.sel) {
+      for (var i = 0; i < CS.selMoves.length; i++) {
+        var m = CS.selMoves[i];
+        if (m.r2 === r && m.c2 === c) { csDoHuman(m); return; }
+      }
+      if (ch && csCol(ch) === "w") {
+        CS.sel = { r: r, c: c };
+        CS.selMoves = csLegalFor(r, c);
+        csRender();
+        return;
+      }
+      CS.sel = null; CS.selMoves = []; csRender(); return;
+    }
+    if (ch && csCol(ch) === "w") {
+      CS.sel = { r: r, c: c };
+      CS.selMoves = csLegalFor(r, c);
+      csRender();
+    }
+  };
+
+  function csAiTurn() {
+    if (running.chess === false || CS.over || CS.turn !== "b") return;
+    var hostPa = pa68();
+    var all = csAllLegal("b");
+    if (!all.length) { csCheckEnd(); return; }
+    function stage() {
+      if (running.chess === false) return;
+      window.__jy68Retry = stage;
+      var prompt = "你正在和中国玩家下国际象棋，你执黑（小写子 k q r b n p），玩家执白（大写子 K Q R B N P）。当前棋盘 8x8，从上到下第1行到第8行（每行 8 个字符，. 表示空格，例如 'rnbqkbnr' 是第1行）：\n" + csBoardText() + "\n轮到黑方走棋。棋盘列 a-h（左到右），行 1-8（上到下）。请只回复你选择的一步走法的 UCI 记法（4 个字符：源格+目标格，如 e7e5、g8f6；兵升变加 q/r/b/n 如 e7e8q；王车易位回复 O-O 或 O-O-O），不要解释。";
+      api68(hostPa, prompt).then(function (txt) {
+        var s = String(txt || "").trim().toLowerCase().replace(/\s+/g, "");
+        var m = null;
+        if (s === "o-o" || s === "o-o-o") {
+          for (var i = 0; i < all.length; i++) if (all[i].castle && ((s === "o-o" && all[i].castle === "k") || (s === "o-o-o" && all[i].castle === "q"))) { m = all[i]; break; }
+        } else {
+          var mm = s.match(/^([a-h][1-8])([a-h][1-8])([qrbn])?$/);
+          if (mm) {
+            var u = mm[1] + mm[2] + (mm[3] || "");
+            m = csFindLegal(u);
+          }
+        }
+        if (!m) { failUI("国际象棋", nm68() + " 走了一步不合法或没给出有效走法（TA 收到：" + esc68(String(txt || "").slice(0, 30)) + "），重试让 TA 重新思考。", stage); return; }
+        csApplyMove(m);
+        CS.last.rr = m.r; CS.last.cc = m.c; CS.last.rr2 = m.r2; CS.last.cc2 = m.c2;
+        csRender();
+        csCheckEnd();
+      }).catch(function () { failUI("国际象棋", nm68() + " 思考时没连上模型 API，点重试让 TA 重新走。", stage); });
+    }
+    stage();
+  }
+
+  window.__jy68Resign = function () {
+    if (running.chess === false) return;
+    CS.over = "ai";
+    CS.status = "你认输了，" + nm68() + " 赢了这局。";
+    csRender();
+    csSayEnd("ai");
+  };
+  window.__jy68Restart = function () {
+    if (!pa68() || !canApi68(pa68())) { toast68(nm68() + " 没接入模型 API，无法开局"); return; }
+    csInit(); csRender();
+    var hostPa = pa68();
+    api68(hostPa, "你们马上开始一局新的国际象棋，你用一两句轻松的话开局（口语短句）。").then(function (s) {
+      var msg = document.getElementById("csMsg");
+      if (msg && s) msg.innerHTML = esc68(s);
+    }).catch(function () {});
+  };
+
+  function jy68ChessStart() {
+    if (window.jy68GoldStop) window.jy68GoldStop();
+    running.chess = true;
+    var hostPa = pa68();
+    if (!hostPa || !canApi68(hostPa)) { toast68("TA 还没接入模型 API，去「人设档案」配置后才能下棋"); return; }
+    csInit();
+    CS.status = "轮到你走（白方先行）";
+    csRender();
+    api68(hostPa, "你们马上开始一局国际象棋（你是黑方，玩家执白先行），用一两句口语化的话开局招呼一下，简短自然。").then(function (s) {
+      var msg = document.getElementById("csMsg");
+      if (msg && s && running.chess) msg.innerHTML = esc68(s);
+    }).catch(function () {});
+  }
+  window.jy68ChessStart = jy68ChessStart;
+})();
+
+</script>
+<script>
+/* ===================== 霁月机68 · 双人黄金矿工（canvas） ===================== */
+(function () {
+  if (window.__jy68GoldInited) return;
+  window.__jy68GoldInited = true;
+
+  function esc68(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function toast68(t) { try { toast(t); } catch (e) {} }
+  function pa68() { try { return window.jy62HostPa ? jy62HostPa() : null; } catch (e) { return null; } }
+  function nm68() { var p = pa68(); return p && p.name ? p.name : "TA"; }
+  function canApi68(pa) { try { if (window.jy62CanApi) return !!window.jy62CanApi(pa); } catch (e) {} return false; }
+  function api68(pa, prompt) {
+    return new Promise(function (res, rej) {
+      if (!canApi68(pa) || typeof callChat !== "function") { rej(new Error("NO_API")); return; }
+      var t = setTimeout(function () { rej(new Error("timeout")); }, 30000);
+      callChat([{ role: "user", content: prompt }], pa).then(function (x) { clearTimeout(t); if (x && String(x).trim().length) res(String(x).trim()); else rej(new Error("EMPTY")); }).catch(function (e) { clearTimeout(t); rej(e); });
+    });
+  }
+
+  var GOLD_CSS = "#jy68GoldWrap{width:min(92vw,360px);margin:0 auto;user-select:none} #jy68GoldInfo{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:2px 4px 6px;font-size:13px} #jy68GoldTime{font-weight:700;color:#c0392b} #jy68GoldBar{height:7px;background:#eee;border-radius:4px;overflow:hidden;margin-bottom:6px} #jy68GoldBar i{display:block;height:100%;background:linear-gradient(90deg,#2ecc71,#f1c40f);width:100%} #jy68GoldCanvas{width:100%;height:auto;display:block;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);touch-action:none;background:#5c3a21} #jy68GoldMsg{min-height:18px;text-align:center;font-size:12px;color:#666;padding:6px 2px 0;line-height:1.4} #jy68GoldBtns{display:flex;gap:8px;justify-content:center;padding-top:8px} .jy68-btn{padding:7px 14px;border:none;border-radius:20px;background:#3b82f6;color:#fff;font-size:13px;cursor:pointer} .jy68-btn.gray{background:#95a5a6} .jy68-btn.gold{background:#e67e22}";
+  try { var st = document.createElement("style"); st.textContent = GOLD_CSS; document.head.appendChild(st); } catch (e) {}
+
+  var GD = null;
+  var TIMER = null, RAF = null, __last = 0;
+  var gmOver = false;
+  var gmMode = ""; // 'run' | 'over'
+
+  function goldStop() {
+    if (RAF && window.cancelAnimationFrame) window.cancelAnimationFrame(RAF);
+    RAF = null;
+    if (TIMER) { clearInterval(TIMER); TIMER = null; }
+    gmOver = true;
+    if (window.__jy68CS) window.__jy68CS.over = "exit";
+  }
+  window.jy68GoldStop = goldStop;
+  window.__jy68GoldAbort = function () { goldStop(); };
+
+  function escName(s) { return esc68(s || "TA"); }
+
+  /* ---- 矿井实体 ---- */
+  var MINE_W = 0, MINE_H = 0, GROUND_H = 30, DEPTH_Y0 = 44, MINE_HH = 0;
+  function makeMine(side) {
+    var items = [];
+    var seq = 1;
+    function spawn(type, x, y) {
+      var cfg = { gold1: { v: 10, r: 7, w: 0.75, c: "#f1c40f" }, gold2: { v: 30, r: 10, w: 0.9, c: "#f39c12" }, gold3: { v: 70, r: 15, w: 1.05, c: "#e67e22" }, dia: { v: 120, r: 9, w: 1.25, c: "#9b59b6" }, rock: { v: 0, r: 14, w: 3.4, c: "#8d6e63" } }[type];
+      items.push({ id: "m" + (seq++), type: type, x: x, y: y, v: cfg.v, r: cfg.r, w: cfg.w, c: cfg.c, st: "idle", dir: 1 });
+    }
+    var R = function () { return Math.random(); };
+    var placed = [];
+    var tries = 0;
+    while (placed.length < 12 && tries < 400) {
+      tries++;
+      var t = R();
+      var type = t < 0.38 ? "gold1" : t < 0.6 ? "gold2" : t < 0.74 ? "gold3" : t < 0.85 ? "dia" : "rock";
+      var w = type === "gold1" ? 14 : type === "gold2" ? 20 : type === "gold3" ? 30 : type === "dia" ? 18 : 28;
+      var margin = 14;
+      var x = margin + R() * (MINE_W - margin * 2);
+      var y = DEPTH_Y0 + R() * (MINE_HH - DEPTH_Y0 - 50);
+      var ok = true;
+      for (var i = 0; i < placed.length; i++) { var dx = placed[i].x - x, dy = placed[i].y - y; if (dx * dx + dy * dy < 34 * 34) { ok = false; break; } }
+      if (ok) { spawn(type, x, y); placed.push({ x: x, y: y, w: w }); }
+    }
+    var hook = { x: MINE_W / 2, y: 22, ang: -0.5, swinging: true, launch: null, speed: 0, carry: null, st: "idle", stuck: 0 };
+    return { side: side, items: items, hook: hook, score: 0, targets: [], aiThinking: false, lastAi: 0, shake: 0 };
+  }
+
+  function goldInit() {
+    gmOver = false;
+    gmMode = "run";
+    GD = { t0: Date.now(), dur: 90, left: null, right: null, winner: null, over: false, tLeft: 90 };
+    GD.left = makeMine("me");
+    GD.right = makeMine("ai");
+  }
+
+  function goldRenderHTML() {
+    var box = document.getElementById("jy62BoardArea");
+    if (!box) return;
+    var h = "";
+    h += '<div id="jy68GoldWrap">';
+    h += '<div id="jy68GoldInfo"><span>我：<b id="gMeScore">0</b> 分</span><span id="jy68GoldTime">90s</span><span><b id="gAiScore">0</b> 分：' + escName(nm68()) + "</span></div>";
+    h += '<div id="jy68GoldBar"><i id="jy68GoldFill"></i></div>';
+    h += '<canvas id="jy68GoldCanvas" width="360" height="470"></canvas>';
+    h += '<div id="jy68GoldMsg">点击左半边放钩 / 收钩，和 ' + escName(nm68()) + " 比赛挖矿（TA 的策略由模型 API 实时决策）。</div>";
+    h += '<div id="jy68GoldBtns"><button class="jy68-btn gold" onclick="window.__jy68GoldRestart ? window.__jy68GoldRestart() : 0">重新开局</button><button class="jy68-btn gray" onclick="jy62ExitGame()">回大厅</button></div>';
+    h += "</div>";
+    box.innerHTML = h;
+    var cv = document.getElementById("jy68GoldCanvas");
+    if (cv) {
+      cv.addEventListener("pointerdown", function (ev) {
+        var rect = cv.getBoundingClientRect();
+        var px = ev.clientX - rect.left;
+        if (px < rect.width / 2) goldMeTap();
+      });
+    }
+    var cvs = document.getElementById("jy68GoldCanvas");
+    if (cvs) {
+      var dpr = window.devicePixelRatio || 1;
+      cvs.width = 360 * dpr; cvs.height = 470 * dpr;
+    }
+    MINE_W = 360 / 2;
+    MINE_H = 470; MINE_HH = MINE_H - GROUND_H - 6;
+  }
+
+  function goldStart() {
+    if (window.__jy68CS) window.__jy68CS.over = "exit";
+    var hostPa = pa68();
+    if (!hostPa || !canApi68(hostPa)) { toast68("TA 还没接入模型 API，去「人设档案」配置后才能开局"); return; }
+    goldStop();
+    goldInit();
+    goldRenderHTML();
+    loopStart();
+    var msg = document.getElementById("jy68GoldMsg");
+    if (msg) msg.textContent = nm68() + " 正在看矿脉…（TA 的策略由模型 API 决策）";
+    askAiOnce(true);
+  }
+  window.jy68GoldStart = goldStart;
+  window.__jy68GoldRestart = function () { goldStart(); };
+
+  function goldMeTap() {
+    if (!GD || gmOver || GD.over) return;
+    var hk = GD.left.hook;
+    if (hk.st === "idle") { fire(hk, GD.left); return; }
+    if (hk.st === "out" || hk.st === "back") { retract(hk, GD.left); return; }
+  }
+
+  function fire(hk, mine) {
+    hk.st = "out"; hk.speed = 4.4; hk.carry = null;
+    hk.dir = Math.sin(hk.ang) > 0 ? 1 : -1;
+  }
+  function retract(hk, mine) {
+    if (hk.st === "out") hk.st = "back";
+  }
+
+  /* ---- 物理帧 ---- */
+  function hookHead(hk) {
+    var L = hk.len || 0;
+    return { x: hk.x + Math.sin(hk.ang) * L, y: hk.y + Math.cos(hk.ang) * L };
+  }
+  function loopStart() {
+    var self = this;
+    var prev = 0;
+    var dirty = false;
+    var frame = function (ts) {
+      if (gmOver || !GD) return;
+      var dt = Math.min(34, ts - prev || 16);
+      prev = ts;
+      step(dt);
+      draw();
+      RAF = window.requestAnimationFrame(frame);
+    };
+    if (window.requestAnimationFrame) RAF = window.requestAnimationFrame(frame);
+    else TIMER = setInterval(function () { step(16); draw(); }, 16);
+  }
+
+  function step(dt) {
+    if (!GD || GD.over) return;
+    var sec = dt / 1000;
+    GD.tLeft = Math.max(0, GD.dur - (Date.now() - GD.t0) / 1000);
+    var fill = document.getElementById("jy68GoldFill");
+    if (fill) fill.style.width = Math.max(0, Math.min(100, (GD.tLeft / GD.dur) * 100)) + "%";
+    var te = document.getElementById("jy68GoldTime");
+    if (te) te.textContent = Math.ceil(GD.tLeft) + "s";
+    if (GD.tLeft <= 0) { endGame(); return; }
+    stepMine(GD.left, dt);
+    stepMine(GD.right, dt);
+    aiTick(dt);
+  }
+
+  function stepMine(mine, dt) {
+    var hk = mine.hook;
+    if (hk.stuck > 0) {
+      hk.stuck -= dt;
+      mine.shake = 1;
+      if (hk.stuck <= 0) {
+        hk.stuck = 0; hk.st = "idle"; hk.carry = null; mine.shake = 0;
+      }
+      return;
+    }
+    if (hk.st === "idle") {
+      hk.ang = -1.15 + (Math.sin(Date.now() / 420) + 1) * 1.15; // 摆动 -1.15..1.15
+      return;
+    }
+    var head = hookHead(hk);
+    var sideWallL = 6, sideWallR = MINE_W - 6, topY = 34, bottomY = MINE_HH;
+    if (hk.st === "out" || hk.st === "back") {
+      var sp = hk.speed;
+      if (hk.carry) sp = Math.max(0.85, sp - hk.carry.w * 1.4);
+      var mx = Math.sin(hk.ang) * sp * dt / 16;
+      var my = Math.cos(hk.ang) * sp * dt / 16;
+      if (hk.st === "back") { mx = -mx; my = -my; }
+      var nx = hk.x + mx, ny = hk.y + my;
+      var hx = hk.x + Math.sin(hk.ang) * (hk.len || 0), hy = hk.y + Math.cos(hk.ang) * (hk.len || 0);
+      var collideWall = false;
+      if (hx <= sideWallL + 2 || hx >= sideWallR - 2) { hk.dir = -hk.dir; collideWall = true; }
+      var bounce = function () {
+        if (hk.dir === 1) { hk.ang = Math.abs(hk.ang); } else { hk.ang = -Math.abs(hk.ang); }
+        hk.len = Math.max(0, (hk.len || 0) - 2);
+        if (hk.len <= 0) { hk.st = "idle"; hk.len = 0; }
+      };
+      if (collideWall) { bounce(); return; }
+      hk.len = Math.max(0, (hk.len || 0) + (hk.st === "out" ? 1 : -1) * sp * dt / 16);
+      if (hk.len <= 0) { hk.st = "idle"; hk.carry = null; hk.len = 0; return; }
+      if (hy >= bottomY + 6) { hk.st = "back"; return; }
+      // 抓取判定
+      if (hk.st === "out" && !hk.carry) {
+        var hh = hookHead(hk);
+        for (var i = 0; i < mine.items.length; i++) {
+          var it = mine.items[i];
+          if (it.st !== "idle") continue;
+          var dx = it.x - hh.x, dy = it.y - hh.y;
+          if (dx * dx + dy * dy < (it.r + 5) * (it.r + 5)) {
+            it.st = "hooked";
+            hk.carry = it;
+            if (it.type === "rock") { hk.stuck = 2400; it.st = "idle"; hk.carry = null; mine.shake = 1; break; }
+            hk.st = "back";
+            break;
+          }
+        }
+      }
+    }
+    // 回收携带物到顶
+    if (hk.st === "back" && hk.carry) {
+      var hh2 = hookHead(hk);
+      if (hh2.y <= topY + 8) {
+        var it2 = hk.carry;
+        mine.score += it2.v;
+        it2.st = "gone";
+        hk.carry = null;
+        hk.st = "idle";
+        hk.len = 0;
+        mine.shake = 0;
+        updateScores();
+      }
+    }
+  }
+
+  function updateScores() {
+    if (!GD) return;
+    var a = document.getElementById("gMeScore");
+    if (a) a.textContent = GD.left.score;
+    var b = document.getElementById("gAiScore");
+    if (b) b.textContent = GD.right.score;
+  }
+
+  function aiTick(dt) {
+    var mine = GD.right;
+    var hk = mine.hook;
+    if (GD.over) return;
+    if (hk.st === "idle" && hk.stuck <= 0) {
+      if (mine.targets && mine.targets.length) {
+        var tid = mine.targets[0];
+        var it = null;
+        for (var i = 0; i < mine.items.length; i++) if (mine.items[i].id === tid && mine.items[i].st === "idle") { it = mine.items[i]; break; }
+        if (it) {
+          var dx = it.x - hk.x, dy = it.y - hk.y;
+          hk.ang = Math.atan2(dx, dy);
+          fire(hk, mine);
+        } else { mine.targets.shift(); }
+      } else if (!mine.aiThinking) {
+        askAiOnce(false);
+      }
+    } else if ((hk.st === "out" || hk.st === "back") && hk.carry && hk.carry.type === "rock") {
+      // 石头太重要放弃了（由 stepMine 处理 stuck）
+    } else if (hk.st === "out") {
+      // 外伸太久没抓到，收钩（真实点：到底自动收）
+      var hh = hookHead(hk);
+      if (hh.y >= MINE_HH + 2) hk.st = "back";
+    }
+  }
+
+  function mineItemsText(mine, who) {
+    var arr = [];
+    var list = [];
+    for (var i = 0; i < mine.items.length; i++) if (mine.items[i].st === "idle") list.push(mine.items[i]);
+    list.sort(function (a, b) { return a.y - b.y; });
+    var names = { gold1: "小金块", gold2: "中金块", gold3: "大金块", dia: "钻石", rock: "石头" };
+    for (var j = 0; j < list.length; j++) {
+      var it = list[j];
+      if (it.type === "rock") continue;
+      arr.push(it.id + "号: " + names[it.type] + "(+" + it.v + "分) 深度" + Math.round((it.y - DEPTH_Y0) / 12) + "层 左偏" + (Math.round((it.x / MINE_W) * 100) - 50));
+    }
+    return arr.slice(0, 14).join("；");
+  }
+
+  function askAiOnce(first) {
+    var mine = GD.right;
+    if (mine.aiThinking) return;
+    if (!canApi68(pa68())) {
+      if (first) { var msg = document.getElementById("jy68GoldMsg"); if (msg) msg.textContent = nm68() + " 没接入模型 API，无法参与对局。"; }
+      return;
+    }
+    mine.aiThinking = true;
+    var msg = document.getElementById("jy68GoldMsg");
+    if (msg && !GD.over) msg.textContent = nm68() + " 正在看矿脉决定抓哪个…";
+    var sec = Math.ceil(GD.tLeft);
+    var prompt = "你正在和玩家玩双人黄金矿工（比拼挖矿得分），你执右矿井。玩家已得 " + GD.left.score + " 分，你已得 " + GD.right.score + " 分，剩余 " + sec + " 秒。你的矿井里现在可抓的有：\n" + mineItemsText(mine, "right") + "\n请按性价比（价值高、深度浅、越靠中间越好抓）挑 1-3 个目标，只回复目标编号，多个用逗号或空格分隔，按优先级排序；想先等钩子摆到好位置就回复 wait。不要解释。";
+    api68(pa68(), prompt).then(function (txt) {
+      mine.aiThinking = false;
+      if (!GD || GD.over) return;
+      var s = String(txt || "");
+      if (/wait/i.test(s)) return;
+      var ids = s.match(/(m\d+)/g);
+      if (!ids || !ids.length) { mine.aiThinking = false; return; }
+      var has = [];
+      for (var i = 0; i < ids.length && has.length < 3; i++) {
+        var it = null;
+        for (var j = 0; j < mine.items.length; j++) if (mine.items[j].id === ids[i] && mine.items[j].st === "idle") { it = mine.items[j]; break; }
+        if (it) has.push(it.id);
+      }
+      if (!has.length) return;
+      mine.targets = has;
+      var msg2 = document.getElementById("jy68GoldMsg");
+      if (msg2) msg2.textContent = nm68() + " 决定了目标，钩子出动…";
+    }).catch(function () {
+      mine.aiThinking = false;
+      if (!GD || GD.over) return;
+      var msg3 = document.getElementById("jy68GoldMsg");
+      if (msg3) msg3.textContent = nm68() + " 模型 API 暂时没回应，TA 在等你手动点一下「重试」继续思考。";
+    });
+  }
+
+  function endGame() {
+    if (GD.over) return;
+    GD.over = true;
+    var left = GD.left.score, right = GD.right.score;
+    var winner = left > right ? "me" : right > left ? "ai" : "draw";
+    var msg = document.getElementById("jy68GoldMsg");
+    if (msg) {
+      msg.innerHTML = "时间到！你 " + left + " 分，" + nm68() + " " + right + " 分，" + (winner === "me" ? "你赢了！" : winner === "ai" ? nm68() + " 赢了。" : "平局。");
+    }
+    var hostPa = pa68();
+    if (window.jy62MemLine && hostPa) jy62MemLine(hostPa, "game", "你和" + nm68() + "玩了一局双人黄金矿工，你" + left + "分，" + nm68() + right + "分，" + (winner === "me" ? "你赢了" : winner === "ai" ? nm68() + "赢了" : "平局") + "。");
+    if (canApi68(hostPa)) {
+      api68(hostPa, "你们刚比完一局双人黄金矿工，你" + left + "分，" + nm68() + right + "分，" + (winner === "me" ? "你输了，用一两句服气又俏皮的话说。" : winner === "ai" ? "你赢了，用一两句得意的话说。" : "平局，用一两句轻松的话说。") + "（口语短句）").then(function (s) {
+        var mm = document.getElementById("jy68GoldMsg");
+        if (mm && s) mm.innerHTML = esc68(s);
+      }).catch(function () {});
+    }
+  }
+
+  function draw() {
+    var cvs = document.getElementById("jy68GoldCanvas");
+    if (!cvs || !GD) return;
+    var ctx = cvs.getContext("2d");
+    var dpr = window.devicePixelRatio || 1;
+    if (ctx.getTransform) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var W = 360, H = 470;
+    ctx.clearRect(0, 0, W, H);
+    // 土层背景
+    ctx.fillStyle = "#6d4c33"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#573a24"; ctx.fillRect(0, 0, W, GROUND_H);
+    ctx.fillStyle = "#7d5a3a";
+    for (var y = GROUND_H; y < H; y += 26) {
+      for (var x = 0; x < W; x += 40) {
+        var o = ((x / 40 + Math.floor(y / 26)) % 2) * 10;
+        ctx.fillRect(x + o, y + 4, 18, 6);
+      }
+    }
+    drawMine(ctx, GD.left, 0, 0, MINE_W, "me");
+    drawMine(ctx, GD.right, MINE_W, 0, MINE_W, "ai");
+    // 分屏线
+    ctx.fillStyle = "rgba(0,0,0,.25)"; ctx.fillRect(MINE_W - 1.5, GROUND_H, 3, H - GROUND_H);
+  }
+
+  function drawMine(ctx, mine, ox, oy, mw, who) {
+    if (!mine) return;
+    var hk = mine.hook;
+    var gx = ox + hk.x, gy = oy + hk.y;
+    // 钩绳
+    ctx.strokeStyle = "#444"; ctx.lineWidth = 2;
+    var len = hk.len || 0;
+    var hx = gx + Math.sin(hk.ang) * len, hy = gy + Math.cos(hk.ang) * len;
+    ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(hx, hy); ctx.stroke();
+    // 小车/顶梁
+    ctx.fillStyle = "#c0392b"; ctx.fillRect(gx - 9, gy - 4, 18, 8);
+    ctx.fillStyle = "#e67e22";
+    for (var w1 = 0; w1 < mw; w1 += 10) ctx.fillRect(ox + w1, oy + 26, 5, 4);
+    // 钩子
+    ctx.save();
+    ctx.translate(hx, hy);
+    ctx.rotate(hk.ang);
+    ctx.strokeStyle = "#888"; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(6, 10); ctx.lineTo(10, 8); ctx.moveTo(0, 0); ctx.lineTo(-6, 10); ctx.lineTo(-10, 8); ctx.stroke();
+    ctx.restore();
+    if (mine.shake) {
+      ctx.fillStyle = "rgba(255,255,255,.5)";
+      var rr = 6 + Math.random() * 3;
+      ctx.beginPath(); ctx.arc(hx, hy, rr, 0, Math.PI * 2); ctx.fill();
+    }
+    // 物品
+    for (var i = 0; i < mine.items.length; i++) {
+      var it = mine.items[i];
+      if (it.st === "gone") continue;
+      var px = ox + it.x, py = oy + it.y;
+      if (it.st === "hooked") { var hh = hookHead(hk); px = hh.x; py = hh.y; }
+      if (it.type === "rock") {
+        ctx.fillStyle = "#8d6e63"; ctx.strokeStyle = "#5d4037"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(px - it.r, py + it.r * 0.6); ctx.lineTo(px + it.r, py + it.r * 0.6); ctx.lineTo(px + it.r * 0.5, py - it.r); ctx.lineTo(px - it.r * 0.5, py - it.r); ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else if (it.type === "dia") {
+        ctx.fillStyle = "#9b59b6"; ctx.strokeStyle = "#fff";
+        ctx.beginPath(); ctx.moveTo(px, py - it.r); ctx.lineTo(px + it.r * 0.7, py); ctx.lineTo(px, py + it.r); ctx.lineTo(px - it.r * 0.7, py); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "rgba(255,255,255,.85)"; ctx.beginPath(); ctx.moveTo(px, py - it.r); ctx.lineTo(px + it.r * 0.25, py - it.r * 0.1); ctx.lineTo(px - it.r * 0.25, py - it.r * 0.1); ctx.closePath(); ctx.fill();
+      } else {
+        ctx.fillStyle = it.c;
+        var spark = Math.sin(Date.now() / 300 + it.id.length) > 0.85;
+        ctx.beginPath(); ctx.arc(px, py, it.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,.6)"; ctx.beginPath(); ctx.arc(px - it.r * 0.3, py - it.r * 0.3, it.r * 0.32, 0, Math.PI * 2); ctx.fill();
+        if (spark) { ctx.fillStyle = "rgba(255,255,255,.9)"; for (var s = 0; s < 4; s++) { var a2 = s * Math.PI / 2; ctx.fillRect(px + Math.cos(a2) * (it.r + 3) - 1, py + Math.sin(a2) * (it.r + 3) - 1, 2, 2); } }
+        ctx.strokeStyle = "rgba(0,0,0,.2)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(px, py, it.r, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+  }
+})();
+
+</script>
   try { if (window.PAGES && window.PAGES.indexOf("jyGame62") < 0) window.PAGES.push("jyGame62"); } catch (e) {}
-  try { if (window.HOME_APP_META && !window.HOME_APP_META.games) window.HOME_APP_META.games = { name: "小游戏", icon: "" }; } catch (e) {}
-  try { if (window.renderHomeGrid) window.renderHomeGrid(); } catch (e) {}
 })();
 </script>
-</body>
-</html>
