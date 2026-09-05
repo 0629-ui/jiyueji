@@ -17325,6 +17325,18 @@ function closeDreamHelp() {
   }
 
   function jy62PickGame(id) {
+    if (id === "liar") {
+      JY62.mode = null; JY62.hostId = null; JY62.friends = [];
+      try { if (window.jyLiarOpen) { window.jyLiarOpen(); return; } } catch (e) {}
+      toast62("骗子酒馆加载失败，请刷新后重试");
+      return;
+    }
+    if (id === "trpg") {
+      JY62.mode = null; JY62.hostId = null; JY62.friends = [];
+      try { if (window.jyTrpgOpen) { window.jyTrpgOpen(); return; } } catch (e) {}
+      toast62("跑团加载失败，请刷新后重试");
+      return;
+    }
     if (id === "climb") {
       try { if (window.jyClimbOpen) { window.jyClimbOpen(); return; } } catch (e) {}
       toast62("登山小鸡加载失败，请刷新后重试");
@@ -21679,4 +21691,1455 @@ function closeDreamHelp() {
   window.__jyClimbDbg = function () { return { CL: CL, doJump: doJump, update: update, enterWater: enterWater, gameOver: gameOver, waterDone: waterDone }; };
 })();
 
+</script>
+
+<style>
+/* ===================== 骗子酒馆 · 72 ===================== */
+.jyL-page .jy-game-body{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;background:linear-gradient(180deg,#2c2416,#16100a);color:#f5e9cf}
+.jyL-table{flex:1;display:flex;flex-direction:column;gap:6px;padding:8px 10px 4px;overflow:hidden;min-height:0}
+.jyL-target{display:flex;align-items:center;justify-content:center;gap:8px;padding:5px 0}
+.jyL-tgt-txt{font-size:12px;color:#c9b283}
+.jyL-aimcard{width:40px;height:54px;background:linear-gradient(145deg,#8a1f1f,#5c1111);border:1px solid #e0a94f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#ffe9b0;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.jyL-seats{display:flex;justify-content:space-between;gap:4px}
+.jyL-seat{flex:1;text-align:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:5px 2px;position:relative}
+.jyL-seat img{width:34px;height:34px;border-radius:50%;display:block;margin:0 auto 3px;object-fit:cover;background:#c8bfae}
+.jyL-seat .nm{font-size:10px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jyL-seat .st{font-size:9px;color:#c9b283;min-height:11px}
+.jyL-seat.me{border-color:#ffcf6e}
+.jyL-seat.dead{opacity:.35}
+.jyL-seat.acting{border-color:#ff8f6e;box-shadow:0 0 0 2px rgba(255,143,110,.35)}
+.jyL-last{text-align:center;font-size:12px;color:#e8cf9d;min-height:18px;padding:2px 0}
+.jyL-log{flex:1;min-height:0;overflow-y:auto;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px 8px;display:flex;flex-direction:column;gap:4px}
+.jyL-line{font-size:12px;line-height:1.45;color:#efe3c8;padding:2px 0;border-bottom:1px dashed rgba(255,255,255,.05)}
+.jyL-line .who{font-weight:700}
+.jyL-line.sys{color:#c9b283;font-style:italic}
+.jyL-line.act{color:#fff}
+.jyL-line.win{color:#ffd76a;font-weight:700}
+.jyL-line.lose{color:#ff9d8a}
+.jyL-line.me-line .who{color:#ffcf6e}
+.jyL-hand{background:rgba(255,255,255,.05);padding:6px 8px 8px;border-top:1px solid rgba(255,255,255,.1)}
+.jyL-cards{display:flex;justify-content:center;gap:7px;padding-bottom:7px;min-height:64px}
+.jyL-card{width:42px;height:60px;border-radius:7px;background:#fff;color:#3a2a14;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;cursor:pointer;border:2px solid transparent;user-select:none;transition:transform .12s}
+.jyL-card.king{background:linear-gradient(160deg,#7a1420,#c9871c);color:#ffe9b0}
+.jyL-card.sel{transform:translateY(-7px);border-color:#ff6b4a;box-shadow:0 0 0 2px rgba(255,107,74,.4)}
+.jyL-card.dim{opacity:.4}
+.jyL-card.back{background:repeating-linear-gradient(45deg,#8a4a12,#8a4a12 4px,#6e370b 4px, #6e370b 8px);cursor:default;color:transparent;border-color:rgba(255,255,255,.3)}
+.jyL-ops{display:flex;gap:8px;align-items:center;justify-content:center}
+.jyL-op{flex:1;max-width:180px;padding:9px 4px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;background:linear-gradient(180deg,#e0a94f,#b57f26);color:#2a1700}
+.jyL-op:disabled{opacity:.35;cursor:not-allowed}
+.jyL-op.call{background:linear-gradient(180deg,#ff6b4a,#c93f24);color:#fff}
+.jyL-op:active{filter:brightness(.9)}
+.jyL-think{font-size:11px;color:#a88f62;text-align:center;padding:3px 0;min-height:16px}
+.jyL-talk{display:flex;gap:6px;padding:6px 8px 8px;background:rgba(255,255,255,.04)}
+.jyL-talk input{flex:1;min-width:0;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:8px 12px;font-size:12px;color:#fff;outline:none}
+.jyL-talk button{border:none;border-radius:18px;padding:0 14px;font-size:12px;font-weight:700;background:linear-gradient(180deg,#e0a94f,#b57f26);color:#2a1700;cursor:pointer}
+.jyL-pick .tg{font-size:12px;color:var(--page-dim);padding:2px 2px 6px}
+.jyL-pick-row{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:10px}
+.jyL-type{flex:1;min-width:120px;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px;text-align:left;cursor:pointer}
+.jyL-type.sel{border-color:#e0a94f;background:#fff7e6}
+.jyL-type b{display:block;font-size:14px}
+.jyL-type span{font-size:11px;color:var(--page-dim);line-height:1.4}
+.jyL-players{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto}
+.jyL-player{display:flex;align-items:center;gap:9px;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:7px 9px;cursor:pointer}
+.jyL-player.sel{border-color:#e0a94f;background:#fff7e6}
+.jyL-player.off{opacity:.42}
+.jyL-player img{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#ece7dc}
+.jyL-player .pm{flex:1;min-width:0}
+.jyL-player .pn{font-size:14px;font-weight:700}
+.jyL-player .pd{font-size:11px;color:var(--page-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jyL-rule{font-size:12px;line-height:1.75;color:#3a3a3a;white-space:pre-wrap}
+</style>
+<div class="page light-page" id="jyGameLiar">
+  <div class="page-head jy-game-head"><span class="back" onclick="jyLiarExit()">‹</span><div style="flex:1;min-width:0;text-align:center"><div class="jy-game-title">骗子酒馆</div><div class="jy-game-sub" id="jyLiarSub"></div></div><span class="jy-mask-btn" onclick="jyLiarHelp()">规则</span></div>
+  <div class="jy-game-body jyL-page">
+    <div class="jyL-table">
+      <div class="jyL-seats" id="jyLiarSeats"></div>
+      <div class="jyL-target"><span class="jyL-tgt-txt">本轮目标</span><span class="jyL-aimcard" id="jyLiarAim">?</span></div>
+      <div class="jyL-last" id="jyLiarLast">还没人出牌</div>
+      <div class="jyL-log" id="jyLiarLog"></div>
+    </div>
+    <div class="jyL-hand" id="jyLiarHandArea" style="display:none">
+      <div class="jyL-cards" id="jyLiarCards"></div>
+      <div class="jyL-ops" id="jyLiarOps"></div>
+      <div class="jyL-think" id="jyLiarThink"></div>
+    </div>
+    <div class="jyL-talk"><input id="jyLiarTalk" placeholder="插句话（会记入角色记忆）…" onkeydown="jyLiarTalkKey(event)"><button onclick="jyLiarTalkSend()">说</button></div>
+    <div class="jy-over" id="jyLiarOver" style="display:none"><div class="jy-over-card"><div class="t" id="jyLiarOverT"></div><div class="s" id="jyLiarOverS"></div><div class="row"><button class="jy-small-btn primary" onclick="jyLiarAgain()">再来一局</button><button class="jy-small-btn quit" onclick="jyLiarExit()">返回大厅</button></div></div></div>
+  </div>
+</div>
+<div class="modal-mask" id="jyLiarMask" onclick="if(event.target===this)jyLiarMaskClose()">
+  <div class="modal-sheet"><div style="display:flex;align-items:center;gap:8px;padding-bottom:8px"><span class="back" onclick="jyLiarMaskClose()">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800" id="jyLiarMaskTitle">开局设置</div><span style="width:28px"></span></div><div id="jyLiarMaskBody"></div></div>
+</div>
+<div class="modal-mask" id="jyLiarRuleMask" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-sheet"><h3 style="text-align:center">骗子酒馆 · 规则</h3><div class="jyL-rule" id="jyLiarRuleBody"></div><div class="sheet-row" style="padding-top:10px"><button class="sheet-btn" onclick="document.getElementById('jyLiarRuleMask').classList.remove('show')">关闭</button></div></div>
+</div>
+
+<style>
+/* ===================== 跑团 CoC · 72 ===================== */
+.jyT-page .jy-game-body{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;background:linear-gradient(180deg,#101826,#070b12);color:#e8edf5}
+.jyT-desk{flex:1;display:flex;flex-direction:column;gap:6px;padding:8px 10px 4px;overflow:hidden;min-height:0}
+.jyT-seats{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;flex-wrap:nowrap}
+.jyT-seat{flex:0 0 auto;min-width:96px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:5px;position:relative;display:flex;flex-direction:column;gap:3px;cursor:pointer;user-select:none}
+.jyT-seat .tp{display:flex;align-items:center;gap:6px;min-width:0}
+.jyT-seat img{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#39424f;flex:0 0 auto}
+.jyT-seat .nm{font-size:11px;color:#fff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.jyT-seat .tag{font-size:8px;background:rgba(255,255,255,.14);color:#aec6e8;border-radius:6px;padding:0 4px;flex:0 0 auto}
+.jyT-seat .bars{display:flex;flex-direction:column;gap:2px}
+.jyT-seat .bar{height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
+.jyT-seat .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;display:block}
+.jyT-seat .bar.b-hp i{background:linear-gradient(90deg,#e06a4e,#ff9d7a)}
+.jyT-seat .bar.b-san i{background:linear-gradient(90deg,#6a8ff0,#9db8ff)}
+.jyT-seat .bar b{position:absolute;right:2px;top:0;bottom:0;font-size:7px;line-height:5px;color:rgba(255,255,255,.75);font-weight:400}
+.jyT-seat .n{font-size:9px;color:#7f92ac;text-align:right;line-height:1}
+.jyT-seat.kp{border-color:rgba(250,205,110,.55);background:linear-gradient(160deg,rgba(250,205,110,.14),rgba(255,255,255,.04))}
+.jyT-seat.kp .tag{background:rgba(250,205,110,.22);color:#ffe1a0}
+.jyT-seat.me{border-color:rgba(255,210,110,.75)}
+.jyT-seat.dead{opacity:.35;cursor:default}
+.jyT-seat.acting{border-color:#7fd1ff;box-shadow:0 0 0 2px rgba(127,209,255,.3)}
+.jyT-scene{flex:1;min-height:0;overflow-y:auto;background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:7px}
+.jyT-node{font-size:13px;line-height:1.62;color:#dbe6f2;border-left:3px solid rgba(127,209,255,.35);padding-left:8px;white-space:pre-wrap;word-break:break-word}
+.jyT-line{font-size:12.5px;line-height:1.5;color:#f2f6fb;padding:1px 0}
+.jyT-line .w{color:#9db8ff;font-weight:700}
+.jyT-line.kp .w{color:#ffe1a0}
+.jyT-line.npc{color:#d8e0ea}
+.jyT-line.npc .w{color:#ffca85}
+.jyT-line.sys{color:#86a7d6;font-style:italic;font-size:12px}
+.jyT-line.risk{color:#ff9d8a}
+.jyT-line.good{color:#7fe0a8}
+.jyT-line.me .w{color:#ffd76a}
+.jyT-chk{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(127,209,255,.08);border:1px solid rgba(127,209,255,.3);border-radius:10px;padding:8px 10px;font-size:12px;color:#cfe6ff}
+.jyT-ctrl{background:rgba(255,255,255,.04);border-top:1px solid rgba(255,255,255,.09);padding:6px 8px 8px;display:flex;flex-direction:column;gap:6px}
+.jyT-tabs{display:flex;gap:5px;align-items:center}
+.jyT-tab{font-size:11px;padding:3px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#a9bdd6;cursor:pointer}
+.jyT-tab.sel{background:#4f7dd1;color:#fff;border-color:#4f7dd1}
+.jyT-types{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.jyT-type{font-size:11px;padding:3px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#c9d7e8;cursor:pointer}
+.jyT-type.sel{background:#ffb74d;color:#3a2400;border-color:#ffb74d}
+.jyT-input{display:flex;gap:6px;align-items:center}
+.jyT-input input{flex:1;min-width:0;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:8px 12px;font-size:12.5px;color:#fff;outline:none}
+.jyT-input button{border:none;border-radius:16px;padding:0 16px;font-size:12px;font-weight:700;background:linear-gradient(180deg,#7fd1ff,#4f7dd1);color:#07101f;cursor:pointer;min-height:32px}
+.jyT-hint{font-size:10.5px;color:#7f92ac;line-height:1.5;min-height:14px;padding:0 2px}
+.jyT-go{flex:1;text-align:center;font-size:12px;color:#cfe6ff}
+.jyT-th{display:flex;gap:10px;flex-wrap:wrap;padding:8px 12px}
+.jyT-th b{display:block;font-size:13px}
+.jyT-th span{font-size:11px;color:#7a8aa3;line-height:1.4;display:block}
+.jyT-grid{display:flex;flex-direction:column;gap:8px;max-height:44vh;overflow-y:auto}
+</style>
+<div class="page light-page" id="jyGameTrpg">
+  <div class="page-head jy-game-head"><span class="back" onclick="jyTrpgExit()">‹</span><div style="flex:1;min-width:0;text-align:center"><div class="jy-game-title">跑团 · 迷雾调查</div><div class="jy-game-sub" id="jyTrpgSub"></div></div><span class="jy-mask-btn" onclick="jyTrpgHelp()">规则</span></div>
+  <div class="jy-game-body jyT-page">
+    <div class="jyT-desk">
+      <div class="jyT-seats" id="jyTrpgSeats"></div>
+      <div class="jyT-scene" id="jyTrpgScene"></div>
+    </div>
+    <div class="jyT-ctrl">
+      <div class="jyT-tabs"><span class="jyT-tab sel" id="jyTrpgTabAct" onclick="jyTrpgTab('act')">行动</span><span class="jyT-tab" id="jyTrpgTabChat" onclick="jyTrpgTab('chat')">闲聊</span><span class="jyT-go" id="jyTrpgGoTxt"></span></div>
+      <div class="jyT-types" id="jyTrpgTypes" style="display:none">
+        <span class="jyT-type sel" data-t="调查">调查</span><span class="jyT-type" data-t="询问">询问</span><span class="jyT-type" data-t="推理">推理</span><span class="jyT-type" data-t="行动">行动</span><span class="jyT-type" data-t="休息">休息</span>
+      </div>
+      <div class="jyT-input" id="jyTrpgInputRow">
+        <input id="jyTrpgInput" placeholder="输入你的行动…" onkeydown="jyTrpgKey(event)">
+        <button onclick="jyTrpgSend()">行动</button>
+      </div>
+      <div class="jyT-hint" id="jyTrpgHint"></div>
+    </div>
+    <div class="jy-over" id="jyTrpgOver" style="display:none"><div class="jy-over-card"><div class="t" id="jyTrpgOverT"></div><div class="s" id="jyTrpgOverS"></div><div class="row"><button class="jy-small-btn primary" onclick="jyTrpgAgain()">再来一卷</button><button class="jy-small-btn quit" onclick="jyTrpgExit()">返回大厅</button></div></div></div>
+  </div>
+</div>
+<div class="modal-mask" id="jyTrpgMask" onclick="if(event.target===this)jyTrpgMaskClose()">
+  <div class="modal-sheet"><div style="display:flex;align-items:center;gap:8px;padding-bottom:8px"><span class="back" onclick="jyTrpgMaskClose()">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800" id="jyTrpgMaskTitle">迷雾调查 · 开局</div><span style="width:28px"></span></div><div id="jyTrpgMaskBody"></div></div>
+</div>
+<div class="modal-mask" id="jyTrpgRuleMask" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-sheet"><h3 style="text-align:center">跑团 · 玩法说明</h3><div class="jyL-rule" id="jyTrpgRuleBody"></div><div class="sheet-row" style="padding-top:10px"><button class="sheet-btn" onclick="document.getElementById('jyTrpgRuleMask').classList.remove('show')">关闭</button></div></div>
+</div>
+
+<script>/* ===================== 骗子酒馆 (Liar's Bar) 72 模块 ===================== */
+(function () {
+  if (window.__jyLiarInited) return;
+  window.__jyLiarInited = true;
+
+  function escL(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function $L(id) { return document.getElementById(id); }
+  function toastL(t) { try { toast(t); } catch (e) { try { console.log(t); } catch (e2) {} } }
+  function paList() { try { return personaList() || []; } catch (e) { return []; } }
+  function findPa(id) { try { return findPersona(id); } catch (e) { return null; } }
+  function canApi(pa) { try { if (window.jy62CanApi) return !!window.jy62CanApi(pa); var pl = personaPlan(pa); return !!(pa && pl && pl.baseUrl && pl.apiKey); } catch (e) { return false; } }
+  function avUrl(pa) { try { return personaAvatarUrl(pa); } catch (e) { return ""; } }
+  function memPa(pa, text) { try { if (pa) { addMemorySourceFor(pa, "game", text); } } catch (e) {} }
+
+  var L = {
+    on: false, mode: "deck", pickMode: "deck", needAI: 1,
+    seats: [], // seat: {key,isMe,pa,name,av,alive,hand:[],dice:[],lose}
+    target: null, last: null, // deck
+    bid: null, // dice {x,y,idx}
+    turn: 0, dealer: 0, thinking: false, over: false, busy: false,
+    deckInited: false, deckLeft: [], aiFail: 0
+  };
+
+  function sh(arr) { for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
+  function mkDeck() { var d = []; ["Q", "K", "A"].forEach(function (r) { for (var i = 0; i < 6; i++) d.push(r); }); d.push("W"); d.push("W"); return sh(d); }
+  function faceName(c) { return c === "W" ? "王" : c; }
+  function isTruth(c, t) { return c === t || c === "W"; }
+
+  /* ---------- 页面显示 ---------- */
+  function showPageL(id) {
+    try {
+      var ps = window.PAGES || [];
+      for (var i = 0; i < ps.length; i++) { var e = document.getElementById(ps[i]); if (e) e.classList.remove("active"); }
+      var tar = document.getElementById(id);
+      if (tar) tar.classList.add("active");
+      try { document.getElementById("wallpaper").style.display = "none"; } catch (e) {}
+      try { applyAvatars(); } catch (e) {}
+    } catch (e) {}
+  }
+  function openLiarPage() {
+    showPageL("jyGameLiar");
+    try { if (window.PAGES && window.PAGES.indexOf("jyGameLiar") < 0) window.PAGES.push("jyGameLiar"); } catch (e) {}
+  }
+
+  /* ---------- 开局界面 ---------- */
+  function jyLiarOpen() {
+    L.on = true; L.over = false; L.thinking = false; L.busy = false;
+    L.pickStep = "open";
+    renderLiarOpenUI();
+    $L("jyLiarMaskTitle").textContent = "骗子酒馆 · 开局";
+    $L("jyLiarMask").classList.add("show");
+  }
+  window.jyLiarOpen = jyLiarOpen;
+
+  function renderLiarOpenUI() {
+    var body = $L("jyLiarMaskBody");
+    if (!body) return;
+    var ruleDeck = "「骗子牌」：每人5张牌（Q/K/A各6张+2张王，王万能），先打完手牌的人赢。轮到你时选1~3张盖着出，喊出目标牌（可撒谎）；别人可质疑你翻牌——有假你吃枪，全真他吃枪。左轮4膛1弹，中弹出局。";
+    var ruleDice = "「骗子骰」：每人5颗骰子盖盅，只能看自己的。轮到你加叫（例：五个4，要比上家叫得更大）或开盅质疑。开盅后全场点数1当万能；实际不够就叫的人输，够则质疑的人输。输2次淘汰，活到最后的人赢。";
+    var m = L.pickMode || "deck";
+    body.innerHTML =
+      '<div class="jyL-pick"><div class="tg">选择玩法</div><div class="jyL-pick-row">' +
+      '<button class="jyL-type' + (m === "deck" ? " sel" : "") + '" onclick="jyLiarPickType(\'deck\')"><b>骗子牌</b><span>扑克虚张声势 · 心理战</span></button>' +
+      '<button class="jyL-type' + (m === "dice" ? " sel" : "") + '" onclick="jyLiarPickType(\'dice\')"><b>骗子骰</b><span>骰盅叫点数 · 开盅对质</span></button>' +
+      '</div><div class="tg">选择同桌人数（你 + 几位角色）</div><div class="jyL-pick-row">' +
+      [1, 2, 3].map(function (n) { return '<button class="jyL-type" onclick="jyLiarPickSize(' + n + ')"><b>' + (n + 1) + '人桌</b><span>你 + ' + n + ' 位角色</span></button>'; }).join("") +
+      '</div><div style="font-size:11px;color:#8a7a5c;background:rgba(0,0,0,.05);border-radius:10px;padding:8px 10px;line-height:1.7"><b>骗子牌规则：</b>' + ruleDeck + '<br><b>骗子骰规则：</b>' + ruleDice + "</div></div>";
+  }
+  window.jyLiarPickType = function (m) { L.pickMode = m; L.pickStep = "open"; renderLiarOpenUI(); };
+  window.jyLiarPickSize = function (n) { L.needAI = n; L.pickStep = "players"; L.pickPlayers = []; renderLiarPlayerPick(); };
+
+  function renderLiarPlayerPick() {
+    var body = $L("jyLiarMaskBody");
+    if (!body) return;
+    var ps = paList();
+    var ok = ps.filter(function (p) { return canApi(p); });
+    var off = ps.filter(function (p) { return !canApi(p); });
+    var html = '<div class="tg" style="padding-bottom:6px">玩法：' + (L.pickMode === "deck" ? "骗子牌" : "骗子骰") + ' · 已选 <b>' + L.pickPlayers.length + '</b>/' + L.needAI + ' 位角色，点选加入酒桌（需接入模型 API）</div>';
+    if (!ok.length) html += '<div style="padding:10px;font-size:13px;color:#a33;background:rgba(200,60,60,.08);border-radius:10px">没有可接入的角色：请先去「人设档案」给角色配置模型 API。</div>';
+    var li = function (p, selected, can) {
+      return '<div class="jyL-player' + (selected ? " sel" : "") + (can ? "" : " off") + '"' + (can ? ' onclick="jyLiarTogglePlayer(\'' + String(p.id).replace(/'/g, "") + '\')"' : "") + '><img src="' + escL(avUrl(p)) + '" alt=""><div class="pm"><div class="pn">' + escL(p.name || "角色") + "</div><div class=\"pd\">" + (can ? "点击" + (selected ? "取消" : "加入") + "酒桌" : "未接入模型 API") + "</div></div></div>";
+    };
+    html += '<div class="jyL-players">' + ok.map(function (p) { return li(p, L.pickPlayers.indexOf(p.id) >= 0, true); }).join("") +
+      off.map(function (p) { return li(p, false, false); }).join("") + "</div>";
+    html += '<div class="sheet-row" style="padding-top:10px"><button class="sheet-btn ghost" onclick="jyLiarBackOpen()">上一步</button><button class="sheet-btn primary" onclick="jyLiarGoStart()">开始酒局</button></div>';
+    body.innerHTML = html;
+  }
+  window.jyLiarTogglePlayer = function (id) {
+    var i = L.pickPlayers.indexOf(id);
+    if (i >= 0) L.pickPlayers.splice(i, 1);
+    else {
+      if (L.pickPlayers.length >= L.needAI) { toastL("这桌只需要 " + L.needAI + " 位角色"); return; }
+      L.pickPlayers.push(id);
+    }
+    renderLiarPlayerPick();
+  };
+  window.jyLiarBackOpen = function () { L.pickStep = "open"; renderLiarOpenUI(); };
+  window.jyLiarMaskClose = function () { var m = $L("jyLiarMask"); if (m) m.classList.remove("show"); };
+
+  window.jyLiarGoStart = function () {
+    if (L.pickPlayers.length !== L.needAI) { toastL("请选满 " + L.needAI + " 位角色"); return; }
+    $L("jyLiarMask").classList.remove("show");
+    startLiarGame(L.pickMode || "deck", L.pickPlayers.slice());
+  };
+
+  /* ---------- 开局 ---------- */
+  function startLiarGame(mode, aiIds) {
+    L.mode = mode; L.over = false; L.thinking = false; L.busy = false;
+    L.bid = null; L.last = null; L.deckInited = false; L.deckLeft = [];
+    L.seats = [];
+    L.seats.push({ key: "me", isMe: true, pa: null, name: "你", av: "", alive: true, hand: [], dice: [], lose: 0 });
+    aiIds.forEach(function (id) {
+      var pa = findPa(id);
+      L.seats.push({ key: "a_" + id, isMe: false, pa: pa, name: (pa && pa.name) || "TA", av: pa ? avUrl(pa) : "", alive: true, hand: [], dice: [], lose: 0 });
+    });
+    var sub = $L("jyLiarSub");
+    if (sub) sub.textContent = (mode === "deck" ? "骗子牌" : "骗子骰") + " · " + L.seats.length + " 人桌 · " + L.seats.map(function (s) { return s.name; }).join("、");
+    $L("jyLiarOver").style.display = "none";
+    $L("jyLiarLast").textContent = "";
+    openLiarPage();
+    clearLogL();
+    var ruleTxt = mode === "deck" ? "每人5张牌，先打光手牌的人赢；撒谎被抓要吃左轮子弹。" : "每人5颗骰盖盅，叫点对赌，输两杯就醉倒出局。";
+    addLogL("sys", "酒馆开门。本桌「" + (mode === "deck" ? "骗子牌" : "骗子骰") + "」，" + ruleTxt);
+    L.turn = 0; L.dealer = 0;
+    if (mode === "deck") startDeckRound();
+    else startDiceRound();
+  }
+  window.jyLiarAgain = function () {
+    L.on = false;
+    L.pickMode = L.mode;
+    jyLiarOpen();
+  };
+
+  function aliveSeats() { return L.seats.filter(function (s) { return s.alive; }); }
+  function nextAlive(fromIdx) {
+    var n = L.seats.length;
+    for (var k = 1; k <= n; k++) { var i = (fromIdx + k) % n; if (L.seats[i].alive) return i; }
+    return fromIdx;
+  }
+  function seatPa(s) { return s && s.pa; }
+
+  /* ================= 骗子牌 ================= */
+  function startDeckRound() {
+    if (!L.on || L.over) return;
+    if (!L.deckInited) {
+      L.deckInited = true;
+      var d = mkDeck();
+      L.seats.forEach(function (s) { if (s.alive) { s.hand = d.splice(0, 5); } });
+      L.deckLeft = d;
+    }
+    L.target = ["Q", "K", "A"][Math.floor(Math.random() * 3)];
+    L.last = null;
+    selHand.length = 0;
+    var aim = $L("jyLiarAim"); if (aim) aim.textContent = L.target;
+    var last = $L("jyLiarLast"); if (last) last.textContent = "新一轮：目标牌 " + faceName(L.target) + "，" + L.seats[L.turn].name + " 先出牌";
+    addLogL("sys", "新一轮开始，目标牌是「" + faceName(L.target) + "」，从 " + L.seats[L.turn].name + " 开始。");
+    renderSeats();
+    renderHand();
+    stepTurn();
+  }
+
+  function stepTurn() {
+    if (!L.on || L.over) return;
+    var seat = L.seats[L.turn];
+    if (!seat || !seat.alive) { L.turn = nextAlive(L.turn); return stepTurn(); }
+    // 空手赢家保护（正常会在出空时结算，这里兜底）
+    if (L.mode === "deck" && seat.hand.length === 0 && !L.last) {
+      if (L.last) { doCall(seat); return; }
+      finishLiar(seat, "打光了手牌");
+      return;
+    }
+    renderSeats();
+    renderHand();
+    if (seat.isMe) renderPlayerOps();
+    else scheduleAiAct(seat);
+  }
+
+  function scheduleAiAct(seat) {
+    if (!L.on || L.over || L.thinking) return;
+    L.thinking = true; L.aiFail = 0;
+    addLogL("sys", seat.name + " 正在盘算…");
+    setTimeout(function () { aiAct(seat); }, 500);
+  }
+
+  function aiDeckPrompt(seat) {
+    var me = L.seats[L.turn]; if (!me) return "";
+    var st = "你在「骗子酒馆·骗子牌」牌桌上（" + L.seats.length + "人局）。当前目标宣言牌是 " + faceName(L.target) + "，出牌时必须喊出「N 张 " + faceName(L.target) + "」。";
+    if (L.last) {
+      var lp = L.seats[L.last.idx];
+      st += " 上一手是 " + lp.name + " 出了 " + L.last.n + " 张喊「" + L.last.n + " 张 " + faceName(L.target) + "」。你现在可以质疑他开牌，也可以相信他继续出牌。";
+    } else {
+      st += " 这一轮还没人出牌，轮到你先出。";
+    }
+    var hands = "你的手牌：" + me.hand.slice().sort().join(" ") + "（Q/K/A 是点数，王=万能，可当任何目标）。";
+    var hist = "牌桌动态（最近）：\n" + logTextTail(8);
+    var oppo = L.seats.filter(function (s) { return !s.isMe && s !== me; }).map(function (s) { return s.name; }).join("、");
+    return st + "\n" + hands + "\n" + hist +
+      "\n同桌有：" + (oppo || "无") + "。请以你的人物性格做一次牌桌决策，先说一句中文台词（有个性），再输出决策。严格只输出一行JSON：{\"talk\":\"台词\",\"act\":\"play\"或\"call\",\"count\":1到3之间的整数,\"style\":\"true\"或\"bluff\"或\"mix\"}。style：true=尽量出目标牌和王（真牌）；bluff=尽量出非目标牌骗人；mix=真假混合。call 表示质疑上一手（仅当有上一手且你不是首出时可用）。禁止输出JSON以外内容。";
+  }
+
+  function aiAct(seat) {
+    if (!L.on || L.over) return;
+    var me = L.seats[L.turn];
+    if (!seat || !me || seat.key !== me.key) { L.thinking = false; stepTurn(); return; }
+    if (L.mode !== "deck") { aiDiceAct(seat); return; }
+    // 无牌可出则必须质疑
+    if (seat.hand.length === 0 && L.last) { doCall(seat); return; }
+    if (seat.hand.length === 0) { finishLiar(seat, "打光了手牌"); return; }
+    var prompt = aiDeckPrompt(seat);
+    askL(seat, prompt).then(function (raw) {
+      if (!L.on || L.over) return;
+      var dec = parseAi(raw);
+      if (dec && dec.act === "call" && L.last) { if (dec.talk) addLogL("act", escL(seat.name) + "：" + escL(dec.talk)); doCall(seat); return; }
+      var style = dec && dec.style ? dec.style : "true";
+      var count = dec && dec.count ? Math.max(1, Math.min(3, Math.floor(dec.count))) : 1;
+      count = Math.min(count, seat.hand.length);
+      if (!count) { if (L.last) { doCall(seat); } else { finishLiar(seat, "打光了手牌"); } return; }
+      if (dec && dec.talk) addLogL("act", escL(seat.name) + "：" + escL(dec.talk));
+      aiPlay(seat, count, style);
+    }).catch(function () { aiRetryOrPause(seat); });
+  }
+
+  function aiRetryOrPause(seat) {
+    if (!L.on || L.over) return;
+    L.aiFail = (L.aiFail || 0) + 1;
+    if (L.aiFail < 2) {
+      addLogL("sys", seat.name + " 刚才没接上话，再试一次…");
+      setTimeout(function () { if (L.on && !L.over) aiAct(seat); }, 800);
+    } else {
+      L.thinking = false;
+      addLogL("lose", seat.name + " 掉线了，这局进行不下去。请重试该回合或退出。");
+      var ops = $L("jyLiarOps");
+      if (ops) ops.innerHTML = '<button class="jyL-op" onclick="jyLiarRetryAi()">重试 ' + escL(seat.name) + '</button><button class="jyL-op call" onclick="jyLiarExit()">退出牌局</button>';
+    }
+  }
+  window.jyLiarRetryAi = function () {
+    if (!L.on || L.over || L.thinking) return;
+    var seat = L.seats[L.turn];
+    if (!seat || seat.isMe) return;
+    L.thinking = true; L.aiFail = 0;
+    addLogL("sys", "重新请 " + seat.name + " 行动…");
+    aiAct(seat);
+  };
+
+  function aiPlay(seat, count, style) {
+    if (!L.on || L.over) return;
+    var cards = pickCards(seat, count, style);
+    if (!cards.length) { L.thinking = false; stepTurn(); return; }
+    playCards(seat, cards);
+  }
+
+  function pickCards(seat, count, style) {
+    var target = L.target;
+    var hand = seat.hand.slice();
+    var truth = hand.filter(function (c) { return isTruth(c, target); });
+    var lie = hand.filter(function (c) { return !isTruth(c, target); });
+    var out = [];
+    function take(pool, n) { for (var i = 0; i < n && pool.length; i++) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); }
+    if (style === "bluff") { take(lie, count); take(truth, count - out.length); }
+    else if (style === "mix") { take(truth, Math.min(Math.max(count - 1, 1), truth.length)); take(lie, count - out.length); take(truth, count - out.length); }
+    else { take(truth, count); take(lie, count - out.length); }
+    return out.slice(0, count);
+  }
+
+  function playCards(seat, cards) {
+    if (!L.on || L.over) return;
+    if (!cards || !cards.length) { L.thinking = false; stepTurn(); return; }
+    cards.forEach(function (c) { var i = seat.hand.indexOf(c); if (i >= 0) seat.hand.splice(i, 1); });
+    L.last = { idx: L.turn, n: cards.length, cards: cards.slice(), claim: L.target };
+    addLogL(seat.isMe ? "me-line" : "act", (seat.isMe ? "你" : escL(seat.name)) + " 打出 " + cards.length + " 张背面朝上，喊道：「" + cards.length + " 张 " + faceName(L.target) + "！」");
+    var lastEl = $L("jyLiarLast"); if (lastEl) lastEl.textContent = "上一手：" + seat.name + " 出了 " + cards.length + " 张（背面）";
+    renderSeats(); renderHand();
+    L.turn = nextAlive(L.turn);
+    if (seat.hand.length === 0) {
+      addLogL("win", seat.name + " 手牌打光了！就看 " + L.seats[L.turn].name + " 是质疑还是相信。");
+    }
+    L.thinking = false;
+    stepTurn();
+  }
+
+  function doCall(seat) {
+    if (!L.on || L.over) return;
+    if (!L.last) { L.thinking = false; stepTurn(); return; }
+    var liarSeat = L.seats[L.last.idx];
+    var shownCards = L.last.cards.slice();
+    addLogL("act", (seat.isMe ? "你" : escL(seat.name)) + " 拍桌大喊：「我不信！开牌！」");
+    var anyFake = shownCards.some(function (c) { return !isTruth(c, L.target); });
+    L.last = null;
+    if (anyFake) {
+      addLogL("act", escL(liarSeat.name) + " 的牌翻开：" + shownCards.map(faceName).join(" ") + " —— 混了假牌，" + liarSeat.name + " 撒谎被抓现行！");
+      if (liarSeat.isMe) addLogL("lose", "你撒谎被当场拆穿，要被罚开枪了！");
+      gunShoot(liarSeat, seat, "撒谎被拆穿");
+    } else {
+      addLogL("act", "牌翻开全是 " + faceName(L.target) + "，" + liarSeat.name + " 说的是真话！");
+      if (seat.isMe) addLogL("lose", "你质疑错了人，被罚开枪……");
+      gunShoot(seat, liarSeat, "错怪好人");
+    }
+  }
+
+  function gunShoot(loserSeat, otherSeat, why) {
+    if (!L.on || L.over) return;
+    L.thinking = false;
+    var n = 4, bullet = Math.floor(Math.random() * n) + 1;
+    addLogL("lose", escL(loserSeat.name) + "（" + why + "）被按在桌上，左轮手枪 " + n + " 膛 1 弹……第 " + bullet + " 膛，咔哒——");
+    var loserIdx = L.seats.indexOf(loserSeat);
+    if (bullet === 1) {
+      loserSeat.alive = false; loserSeat.hand = []; loserSeat.dice = [];
+      addLogL("lose", "砰！" + escL(loserSeat.name) + " 中弹出局！");
+      memPa(seatPa(loserSeat), "在骗子酒馆的牌局中，你因" + why + "被罚开枪，不幸中弹出局。");
+      renderSeats(); renderHand();
+      var alive = aliveSeats();
+      if (alive.length === 1) { finishLiar(alive[0], "活到最后"); return; }
+      L.turn = nextAlive(loserIdx);
+      startDeckRound();
+    } else {
+      addLogL("win", "咔哒——没响！" + escL(loserSeat.name) + " 捡回一条命。");
+      if (loserSeat.hand.length === 0) { finishLiar(loserSeat, "打光了手牌"); return; }
+      L.turn = nextAlive(loserIdx);
+      startDeckRound();
+    }
+  }
+
+  /* ---------- 玩家操作（骗子牌） ---------- */
+  var selHand = [];
+  function renderHand() {
+    var area = $L("jyLiarHandArea");
+    if (!area) return;
+    var me = L.seats[0];
+    if (!me || !me.alive || L.over) { area.style.display = "none"; if ($L("jyLiarOps")) $L("jyLiarOps").innerHTML = ""; return; }
+    if (L.mode === "deck") {
+      var wrap = $L("jyLiarCards"); if (!wrap) return;
+      var cardsEl = "";
+      me.hand.forEach(function (c, i) {
+        var sel = selHand.indexOf(i) >= 0;
+        cardsEl += '<div class="jyL-card' + (c === "W" ? " king" : "") + (sel ? " sel" : "") + '" onclick="jyLiarSelCard(' + i + ')">' + faceName(c) + "</div>";
+      });
+      for (var k = me.hand.length; k < 5; k++) cardsEl += '<div class="jyL-card back"></div>';
+      wrap.innerHTML = cardsEl;
+      area.style.display = "block";
+      renderPlayerOps();
+    } else {
+      renderDiceHand();
+    }
+  }
+  window.jyLiarSelCard = function (i) {
+    if (L.over || L.thinking || L.turn !== 0) return;
+    var j = selHand.indexOf(i);
+    if (j >= 0) selHand.splice(j, 1); else selHand.push(i);
+    renderHand();
+  };
+
+  function renderPlayerOps() {
+    var me = L.seats[0];
+    var ops = $L("jyLiarOps"); var think = $L("jyLiarThink");
+    if (!ops) return;
+    if (think) think.textContent = "";
+    if (!me || !me.alive || L.over) { ops.innerHTML = ""; return; }
+    if (L.turn !== 0 || L.thinking) {
+      ops.innerHTML = '<div style="color:#c9b283;font-size:12px;text-align:center">' + (L.thinking ? "等 TA 行动…" : "等 " + escL(L.seats[L.turn].name) + " 行动…") + "</div>";
+      return;
+    }
+    var canCall = !!L.last && L.last.idx !== 0;
+    var n = selHand.length;
+    var callBtn = canCall ? '<button class="jyL-op call" onclick="jyLiarPlayerCall()">质疑上一手！</button>' : "";
+    var playBtn = '<button class="jyL-op" ' + (n > 0 && n <= me.hand.length ? "" : "disabled") + ' onclick="jyLiarPlayerPlay()">' + (n ? "出这 " + n + " 张喊「" + n + " 张 " + faceName(L.target) + "」" : "点选手牌 1~3 张再出") + "</button>";
+    if (me.hand.length === 0 && canCall) { ops.innerHTML = callBtn; return; }
+    ops.innerHTML = '<div style="flex:0 0 auto;color:#ffd76a;font-size:12px">轮到你</div>' + playBtn + callBtn;
+  }
+
+  window.jyLiarPlayerPlay = function () {
+    var me = L.seats[0];
+    if (!me || !me.alive || L.over || L.thinking || L.turn !== 0) return;
+    if (L.mode !== "deck") return;
+    var n = selHand.length;
+    if (!n) { toastL("先点选手牌"); return; }
+    var picks = [];
+    selHand.slice().sort(function (a, b) { return b - a; }).forEach(function (i) { picks.push(me.hand[i]); });
+    var real = [];
+    picks.forEach(function (c) { var i = me.hand.indexOf(c); if (i >= 0) { me.hand.splice(i, 1); real.push(c); } });
+    if (!real.length) return;
+    L.last = { idx: 0, n: real.length, cards: real.slice(), claim: L.target };
+    addLogL("me-line", "你打出 " + real.length + " 张背面，喊道：「" + real.length + " 张 " + faceName(L.target) + "！」");
+    var lastEl = $L("jyLiarLast"); if (lastEl) lastEl.textContent = "上一手：你 出了 " + real.length + " 张（背面）";
+    selHand.length = 0;
+    renderSeats(); renderHand();
+    L.turn = nextAlive(0);
+    if (me.hand.length === 0) addLogL("win", "你手牌打光了！就看 " + L.seats[L.turn].name + " 是质疑还是相信。");
+    L.thinking = false;
+    stepTurn();
+  };
+
+  window.jyLiarPlayerCall = function () {
+    var me = L.seats[0];
+    if (!me || !me.alive || L.over || L.thinking || L.turn !== 0) return;
+    if (!L.last || L.last.idx === 0) return;
+    L.thinking = true;
+    doCall(me);
+  };
+
+  /* ================= 骗子骰 ================= */
+  function rollDice() { return Math.floor(Math.random() * 6) + 1; }
+  function startDiceRound() {
+    if (!L.on || L.over) return;
+    var alive = aliveSeats();
+    if (!alive.length) return;
+    alive.forEach(function (s) { s.dice = []; for (var i = 0; i < 5; i++) s.dice.push(rollDice()); });
+    L.bid = null;
+    if (!(L.turn >= 0 && L.turn < L.seats.length && L.seats[L.turn].alive)) {
+      L.turn = L.seats.indexOf(alive[Math.floor(Math.random() * alive.length)]);
+      if (L.turn < 0) L.turn = 0;
+    }
+    addLogL("sys", "骰盅重新摇定，" + L.seats[L.turn].name + " 先叫。");
+    var aim = $L("jyLiarAim"); if (aim) aim.textContent = "骰";
+    renderSeats(); renderHand();
+    stepTurnDice();
+  }
+
+  function stepTurnDice() {
+    if (!L.on || L.over) return;
+    var seat = L.seats[L.turn];
+    if (!seat || !seat.alive) { L.turn = nextAlive(L.turn); return stepTurnDice(); }
+    renderSeats(); renderHand();
+    if (seat.isMe) renderDiceOps();
+    else scheduleAiDiceAct(seat);
+  }
+
+  function renderDiceHand() {
+    var area = $L("jyLiarHandArea");
+    if (!area) return;
+    var me = L.seats[0];
+    if (!me || !me.alive || L.over) { area.style.display = "none"; return; }
+    var wrap = $L("jyLiarCards"); if (!wrap) return;
+    var dhtml = "";
+    me.dice.forEach(function (d) {
+      dhtml += '<div class="jyL-card" style="cursor:default;font-size:13px;padding:2px 0"><span style="font-size:24px;line-height:1">' + diceDots(d) + '</span><br><span style="font-size:10px;color:#8a6a2a">' + d + "</span></div>";
+    });
+    for (var k = me.dice.length; k < 5; k++) dhtml += '<div class="jyL-card back"></div>';
+    wrap.innerHTML = dhtml;
+    area.style.display = "block";
+  }
+  function diceDots(d) {
+    var dot = ["", "\u25cf", "\u25cf\u25cf", "\u25cf\u25cf\u25cf", "\u25cf\u25cf\u25cf\u25cf", "\u25cf\u25cf\u25cf\u25cf\u25cf", "\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf"];
+    return dot[d] || "";
+  }
+
+  function aiDicePrompt(seat) {
+    var me = L.seats[L.turn];
+    var st = "你在「骗子酒馆·骗子骰」牌桌上（" + L.seats.length + "人局），每人5颗骰盖盅，只能看见自己的骰子。你的骰子是：" + me.dice.join(" ") + "。";
+    if (L.bid) {
+      var bp = L.seats[L.bid.idx];
+      st += " 上一叫是 " + bp.name + " 喊「" + L.bid.x + " 个 " + L.bid.y + "」。你可以加叫（更大：数量更多，或同数量点数更高），也可以开盅质疑他。";
+    } else {
+      st += " 你是起叫人，先喊一个你觉得靠谱的「X 个 Y」（例如 三个4）。";
+    }
+    var hist = "牌桌动态（最近）：\n" + logTextTail(6);
+    return st + "\n" + hist + "\n判定规则：开盅后全场数" + "叫的点数Y，1点万能也计入；达到X叫家赢否则质疑者赢。请按你的人物性格决策，先说一句中文台词，再输出一行JSON：{\"talk\":\"台词\",\"act\":\"raise\"或\"call\",\"x\":数量,\"y\":点数}。起叫时act必须为raise，且call只能在已有上一叫时用。禁止输出JSON以外内容。";
+  }
+
+  function scheduleAiDiceAct(seat) {
+    if (!L.on || L.over || L.thinking) return;
+    L.thinking = true; L.aiFail = 0;
+    addLogL("sys", seat.name + " 摇着骰盅想心事…");
+    setTimeout(function () { aiDiceAct(seat); }, 500);
+  }
+
+  function aiDiceAct(seat) {
+    if (!L.on || L.over) return;
+    var me = L.seats[L.turn];
+    if (!me || !seat || seat.key !== me.key) { L.thinking = false; stepTurnDice(); return; }
+    var prompt = aiDicePrompt(seat);
+    var bidAt = L.bid;
+    askL(seat, prompt).then(function (raw) {
+      if (!L.on || L.over) return;
+      if (bidAt !== L.bid) return;
+      var dec = parseAi(raw);
+      if (dec && dec.talk) addLogL("act", escL(seat.name) + "：" + escL(dec.talk));
+      if (dec && dec.act === "call" && L.bid) { doOpen(seat); return; }
+      var x = dec && dec.x ? Math.floor(dec.x) : 1;
+      var y = dec && dec.y ? Math.floor(dec.y) : 1;
+      x = Math.max(1, Math.min(x, 5 * L.seats.length)); y = Math.max(1, Math.min(y, 6));
+      if (L.bid && !(x > L.bid.x || (x === L.bid.x && y > L.bid.y))) {
+        x = L.bid.x; y = L.bid.y + 1;
+        if (y > 6) { x = L.bid.x + 1; y = 1; }
+        x = Math.max(1, Math.min(x, 5 * L.seats.length));
+      }
+      doRaise(seat, x, y);
+    }).catch(function () { aiRetryOrPause(seat); });
+  }
+
+  function doRaise(seat, x, y) {
+    if (!L.on || L.over) return;
+    L.bid = { idx: L.turn, x: x, y: y };
+    addLogL("act", (seat.isMe ? "你" : escL(seat.name)) + " 喊：「" + x + " 个 " + y + "！」");
+    var bidEl = $L("jyLiarLast"); if (bidEl) bidEl.textContent = "当前叫注：" + x + " 个 " + y + "（" + seat.name + "）";
+    renderSeats();
+    L.turn = nextAlive(L.turn);
+    L.thinking = false;
+    stepTurnDice();
+  }
+
+  function doOpen(seat) {
+    if (!L.on || L.over || !L.bid) { L.thinking = false; stepTurnDice(); return; }
+    var bidSeat = L.seats[L.bid.idx];
+    addLogL("act", (seat.isMe ? "你" : escL(seat.name)) + " 掀盅大喊：「开！数 " + faceName(L.bid.y) + "！」");
+    var alive = aliveSeats();
+    var cnt = 0;
+    var reveal = [];
+    alive.forEach(function (s) {
+      var sCnt = 0;
+      s.dice.forEach(function (d) { if (d === L.bid.y || d === 1) { cnt++; sCnt++; } });
+      reveal.push(s.name + "[" + s.dice.join("") + "]");
+    });
+    addLogL("act", "全桌亮骰：" + reveal.join("  "));
+    var enough = cnt >= L.bid.x;
+    addLogL(enough ? "act" : "lose", "实际 " + faceName(L.bid.y) + "（含1点万能）共 " + cnt + " 个，" + (enough ? "达到" : "不足") + " " + L.bid.x + " 个。");
+    var loser = enough ? seat : bidSeat;
+    loser.lose = (loser.lose || 0) + 1;
+    var loserIdx = L.seats.indexOf(loser);
+    addLogL(loser.lose >= 2 ? "lose" : "win", escL(loser.name) + " 输了一局，喝下一杯苦酒（" + loser.lose + "/2）。" + (loser.lose >= 2 ? "醉倒在地，出局！" : ""));
+    memPa(seatPa(loser), "在骗子酒馆的骰局中，你" + (loser.lose >= 2 ? "累计输2杯醉倒出局。" : "输了1杯（累计" + loser.lose + "/2）。"));
+    L.bid = null;
+    renderSeats();
+    if (loser.lose >= 2) {
+      loser.alive = false; loser.hand = []; loser.dice = [];
+      addLogL("lose", escL(loser.name) + " 醉倒出局！");
+      renderSeats(); renderHand();
+      var left = aliveSeats();
+      if (left.length === 1) { finishLiar(left[0], "活到最后"); return; }
+      L.turn = nextAlive(loserIdx);
+      L.thinking = false;
+      startDiceRound();
+    } else {
+      L.turn = loserIdx;
+      if (!(L.seats[L.turn] && L.seats[L.turn].alive)) L.turn = nextAlive(loserIdx);
+      L.thinking = false;
+      startDiceRound();
+    }
+  }
+
+  function renderDiceOps() {
+    var me = L.seats[0];
+    var ops = $L("jyLiarOps"); var think = $L("jyLiarThink");
+    if (!ops) return;
+    if (think) think.textContent = "";
+    if (!me || !me.alive || L.over) { ops.innerHTML = ""; return; }
+    if (L.turn !== 0 || L.thinking) {
+      ops.innerHTML = '<div style="color:#c9b283;font-size:12px;text-align:center">' + (L.thinking ? "等 TA 行动…" : "等 " + escL(L.seats[L.turn].name) + " 行动…") + "</div>";
+      return;
+    }
+    var maxX = 5 * L.seats.length;
+    var xOpts = "", yOpts = "";
+    for (var x = 1; x <= maxX; x++) xOpts += '<option value="' + x + '">' + x + "</option>";
+    for (var y = 1; y <= 6; y++) yOpts += '<option value="' + y + '">' + y + "</option>";
+    var canCall = !!L.bid;
+    ops.innerHTML = '<div style="color:#ffd76a;font-size:12px">轮到你</div>' +
+      '<div style="display:flex;gap:5px;align-items:center;font-size:12px"><span style="color:#c9b283">喊</span><select id="jyLiarX" style="padding:4px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.14);color:#fff">' + xOpts + '</select><span style="color:#c9b283">个</span><select id="jyLiarY" style="padding:4px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.14);color:#fff">' + yOpts + '</select></div>' +
+      '<button class="jyL-op" onclick="jyLiarPlayerRaise()">加叫</button>' +
+      (canCall ? '<button class="jyL-op call" onclick="jyLiarPlayerOpen()">开盅质疑</button>' : "");
+  }
+
+  window.jyLiarPlayerRaise = function () {
+    var me = L.seats[0];
+    if (!me || !me.alive || L.over || L.thinking || L.turn !== 0 || L.mode !== "dice") return;
+    var xEl = $L("jyLiarX"), yEl = $L("jyLiarY");
+    if (!xEl || !yEl) return;
+    var x = parseInt(xEl.value, 10) || 1, y = parseInt(yEl.value, 10) || 1;
+    if (L.bid && !(x > L.bid.x || (x === L.bid.x && y > L.bid.y))) {
+      toastL("加叫必须大于「" + L.bid.x + " 个 " + L.bid.y + "」：数量更多，或同数量点数更高");
+      return;
+    }
+    L.thinking = true;
+    doRaise(me, x, y);
+  };
+  window.jyLiarPlayerOpen = function () {
+    var me = L.seats[0];
+    if (!me || !me.alive || L.over || L.thinking || L.turn !== 0 || L.mode !== "dice") return;
+    if (!L.bid) return;
+    L.thinking = true;
+    doOpen(me);
+  };
+
+  /* ================= 通用 ================= */
+  function parseAi(raw) {
+    try {
+      var s = String(raw || "").trim();
+      var i = s.indexOf("{"), j = s.lastIndexOf("}");
+      if (i >= 0 && j > i) s = s.slice(i, j + 1);
+      var o = JSON.parse(s);
+      return o && typeof o === "object" ? o : null;
+    } catch (e) { return null; }
+  }
+  function askL(seat, prompt) {
+    return new Promise(function (resolve, reject) {
+      var pa = seatPa(seat);
+      if (!pa || !canApi(pa) || typeof callChat !== "function") { reject(new Error("未接入API")); return; }
+      var done = false;
+      var timer = setTimeout(function () { if (!done) { done = true; reject(new Error("超时")); } }, 30000);
+      callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+        if (done) return;
+        done = true; clearTimeout(timer);
+        if (txt && String(txt).trim().length) resolve(String(txt).trim());
+        else reject(new Error("空回复"));
+      }).catch(function (e) { if (!done) { done = true; clearTimeout(timer); reject(e); } });
+    });
+  }
+
+  function finishLiar(winSeat, how) {
+    if (L.over) return;
+    L.over = true; L.thinking = false;
+    var wname = winSeat.isMe ? "你" : winSeat.name;
+    addLogL("win", "本局结束，" + wname + " " + how + "，赢下了这场酒馆对决！");
+    var overT = $L("jyLiarOverT");
+    if (overT) overT.textContent = winSeat.isMe ? "你赢了！" : winSeat.name + " 赢了";
+    var overS = $L("jyLiarOverS");
+    var names = L.seats.map(function (s) { return s.name; }).join("、");
+    if (overS) overS.textContent = "玩法：" + (L.mode === "deck" ? "骗子牌" : "骗子骰") + " · " + L.seats.length + " 人桌 · 同桌 " + names + "。战局已记入角色记忆。";
+    var over = $L("jyLiarOver");
+    if (over) over.style.display = "flex";
+    var summary = (L.mode === "deck" ? "骗子牌" : "骗子骰") + "局（" + L.seats.length + "人桌：" + names + "），最终 " + (winSeat.isMe ? "你（玩家）" : winSeat.name) + " 获胜。";
+    L.seats.forEach(function (s) {
+      if (!s.isMe && s.pa) {
+        var won = s.key === winSeat.key;
+        memPa(s.pa, "在霁月机的骗子酒馆玩了一局" + (L.mode === "deck" ? "骗子牌" : "骗子骰") + "，同桌：" + names + "。" + (won ? "你技高一筹赢了这局。" : "这局是" + (winSeat.isMe ? "玩家" : winSeat.name) + "赢了。") + "你们之间的牌桌对决被记住了。");
+      }
+    });
+    try {
+      window.jyHistPush({ text: "骗子酒馆 · " + (L.mode === "deck" ? "骗子牌" : "骗子骰") + "：" + (winSeat.isMe ? "你赢了" : winSeat.name + " 赢了") + "（同桌 " + names + "）", game: "骗子酒馆", partner: names, ts: Date.now() });
+    } catch (e) {}
+    selHand.length = 0;
+    renderSeats();
+    renderHand();
+  }
+
+  /* ================= 日志 ================= */
+  function clearLogL() { var lg = $L("jyLiarLog"); if (lg) lg.innerHTML = ""; }
+  function addLogL(type, text) {
+    var lg = $L("jyLiarLog");
+    if (!lg) return;
+    var d = document.createElement("div");
+    d.className = "jyL-line " + (type || "");
+    d.innerHTML = text;
+    lg.appendChild(d);
+    while (lg.children.length > 120) lg.removeChild(lg.firstChild);
+    lg.scrollTop = lg.scrollHeight;
+  }
+  function logTextTail(n) {
+    var lg = $L("jyLiarLog");
+    if (!lg) return "";
+    var arr = [];
+    for (var i = 0; i < lg.children.length; i++) {
+      var t = (lg.children[i].textContent || "").trim();
+      if (t) arr.push(t);
+    }
+    return arr.slice(-(n || 6)).join("\n");
+  }
+  function renderSeats() {
+    var box = $L("jyLiarSeats");
+    if (!box) return;
+    var html = "";
+    L.seats.forEach(function (s, idx) {
+      var st = "";
+      if (!s.alive) st = "已出局";
+      else if (L.mode === "deck") st = "余牌 " + s.hand.length;
+      else st = "醉意 " + s.lose + "/2";
+      if (L.on && !L.over && s.alive && idx === L.turn) st = "行动中";
+      var acting = (L.on && !L.over && idx === L.turn && s.alive) ? " acting" : "";
+      var meCls = s.isMe ? " me" : "";
+      var deadCls = s.alive ? "" : " dead";
+      html += '<div class="jyL-seat' + meCls + deadCls + acting + '"><img src="' + escL(s.av) + '" alt=""><div class="nm">' + escL(s.name) + "</div><div class=\"st\">" + st + "</div></div>";
+    });
+    box.innerHTML = html;
+  }
+
+  /* ================= 闲聊（记记忆） ================= */
+  function jyLiarTalkSend() {
+    var inp = $L("jyLiarTalk");
+    if (!inp) return;
+    var text = inp.value.trim();
+    if (!text) return;
+    inp.value = "";
+    if (!L.on || L.over) { toastL("牌局已结束"); return; }
+    addLogL("me-line", "你：" + escL(text));
+    L.seats.forEach(function (s) {
+      if (!s.isMe && s.pa) {
+        try { addMemorySourceFor(s.pa, "gameChat", "玩骗子酒馆时，" + s.name + " 听到玩家插了句话：「" + text + "」。"); } catch (e) {}
+      }
+    });
+    try { save(); } catch (e) {}
+  }
+  window.jyLiarTalkSend = jyLiarTalkSend;
+  window.jyLiarTalkKey = function (e) { if (e && e.key === "Enter") { e.preventDefault(); jyLiarTalkSend(); } };
+
+  /* ================= 规则 / 退出 ================= */
+  function jyLiarHelp() {
+    var body = $L("jyLiarRuleBody");
+    if (body) {
+      var txt = "「骗子酒馆」：撒谎、质疑、心理战。\n\n【骗子牌】\n· 每人5张牌：Q/K/A各6张+2张王（万能），先打完手牌的人获胜。\n· 每轮随机一张目标牌，轮到你时选1~3张盖着打出，并喊「N张目标」（可以撒谎，王算目标）。\n· 你的下家可以选择相信（继续出牌），或当场质疑翻你的牌：有假牌你吃枪，全真他吃枪。\n· 左轮手枪4膛1弹，中弹出局；幸存者进入下一轮。\n· 当有人打光手牌且质疑没有推翻他，他就是赢家。\n\n【骗子骰】\n· 每人5颗骰子盖盅，只看得到自己的。\n· 轮流加叫「X个Y」（更大：数量更多或同数量点数更高），或开盅质疑。\n· 开盅统计全场点数Y的数量，1点万能。达到X叫家赢，否则质疑者赢。\n· 输一局喝一杯苦酒，累计2杯醉倒出局，活到最后的人赢。\n\n每局结束与聊天都会记入角色记忆。";
+      body.textContent = txt;
+    }
+    $L("jyLiarRuleMask").classList.add("show");
+  }
+  window.jyLiarHelp = jyLiarHelp;
+
+  function jyLiarExit() {
+    L.on = false; L.over = true; L.thinking = false; L.busy = false;
+    $L("jyLiarOver").style.display = "none";
+    var m = $L("jyLiarMask"); if (m) m.classList.remove("show");
+    var r = $L("jyLiarRuleMask"); if (r) r.classList.remove("show");
+    selHand.length = 0;
+    try { if (window.jy62OpenGames) jy62OpenGames(); else showPageL("jyGames"); } catch (e) { showPageL("jyGames"); }
+  }
+  window.jyLiarExit = jyLiarExit;
+
+})();
+</script>
+<script>/* ===================== 跑团 CoC TRPG · 72 模块 ===================== */
+(function () {
+  if (window.__jyTrpgInited) return;
+  window.__jyTrpgInited = true;
+
+  function escT(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function $T(id) { return document.getElementById(id); }
+  function toastT(t) { try { toast(t); } catch (e) { try { console.log(t); } catch (e2) {} } }
+  function paListT() { try { return personaList() || []; } catch (e) { return []; } }
+  function findPaT(id) { try { return findPersona(id); } catch (e) { return null; } }
+  function canApiT(pa) { try { if (window.jy62CanApi) return !!window.jy62CanApi(pa); var pl = personaPlan(pa); return !!(pa && pl && pl.baseUrl && pl.apiKey); } catch (e) { return false; } }
+  function avUrlT(pa) { try { return personaAvatarUrl(pa); } catch (e) { return ""; } }
+  function memT(pa, text) { try { if (pa) addMemorySourceFor(pa, "game", text); } catch (e) {} }
+
+  var THEMES = [
+    { id: "folklore", name: "中式民俗恐怖", desc: "老宅、纸人、出马仙，规矩不能破" },
+    { id: "detective", name: "刑侦推理", desc: "雨夜连环案，每个人的不在场证明都在撒谎" },
+    { id: "cthulhu", name: "克苏鲁式怪谈", desc: "禁忌呓语、深海教堂，真相会让人发疯" },
+    { id: "urban", name: "都市怪谈", desc: "深夜直播、废弃地铁站，怪事就在身边" },
+    { id: "xianxia", name: "仙侠志怪", desc: "妖祸宗门、古墓封印，人心比妖更险" },
+    { id: "apocalypse", name: "末日废土", desc: "庇护所外的嘶吼声越来越近，粮仓在漏风" },
+    { id: "sci", name: "科幻悬疑", desc: "AI 觉醒、深空信号，人类不是唯一观众" }
+  ];
+
+  var T = {
+    on: false, over: false, busy: false, step: "theme",
+    theme: null, kp: null, invs: [], target: "me",
+    actType: "调查", tab: "act", check: null, pendingEnd: null, scene: []
+  };
+
+  function rnd(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function genAttr() { return { str: rnd(35, 80), dex: rnd(35, 80), int: rnd(35, 80), wil: rnd(35, 80), cha: rnd(35, 80) }; }
+  function newInv(key, isMe, pa, name, av) {
+    return { key: key, isMe: isMe, pa: pa, name: name, av: av, hp: 80, san: 80, attr: genAttr(), alive: true };
+  }
+  function kpName() { return T.kp ? T.kp.name : "KP"; }
+  function themeName() { return T.theme ? T.theme.name : ""; }
+
+  /* ---------- 页面 ---------- */
+  function showPageT(id) {
+    try {
+      var ps = window.PAGES || [];
+      for (var i = 0; i < ps.length; i++) { var e = document.getElementById(ps[i]); if (e) e.classList.remove("active"); }
+      var tar = document.getElementById(id);
+      if (tar) tar.classList.add("active");
+      try { document.getElementById("wallpaper").style.display = "none"; } catch (e) {}
+      try { applyAvatars(); } catch (e) {}
+    } catch (e) {}
+  }
+  function openTrpgPage() {
+    showPageT("jyGameTrpg");
+    try { if (window.PAGES && window.PAGES.indexOf("jyGameTrpg") < 0) window.PAGES.push("jyGameTrpg"); } catch (e) {}
+  }
+
+  function jyTrpgOpen() {
+    if (T.on && !T.over) { openTrpgPage(); return; }
+    T.on = true; T.over = false; T.busy = false;
+    T.invs = []; T.kp = null; T.theme = null; T.target = "me"; T.check = null; T.pendingEnd = null;
+    T.tab = "act";
+    renderThemePick();
+    $T("jyTrpgMaskTitle").textContent = "迷雾调查 · 选择模组";
+    $T("jyTrpgMask").classList.add("show");
+  }
+  window.jyTrpgOpen = jyTrpgOpen;
+
+  function renderThemePick() {
+    var body = $T("jyTrpgMaskBody");
+    if (!body) return;
+    var html = '<div class="tg" style="padding-bottom:6px">想玩哪一类故事？（剧情由守密人 AI 现场生成，可自由发展）</div><div style="display:flex;flex-direction:column;gap:7px">' +
+      THEMES.map(function (th) {
+        return '<div class="jyT-th" style="border:1.5px solid var(--line);background:#fff;border-radius:12px;cursor:pointer" onclick="jyTrpgTheme(\'' + th.id + '\')"><div><b>' + escT(th.name) + '</b><span>' + escT(th.desc) + "</span></div></div>";
+      }).join("") + "</div>";
+    body.innerHTML = html;
+  }
+  window.jyTrpgTheme = function (id) {
+    var th = null;
+    THEMES.forEach(function (t) { if (t.id === id) th = t; });
+    if (!th) return;
+    T.theme = th;
+    renderKpPick();
+  };
+  window.jyTrpgMaskClose = function () { var m = $T("jyTrpgMask"); if (m) m.classList.remove("show"); };
+
+  function apiPeople() { return paListT().filter(function (p) { return canApiT(p); }); }
+  function peopleChips(selIds, clickFn) {
+    var all = apiPeople();
+    var others = paListT().filter(function (p) { return !canApiT(p); });
+    var li = function (p, sel) {
+      return '<div class="jyL-player' + (sel ? " sel" : "") + '" onclick="' + clickFn + '(\'' + String(p.id).replace(/'/g, "") + '\')"><img src="' + escT(avUrlT(p)) + '" alt=""><div class="pm"><div class="pn">' + escT(p.name || "角色") + "</div><div class=\"pd\">" + (sel ? "已选" : "点击选择") + "</div></div></div>";
+    };
+    return all.map(function (p) { return li(p, selIds.indexOf(p.id) >= 0); }).join("") +
+      (others.length ? '<div style="font-size:11px;color:#a33;padding:2px">以下角色未接入模型 API，不能入局：</div>' + others.map(function (p) { return li(p, false); }).join("") : "");
+  }
+
+  function renderKpPick() {
+    T.step = "kp";
+    var body = $T("jyTrpgMaskBody");
+    if (!body) return;
+    if (!apiPeople().length) {
+      body.innerHTML = '<div class="tg">没有可接入的角色：请先去「人设档案」给角色配置模型 API。</div>';
+      return;
+    }
+    $T("jyTrpgMaskTitle").textContent = "迷雾调查 · 选择守密人";
+    body.innerHTML = '<div class="tg" style="padding-bottom:6px">模组：《' + escT(T.theme.name) + '》·' + escT(T.theme.desc) + '<br>选一位角色担任守密人（KP/主持人）：他负责讲剧情、演 NPC、判定检定。</div><div class="jyL-players">' + peopleChips([], "jyTrpgChooseKp") + '</div><div class="sheet-row" style="padding-top:10px"><button class="sheet-btn ghost" onclick="jyTrpgBackTheme()">上一步</button></div>';
+  }
+  window.jyTrpgBackKp = renderKpPick;
+  window.jyTrpgChooseKp = function (id) {
+    var pa = findPaT(id);
+    if (!pa) return;
+    T.kp = { key: "kp_" + id, pa: pa, name: pa.name || "KP", av: avUrlT(pa) };
+    renderInvPick();
+  };
+  window.jyTrpgBackTheme = function () { T.step = "theme"; renderThemePick(); };
+
+  function renderInvPick() {
+    T.step = "inv"; T.invSel = [];
+    var body = $T("jyTrpgMaskBody");
+    if (!body) return;
+    $T("jyTrpgMaskTitle").textContent = "迷雾调查 · 选择调查员";
+    var html = '<div class="tg" style="padding-bottom:6px">守密人：' + escT(kpName()) + '<br>挑选 0~4 位角色与你一起当调查员（可不选，只你一人调查）。所选角色都拥有自己的属性、HP/SAN，会被剧情卷入并一同检定。</div><div class="jyL-players" id="jyTrpgInvList">' + peopleChips([], "jyTrpgToggleInv") + '</div><div class="sheet-row" style="padding-top:10px"><button class="sheet-btn ghost" onclick="jyTrpgBackKp()">上一步</button><button class="sheet-btn primary" onclick="jyTrpgGoStart()">开始冒险</button></div>';
+    body.innerHTML = html;
+  }
+  window.jyTrpgToggleInv = function (id) {
+    if (!T.invSel) T.invSel = [];
+    var i = T.invSel.indexOf(id);
+    if (i >= 0) T.invSel.splice(i, 1);
+    else {
+      if (T.invSel.length >= 4) { toastT("最多 4 位同行调查员"); return; }
+      T.invSel.push(id);
+    }
+    var list = $T("jyTrpgInvList");
+    if (list) list.innerHTML = peopleChips(T.invSel, "jyTrpgToggleInv");
+  };
+
+  window.jyTrpgGoStart = function () {
+    if (T.invSel && T.invSel.length > 4) { toastT("最多 4 位同行调查员"); return; }
+    $T("jyTrpgMask").classList.remove("show");
+    startTrpg((T.invSel || []).slice());
+  };
+
+  /* ---------- 开局 ---------- */
+  function startTrpg(invIds) {
+    T.on = true; T.over = false; T.busy = false;
+    T.invs = [newInv("me", true, null, "你", "")];
+    invIds.forEach(function (id) {
+      var pa = findPaT(id);
+      if (pa) T.invs.push(newInv("inv_" + id, false, pa, pa.name || "TA", avUrlT(pa)));
+    });
+    T.target = "me"; T.check = null; T.pendingEnd = null; T.scene = [];
+    var sub = $T("jyTrpgSub");
+    if (sub) sub.textContent = "《" + themeName() + "》 · KP " + kpName() + " · 调查员 " + T.invs.map(function (s) { return s.name; }).join("、");
+    $T("jyTrpgOver").style.display = "none";
+    openTrpgPage();
+    clearSceneT();
+    nodeT("sys", "模组《" + escT(themeName()) + "》开卷。" + escT(T.theme.desc) + "。守密人 " + escT(kpName()) + " 正在铺开开场…");
+    renderSeatsT();
+    setGoTxt("行动方：你");
+    setHintT("输入你的行动。选「休息」可回血回 SAN。");
+    kpIntro();
+  }
+
+  function kpIntro() {
+    if (!T.on || T.over) return;
+    T.busy = true;
+    var invStat = T.invs.map(function (s) {
+      return s.name + "(HP" + s.hp + "/SAN" + s.san + " 体魄" + s.attr.str + " 身手" + s.attr.dex + " 头脑" + s.attr.int + " 意志" + s.attr.wil + " 魅力" + s.attr.cha + ")";
+    }).join("；");
+    var prompt = "你是跑团模组《" + themeName() + "》的守密人KP（主持人），题材：" + T.theme.desc + "。调查员有：" + invStat + "。请写一段60~120字的开场：交代时代地点、初始场景、以及调查员为何聚集于此。要营造" + themeName() + "氛围，留下悬念。只输出正文叙述，不要任何标记。";
+    askT(T.kp.pa, prompt).then(function (txt) {
+      if (!T.on || T.over) return;
+      nodeT("narr", escT(txt || "（KP沉默了片刻…）"));
+      addScene(txt);
+      T.busy = false;
+      renderSeatsT();
+    }).catch(function () {
+      if (!T.on || T.over) return;
+      nodeT("sys", "守密人开场失联，请重试或退出。");
+      T.busy = false;
+      renderSeatsT();
+    });
+  }
+
+  /* ---------- 渲染 ---------- */
+  function renderSeatsT() {
+    var box = $T("jyTrpgSeats");
+    if (!box) return;
+    var html = "";
+    // KP
+    html += '<div class="jyT-seat kp"><div class="tp"><img src="' + escT(T.kp.av) + '"><div style="min-width:0"><div class="nm">' + escT(kpName()) + '</div><div style="font-size:9px;color:#ffe1a0">守密人 KP</div></div></div></div>';
+    T.invs.forEach(function (s) {
+      var meCls = s.isMe ? " me" : "";
+      var deadCls = s.alive ? "" : " dead";
+      var acting = (T.on && !T.over && T.target === s.key && s.alive) ? " acting" : "";
+      var hpP = Math.max(0, Math.min(100, s.hp));
+      var sanP = Math.max(0, Math.min(100, s.san));
+      var disp = s.alive ? (s.name) : (s.name + "(倒下)");
+      html += '<div class="jyT-seat' + meCls + deadCls + acting + '" title="体魄' + s.attr.str + ' 身手' + s.attr.dex + ' 头脑' + s.attr.int + ' 意志' + s.attr.wil + ' 魅力' + s.attr.cha + '" onclick="' + (s.alive && !s.isMe ? 'jyTrpgTarget(\'' + s.key + '\')' : 'jyTrpgTarget(\'me\')') + '">' +
+        '<div class="tp"><img src="' + escT(s.av) + '"><div style="min-width:0"><div class="nm">' + escT(disp) + '</div><div style="font-size:8px;color:#7f92ac">' + (s.isMe ? "你" : "调查员") + (T.target === s.key && s.alive ? " · 行动方" : "") + '</div></div></div>' +
+        '<div class="bars"><div class="bar b-hp"><i style="width:' + hpP + '%"></i><b>' + s.hp + '</b></div><div class="bar b-san"><i style="width:' + sanP + '%"></i><b>' + s.san + '</b></div></div>' +
+        '<div class="n">HP / SAN</div></div>';
+    });
+    box.innerHTML = html;
+  }
+  window.jyTrpgTarget = function (key) {
+    if (!T.on || T.over || T.busy || T.check) return;
+    var s = null;
+    T.invs.forEach(function (x) { if (x.key === key) s = x; });
+    if (key !== "me" && !s) { toastT("没有这个调查员"); return; }
+    if (s && !s.alive) { toastT("TA 已经倒下了"); return; }
+    T.target = key;
+    renderSeatsT();
+    setGoTxt("行动方：" + (key === "me" ? "你" : (s ? s.name : "你")));
+  };
+
+  function clearSceneT() { var sc = $T("jyTrpgScene"); if (sc) sc.innerHTML = ""; }
+  function nodeT(cls, text) {
+    var sc = $T("jyTrpgScene");
+    if (!sc) return;
+    var d = document.createElement("div");
+    d.className = "jyT-node " + (cls || "");
+    d.innerHTML = text;
+    sc.appendChild(d);
+    sc.scrollTop = sc.scrollHeight;
+  }
+  function lineT(cls, text) {
+    var sc = $T("jyTrpgScene");
+    if (!sc) return;
+    var d = document.createElement("div");
+    d.className = "jyT-line " + (cls || "");
+    d.innerHTML = text;
+    sc.appendChild(d);
+    sc.scrollTop = sc.scrollHeight;
+  }
+  function addScene(t) { if (t) T.scene.push(String(t).trim()); while (T.scene.length > 40) T.scene.shift(); }
+  function tailScene(n) { return T.scene.slice(-(n || 8)).join("\n"); }
+  function setGoTxt(s) { var e = $T("jyTrpgGoTxt"); if (e) e.textContent = s || ""; }
+  function setHintT(s) { var e = $T("jyTrpgHint"); if (e) e.textContent = s || ""; }
+  function setBusy(b) {
+    T.busy = b;
+    var e = $T("jyTrpgGoTxt");
+    if (e) e.textContent = b ? "… 守密人推演中" : ("行动方：" + (T.target === "me" ? "你" : whoName(T.target)));
+    var btn = $T("jyTrpgSendBtn");
+    if (btn) btn.disabled = b;
+  }
+  function whoName(key) {
+    for (var i = 0; i < T.invs.length; i++) if (T.invs[i].key === key) return T.invs[i].name;
+    return "";
+  }
+
+  function skillAttr(skillText) {
+    var s = String(skillText || "");
+    if (/体魄|力量|体能|耐力/.test(s)) return "str";
+    if (/身手|敏捷|潜行|闪避|灵活/.test(s)) return "dex";
+    if (/意志|理智|抵抗|镇定|疯狂|SAN/i.test(s)) return "wil";
+    if (/魅力|话术|说服|表演|社交|唬/.test(s)) return "cha";
+    return "int";
+  }
+  function skillName(key) {
+    return { str: "体魄", dex: "身手", int: "头脑", wil: "意志", cha: "魅力" }[key] || "头脑";
+  }
+
+  /* ---------- KP 调用 ---------- */
+  function kpJsonPrompt(actorName, actText, actType) {
+    var invStat = T.invs.map(function (s) {
+      return s.name + (s.alive ? "(HP" + s.hp + "/SAN" + s.san + " 体魄" + s.attr.str + " 身手" + s.attr.dex + " 头脑" + s.attr.int + " 意志" + s.attr.wil + " 魅力" + s.attr.cha + ")" : "(已倒下)");
+    }).join("；");
+    var jsonS = '{"narr":"2~4句中文推进剧情","npc":[{"who":"NPC或调查员姓名","line":"一句话"}],"check":null,"end":false,"result":"good或bad","reason":"结局理由"}';
+    return "你是跑团模组《" + themeName() + "》的守密人KP（主持人兼世界裁判），题材：" + T.theme.desc + "。当前调查员状态：" + invStat + "。已发生剧情：\n" + tailScene(10) +
+      "\n\n现在调查员【" + actorName + "】的行动（类型：" + actType + "）：「" + actText + "」。\n" +
+      "请推进剧情一步：写旁白叙事故，可安排NPC/环境反应（npc数组可空）。若该行动有失败风险或触碰关键线索，请在check对象中给出一次检定：check={skill:\"体魄或身手或头脑或意志或魅力\",dmg:0或扣HP数,sanity:0或扣SAN数,pass:\"成功后发生的简述\",fail:\"失败后发生的简述\"}；若无需检定则check为null。检定对象就是行动者本人。\n" +
+      "若剧情此刻可以收束出结局，请设end:true并给result（good=调查成功/全员生还；bad=失败/重大伤亡）与reason（一句话结局）。\n仅输出一个JSON对象，字段与jsonS一致：" + jsonS + "。禁止输出JSON以外的任何文字。";
+  }
+
+  function callKp(prompt) {
+    return askT(T.kp.pa, prompt);
+  }
+
+  /* ---------- 玩家行动 ---------- */
+  window.jyTrpgTab = function (m) {
+    T.tab = m;
+    var a = $T("jyTrpgTabAct"), c = $T("jyTrpgTabChat");
+    var ty = $T("jyTrpgTypes");
+    var inp = $T("jyTrpgInput");
+    if (m === "act") {
+      a.className = "jyT-tab sel"; c.className = "jyT-tab";
+      ty.style.display = ""; inp.placeholder = "输入你的行动…";
+      if (inp) inp.dataset.ph = "行动";
+      setHintT("输入行动；选「休息」回血回 SAN。点调查员头像可派 TA 行动。");
+    } else {
+      a.className = "jyT-tab"; c.className = "jyT-tab sel";
+      ty.style.display = "none"; inp.placeholder = "和在场的人聊两句（会记入记忆）…";
+      setHintT("闲聊模式：对话会被在场角色记住。");
+    }
+  };
+
+  function bindTypes() {
+    var box = $T("jyTrpgTypes");
+    if (!box) return;
+    var kids = box.querySelectorAll(".jyT-type");
+    for (var i = 0; i < kids.length; i++) {
+      kids[i].onclick = function () {
+        T.actType = this.getAttribute("data-t");
+        var k2 = box.querySelectorAll(".jyT-type");
+        for (var j = 0; j < k2.length; j++) k2[j].className = "jyT-type" + (k2[j] === this ? " sel" : "");
+      };
+    }
+  }
+  window.jyTrpgKey = function (e) { if (e && e.key === "Enter") { e.preventDefault(); jyTrpgSend(); } };
+  window.jyTrpgSend = function () {
+    if (!T.on || T.over || T.busy || T.check) return;
+    var inp = $T("jyTrpgInput");
+    if (!inp) return;
+    var text = inp.value.trim();
+    inp.value = "";
+    if (T.tab === "chat") { chatSend(text); return; }
+    var type = T.actType || "调查";
+    if (!text && type !== "休息") { setHintT("先写一句行动描述，再发送。"); return; }
+    if (!text) text = "我停下来修整，恢复体力与精神";
+    setHintT("");
+    actSend(text, type);
+  };
+
+  function actSend(text, type) {
+    if (T.busy || T.check) return;
+    setBusy(true);
+    var key = T.target === "me" || !whoName(T.target) ? "me" : T.target;
+    var actor = null;
+    T.invs.forEach(function (s) { if (s.key === key) actor = s; });
+    if (!actor || !actor.alive) key = "me";
+    if (key !== "me") {
+      var actor2 = actor;
+      lineT("sys", "你指派 " + escT(actor2.name) + " 行动（" + escT(type) + "）…");
+      roleAct(key, text, type);
+    } else {
+      lineT("me", "<span class='w'>你</span>：" + escT(text));
+      addScene("我（行动类型：" + type + "）：" + text);
+      kpStep("你", text, type, "me");
+    }
+  }
+
+  function roleAct(key, given, type) {
+    var actor = null;
+    T.invs.forEach(function (s) { if (s.key === key) actor = s; });
+    if (!actor) { T.busy = false; return; }
+    var prompt = "你是调查员" + actor.name + "，性格按你的人物设定。当前跑团模组《" + themeName() + "》最近剧情：\n" + tailScene(8) +
+      "\n现在队友指派你做这件事：「" + given + "」（类型：" + type + "）。你会怎么执行？以你的性格给出反应。只输出JSON：{\"talk\":\"一句符合性格的台词\",\"do\":\"你具体怎么做，写成第三人称动作描述\",\"type\":\"调查或询问或推理或行动或休息\"}。禁止输出JSON以外内容。";
+    askT(actor.pa, prompt).then(function (raw) {
+      if (!T.on || T.over) return;
+      var o = parseJsonT(raw);
+      var talk = o && o.talk ? o.talk : "";
+      var doTxt = o && o.do ? o.do : given;
+      var t2 = o && o.type ? o.type : type;
+      if (talk) { lineT("npc", "<span class='w'>" + escT(actor.name) + "</span>：" + escT(talk)); addScene(actor.name + "：" + talk); }
+      lineT("npc", "<span class='w'>" + escT(actor.name) + "</span>（行动）：" + escT(doTxt));
+      addScene(actor.name + "（行动类型" + t2 + "）：" + doTxt);
+      kpStep(actor.name, doTxt, t2, actor.key);
+    }).catch(function () {
+      if (!T.on || T.over) return;
+      lineT("risk", actor.name + " 没有回应…按指派行动继续。");
+      addScene(actor.name + "（行动类型" + type + "）：" + given);
+      kpStep(actor.name, given, type, actor.key);
+    });
+  }
+
+  function kpStep(actorName, actText, actType, actorKey) {
+    var prompt = kpJsonPrompt(actorName, actText, actType);
+    callKp(prompt).then(function (raw) {
+      if (!T.on || T.over) return;
+      var o = parseJsonT(raw);
+      if (!o || !o.narr) { lineT("risk", "守密人有点词穷，稍等一下…"); setBusy(false); return; }
+      nodeT("narr", escT(o.narr));
+      addScene(o.narr);
+      if (o.npc && o.npc.length) {
+        o.npc.slice(0, 6).forEach(function (n) {
+          if (n && n.line) { lineT("npc", "<span class='w'>" + escT(n.who || "某人") + "</span>：" + escT(n.line)); addScene((n.who || "某人") + "：" + n.line); }
+        });
+      }
+      renderSeatsT();
+      if (o.end === true || o.end === "true" || o.end === 1) {
+        var res = o.result === "good" ? "good" : "bad";
+        if (o.check && (o.check.skill || o.check.pass || o.check.fail)) {
+          T.pendingEnd = res;
+          startCheck(o.check, actorKey, actorName);
+        } else {
+          finishTrpg(res, o.reason || o.narr);
+        }
+        return;
+      }
+      if (o.check && (o.check.skill || o.check.pass || o.check.fail)) {
+        startCheck(o.check, actorKey, actorName);
+        return;
+      }
+      setBusy(false);
+    }).catch(function () {
+      if (!T.on || T.over) return;
+      lineT("risk", "守密人没有响应，请再发一次行动。");
+      setBusy(false);
+    });
+  }
+
+  /* ---------- 检定 ---------- */
+  function startCheck(chk, actorKey, actorName) {
+    var actor = null;
+    T.invs.forEach(function (s) { if (s.key === actorKey) actor = s; });
+    if (!actor) actor = T.invs[0];
+    var skillText = chk.skill || "头脑";
+    var attrKey = skillAttr(skillText);
+    var target = actor.attr[attrKey];
+    T.check = { actor: actor, attrKey: attrKey, target: target, chk: chk };
+    renderSeatsT();
+    setGoTxt("");
+    var pass = chk.pass ? escT(chk.pass) : "行动成功";
+    var fail = chk.fail ? escT(chk.fail) : "行动失败";
+    lineT("risk", "守密人要求检定【" + escT(skillText) + " / " + skillName(attrKey) + "】：" + escT(actor.name) + " 成功率 " + target + "%（d100 ≤ " + target + " 成功）。");
+    var d = document.createElement("div");
+    d.className = "jyT-chk";
+    d.id = "jyTrpgChkBox";
+    d.innerHTML = '<span>检定方：' + escT(actor.name) + ' · 成功率 <b>' + target + '%</b></span><button class="jy-small-btn primary" style="margin:0" onclick="jyTrpgRoll()">投骰检定 (d100)</button>' +
+      '<span style="flex:0 0 100%;font-size:11px;color:#8fb3dd">成功：' + pass + '<br>失败：' + fail + "</span>";
+    var sc = $T("jyTrpgScene");
+    if (sc) sc.appendChild(d);
+    sc.scrollTop = sc.scrollHeight;
+  }
+
+  window.jyTrpgRoll = function () {
+    if (!T.check) return;
+    var ck = T.check;
+    T.check = null;
+    var box = $T("jyTrpgChkBox");
+    if (box) box.remove();
+    var roll = Math.floor(Math.random() * 100) + 1;
+    var ok = roll <= ck.target;
+    var actor = ck.actor;
+    if (ok) {
+      lineT("good", "检定结果：" + roll + " ≤ " + ck.target + " —— 成功！" + (ck.chk.pass ? escT(ck.chk.pass) : ""));
+      addScene("检定成功：" + (ck.chk.pass || ""));
+    } else {
+      var dmg = parseInt(ck.chk.dmg, 10) || 0;
+      var sn = parseInt(ck.chk.sanity, 10) || 0;
+      if (dmg) actor.hp = Math.max(0, actor.hp + dmg);
+      if (sn) actor.san = Math.max(0, actor.san + sn);
+      lineT("risk", "检定结果：" + roll + " > " + ck.target + " —— 失败！" + (ck.chk.fail ? escT(ck.chk.fail) : "") + (dmg || sn ? "（" + escT(actor.name) + " 损失 HP" + (-dmg) + " SAN" + (-sn) + "）" : ""));
+      addScene("检定失败：" + (ck.chk.fail || ""));
+      if (actor.hp <= 0) { actor.alive = false; lineT("risk", escT(actor.name) + " 倒下了！"); }
+      else if (actor.san <= 0) { actor.alive = false; lineT("risk", escT(actor.name) + " 理智归零，精神崩溃倒下！"); }
+      memT(actor.pa, "在《" + themeName() + "》模组中，你经历了一次失败检定（" + skillName(ck.attrKey) + "），" + (actor.alive ? "付出了代价但还活着。" : "就此倒下，未能看到结局。"));
+    }
+    renderSeatsT();
+    // 结局判定
+    var deadAll = T.invs.every(function (s) { return !s.alive; });
+    if (T.pendingEnd) {
+      var res = T.pendingEnd; T.pendingEnd = null;
+      finishTrpg(res, res === "good" ? "调查落下帷幕" : "失败收场");
+      return;
+    }
+    if (deadAll) { finishTrpg("bad", "所有调查员都倒下了…"); return; }
+    if (!actor.alive && actor.isMe) { finishTrpg("bad", "你倒下了，故事到此为止。"); return; }
+    setBusy(false);
+    setGoTxt("行动方：" + (T.target === "me" ? "你" : whoName(T.target)));
+  };
+
+  /* ---------- 闲聊 ---------- */
+  function chatSend(text) {
+    if (!text) return;
+    if (T.busy || T.check) { setHintT("剧情推进中，先等判定完成再聊。"); return; }
+    setBusy(true);
+    lineT("me", "<span class='w'>你</span>：" + escT(text));
+    var targets = [];
+    if (T.kp && T.kp.pa) targets.push(T.kp);
+    T.invs.forEach(function (s) { if (!s.isMe && s.pa && s.alive) targets.push({ key: s.key, name: s.name, pa: s.pa }); });
+    if (!targets.length) { setBusy(false); return; }
+    var prompt = "（跑团《" + themeName() + "》桌边闲聊）玩家说：「" + text + "」。请以你的人物身份自然地接一句话，口语化、简短（不超过40字），不要旁白不要换行。只输出你作为人物说的一句话。";
+    var calls = targets.map(function (t) {
+      return askT(t.pa, prompt).then(function (reply) {
+        if (!T.on || T.over) return;
+        var who = t.key === "kp_" + (T.kp ? T.kp.key.slice(3) : "") ? "kp" : "inv";
+        lineT("npc", "<span class='w'>" + escT(t.name) + "</span>：" + escT(String(reply).trim()));
+        try { addMemorySourceFor(t.pa, "gameChat", "跑团《" + themeName() + "》进行中，玩家对大家说：「" + text + "」，" + t.name + "接话：「" + String(reply).trim() + "」。"); } catch (e) {}
+      }).catch(function () {});
+    });
+    Promise.all(calls).then(function () {
+      try { save(); } catch (e) {}
+      setBusy(false);
+    });
+  }
+
+  /* ---------- 收束 ---------- */
+  function finishTrpg(result, reason) {
+    if (T.over) return;
+    T.over = true; T.busy = false; T.check = null; T.pendingEnd = null;
+    var title = result === "good" ? "模组通关 · 好结局" : "模组落幕 · 坏结局";
+    var aliveNames = T.invs.filter(function (s) { return s.alive; }).map(function (s) { return s.name; });
+    lineT(result === "good" ? "good" : "risk", "=== " + title + " ===");
+    if (reason) lineT("narr", escT(reason));
+    $T("jyTrpgOverT").textContent = title;
+    var sub = "模组《" + themeName() + "》 · 守密人 " + kpName() + "\n结局：" + (reason || "") + "\n生还调查员：" + (aliveNames.length ? aliveNames.join("、") : "无");
+    $T("jyTrpgOverS").textContent = sub;
+    $T("jyTrpgOver").style.display = "flex";
+    // 记忆
+    var partnerTxt = T.invs.map(function (s) { return s.name; }).join("、") + "（KP " + kpName() + "）";
+    if (T.kp && T.kp.pa) {
+      memT(T.kp.pa, "你主持了跑团模组《" + themeName() + "》，调查员：" + partnerTxt + "。结局：" + (result === "good" ? "调查成功" : "失败收场") + "——" + (reason || "") + "。这卷故事印在了你的守密人记忆里。");
+    }
+    T.invs.forEach(function (s) {
+      if (!s.isMe && s.pa) {
+        var w = s.alive;
+        memT(s.pa, "你在霁月机跑团《" + themeName() + "》中担任调查员（与玩家及" + partnerTxt + "同行），" + (w ? "你活到了最后" : "你倒在了故事中途") + "。结局：" + (result === "good" ? "调查成功" : "失败收场") + "——" + (reason || "") + "。这段冒险已被记住。");
+      }
+    });
+    try {
+      window.jyHistPush({ text: "跑团《" + themeName() + "》：" + (result === "good" ? "好结局" : "坏结局") + "（" + (reason || "").slice(0, 40) + "）", game: "跑团", partner: partnerTxt, ts: Date.now() });
+    } catch (e) {}
+    renderSeatsT();
+  }
+
+  /* ---------- 工具 ---------- */
+  function parseJsonT(raw) {
+    try {
+      var s = String(raw || "").trim();
+      var i = s.indexOf("{"), j = s.lastIndexOf("}");
+      if (i >= 0 && j > i) s = s.slice(i, j + 1);
+      var o = JSON.parse(s);
+      return o && typeof o === "object" ? o : null;
+    } catch (e) { return null; }
+  }
+  function askT(pa, prompt) {
+    return new Promise(function (resolve, reject) {
+      if (!pa || !canApiT(pa) || typeof callChat !== "function") { reject(new Error("未接入API")); return; }
+      var done = false;
+      var timer = setTimeout(function () { if (!done) { done = true; reject(new Error("超时")); } }, 40000);
+      callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+        if (done) return;
+        done = true; clearTimeout(timer);
+        if (txt && String(txt).trim().length) resolve(String(txt).trim());
+        else reject(new Error("空回复"));
+      }).catch(function (e) { if (!done) { done = true; clearTimeout(timer); reject(e); } });
+    });
+  }
+
+  /* ---------- 说明 / 退出 / 再来 ---------- */
+  function jyTrpgHelp() {
+    var body = $T("jyTrpgRuleBody");
+    if (body) {
+      body.textContent = "「跑团 · 迷雾调查」：AI 守密人现场编织剧情，你和角色们都是调查员。\n\n· 开局挑一个题材模组，选一位角色当守密人（KP），再挑 0~4 位角色与你同行调查。\n· 输入行动即可推进剧情；行动类型分：调查 / 询问 / 推理 / 行动 / 休息。\n· 点上方调查员头像，可改派对方去执行行动（对方会按自己性格行动）。\n· 有风险的操作守密人会要求 d100 检定：掷出的点数 ≤ 对应属性即成功。\n· 每名调查员有 HP（生命）与 SAN（理智），失败会损失；HP/SAN 归零即倒下，全员倒下=坏结局。\n· 行动中选「休息」可少量回血回 SAN。\n· 切到「闲聊」可以和在场角色说话，说的话会被他们记住。\n· 每卷模组的结局都会写入角色记忆与战绩。\n\n剧情全部由接入的模型实时生成，无兜底脚本。";
+    }
+    $T("jyTrpgRuleMask").classList.add("show");
+  }
+  window.jyTrpgHelp = jyTrpgHelp;
+
+  function jyTrpgExit() {
+    T.on = false; T.over = true; T.busy = false; T.check = null; T.pendingEnd = null;
+    $T("jyTrpgOver").style.display = "none";
+    var m = $T("jyTrpgMask"); if (m) m.classList.remove("show");
+    var r = $T("jyTrpgRuleMask"); if (r) r.classList.remove("show");
+    try { if (window.jy62OpenGames) jy62OpenGames(); else showPageT("jyGames"); } catch (e) { showPageT("jyGames"); }
+  }
+  window.jyTrpgExit = jyTrpgExit;
+
+  window.jyTrpgAgain = function () {
+    T.on = false; T.over = true; T.busy = false;
+    $T("jyTrpgOver").style.display = "none";
+    jyTrpgOpen();
+  };
+
+  // 绑定行动类型 chips 与发送按钮
+  function initTrpgUi() {
+    bindTypes();
+    var btn = $T("jyTrpgInputRow") ? $T("jyTrpgInputRow").querySelector("button") : null;
+    if (btn) btn.id = "jyTrpgSendBtn";
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initTrpgUi);
+  else initTrpgUi();
+
+})();
 </script>
