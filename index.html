@@ -27,7 +27,11 @@
   window.addEventListener('error', function (ev) { show(ev.message || 'Script error', ev.error && ev.error.stack ? ev.error.stack : ''); });
   window.addEventListener('unhandledrejection', function (ev) {
     var rmsg = ev && ev.reason ? (ev.reason.message || ev.reason) : ev;
-    if (rmsg && String(rmsg).indexOf('screen.orientation.lock') !== -1) return;
+    var s = String(rmsg || '');
+    if (s.indexOf('screen.orientation.lock') !== -1) return;
+    if (s.toLowerCase().indexOf('fullscreen') !== -1) return;
+    if (s.indexOf('NotAllowedError') !== -1 || s.indexOf('not allowed') !== -1) return;
+    if (s.indexOf('AbortError') !== -1) return;
     show('Promise 未处理错误: ' + rmsg, '');
   });
 })();
@@ -2926,7 +2930,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     triedFull = true;
     try{
       var el = document.documentElement;
-      if(el.requestFullscreen){ el.requestFullscreen && el.requestFullscreen(); }
+      if(el.requestFullscreen){ var _fpa = el.requestFullscreen(); if(_fpa && _fpa['catch']){ _fpa['catch'](function(){}); } }
       else if(el.webkitRequestFullscreen){ el.webkitRequestFullscreen(); }
     }catch(e){}
   }
@@ -14481,7 +14485,7 @@ __name(updateSnow, "updateSnow");
 document.addEventListener("keydown", function(e) {
   if (e.key === "Escape") {
     if (document.fullscreenElement) {
-      document.exitFullscreen && document.exitFullscreen();
+      var _fe = document.exitFullscreen && document.exitFullscreen(); if (_fe && _fe['catch']) _fe['catch'](function(){});
     } else {
       goHome();
     }
@@ -14495,8 +14499,8 @@ function tryFullscreen() {
   var el = document.documentElement;
   try {
     if (isFullscreen()) return;
-    if (el.requestFullscreen) el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    if (el.requestFullscreen) { var _fpb = el.requestFullscreen(); if (_fpb && _fpb['catch']) _fpb['catch'](function(){}); }
+    else if (el.webkitRequestFullscreen) { try { var _fpc = el.webkitRequestFullscreen(); if (_fpc && _fpc['catch']) _fpc['catch'](function(){}); } catch (e2) {} }
     else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
     else if (el.msRequestFullscreen) el.msRequestFullscreen();
   } catch (err) {
@@ -14505,7 +14509,7 @@ function tryFullscreen() {
 __name(tryFullscreen, "tryFullscreen");
 function exitFullscreen() {
   try {
-    if (document.exitFullscreen) document.exitFullscreen();
+    if (document.exitFullscreen) { var _fx = document.exitFullscreen(); if (_fx && _fx['catch']) _fx['catch'](function(){}); }
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   } catch (err) {
   }
