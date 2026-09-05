@@ -11814,9 +11814,15 @@ function pcOpenApp(appId) {
   document.getElementById("pcAppContent").innerHTML = html || '<div class="empty-tip">\u7a7a\u7a7a\u5982\u4e5f</div>';
 }
 function pcDetailBack() {
-  var key = DB._pcLastKey;
-  if (key) pcOpenApp(key);
-  else backToDesktop();
+  if (DB._pcInDetail) {
+    var key = DB._pcLastKey;
+    DB._pcInDetail = false;
+    if (key) pcOpenApp(key);
+    else backToDesktop();
+  } else {
+    DB._pcLastKey = null;
+    backToDesktop();
+  }
 }
 function backToDesktop() {
   stopPcClock();
@@ -12549,6 +12555,12 @@ function openPcPhone(id) {
   DB._pcTarget = id;
   DB._pcData = pcDataOf(p);
   DB._pcCaught = false;
+  DB._pcLastKey = null;
+  DB._pcInDetail = false;
+  stopPcClock();
+  document.getElementById("pcAppPage").style.display = "none";
+  document.getElementById("pcSendRow").style.display = "none";
+  document.getElementById("pcDesktop").style.display = "";
   document.getElementById("pcPhoneTitle").textContent = p.name + " \u7684\u624B\u673A";
   document.getElementById("pcCaught").style.display = "none";
   document.getElementById("pcPhoneMask").classList.add("show");
