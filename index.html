@@ -15719,6 +15719,9 @@ function closeDreamHelp() {
 .jy-game-title{font-size:15px;font-weight:700;line-height:1.2;text-align:center}
 .jy-game-sub{font-size:11px;color:var(--page-dim,#999);margin-top:3px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
 .jy-game-body{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;padding:8px 12px 18px;position:relative}
+  .jy-climb-hud{display:flex;gap:6px;justify-content:center;align-items:center;padding:8px 0;flex-wrap:wrap}
+  #jyClimbTip{pointer-events:none}
+
 #jyTurnTip{font-size:12px;color:#666;text-align:center;margin-top:8px;min-height:18px}
 .jy-btn-row{display:flex;gap:8px;justify-content:center;margin-top:6px}
 .jy-small-btn{border:none;border-radius:14px;background:#f2f3f7;color:#444;font-size:11px;padding:5px 12px;cursor:pointer}
@@ -16998,6 +17001,34 @@ function closeDreamHelp() {
   </div>
 </div>
 
+
+<!-- 登山小鸡（单人点跳爬山，仿支付宝登山赛） -->
+<div class="page light-page" id="jyGameClimb">
+  <div class="page-head jy-game-head"><span class="back" onclick="jyClimbExit()">‹</span><div style="flex:1;min-width:0;text-align:center"><div class="jy-game-title">登山小鸡</div><div class="jy-game-sub" id="jyClimbSub">点跳爬山 · 别掉坑</div></div><span class="jy-mask-btn" style="background:rgba(0,0,0,.06);color:inherit" onclick="jyClimbRestart()">重开</span></div>
+  <div class="jy-game-body">
+    <div class="jy-climb-hud" id="jyClimbHud">
+      <span class="jy-mask-btn" style="background:#f60;color:#fff">分数 <b id="jyClimbScore">0</b></span>
+      <span class="jy-mask-btn" style="background:#3b82f6;color:#fff">金币 <b id="jyClimbCoins">0</b></span>
+      <span class="jy-mask-btn">高度 <b id="jyClimbMeters">0 m</b></span>
+      <span class="jy-mask-btn">最高 <b id="jyClimbBest">0</b></span>
+    </div>
+    <div id="jyClimbStage" style="position:relative;width:100%;max-width:420px;margin:0 auto;border-radius:14px;overflow:hidden;touch-action:none">
+      <canvas id="jyClimbCanvas" style="display:block;width:100%;height:auto"></canvas>
+      <div id="jyClimbTip" style="position:absolute;left:10px;right:10px;bottom:44px;text-align:center;font-size:13px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.25);opacity:0;transition:opacity .4s">轻点起跳，长按蓄力跳更高</div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--page-dim);padding:6px 0 0">点击/按住小屏幕让小鸡爬山；跳过平台会掉进河里，落河会触发隐藏「海底世界」彩蛋哦</div>
+  </div>
+</div>
+<!-- 登山小鸡 结算弹层 -->
+<div class="modal-mask" id="jyClimbOver" style="display:none" onclick="if(event.target===this)jyClimbRestart()">
+  <div class="modal-sheet" id="jyClimbOverBox">
+    <h3>这次爬了多远？</h3>
+    <div style="font-size:34px;font-weight:900;color:#f60;text-align:center;margin:6px 0" id="jyClimbScoreFinal">0 分</div>
+    <div class="sheet-desc" style="text-align:center" id="jyClimbLineFinal"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="jyClimbExit()">退出</button><button class="sheet-btn primary" onclick="jyClimbRestart()">再来一局</button></div>
+  </div>
+</div>
+
 <!-- 选 TA 层 -->
 <div class="jy62-mask" id="jy62CharMask">
   <div class="jy62-sheet">
@@ -17200,7 +17231,8 @@ function closeDreamHelp() {
     { id: "wolf", name: "狼人杀", tag: "多人 · 已开放", cls: "dark", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M12 4c2.5-1.8 6-1 8 .8-1.8 1-2.6 2.7-2.7 4.5C20 11 20 14 18 17l-2-2-1 3c-1 .6-3 .6-4 0l-1-3-2 2c-2-3-2-6-.3-7.7-.1-1.8-1-3.5-2.7-4.5C6 3 9.5 2.2 12 4Z"/><circle cx="9.5" cy="11" r=".9" fill="currentColor"/><circle cx="14.5" cy="11" r=".9" fill="currentColor"/></svg>' },
     { id: "chess", name: "国际象棋", tag: "双人 · 已开放", cls: "red", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 9h16M4 13h16M9 5v14M15 5v14"/><path d="M12 3.2c-.9 0-1.3.7-1.3 1.4 0 .8.6 1 1.3 1s1.3-.2 1.3-1c0-.7-.4-1.4-1.3-1.4Z"/></svg>' },
     { id: "gold", name: "黄金矿工", tag: "双人 · 已开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 20h16M6 20V8h12v12"/><circle cx="12" cy="6.6" r="1.2"/><path d="M4 8h16l-1.4-3.4H5.4z"/><path d="M9 20v-4h2v4M13 20v-4h2v4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="4.5" r=".7" fill="currentColor" stroke="none"/></svg>' },
-    { id: "jumper", name: "跳一跳", tag: "单人 · 新开放", cls: "green", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 15c3-2 5 1 8-1s4-4 6-3 2 6 1 7H4Z"/><path d="M9 5h6M10 3.5h4M8 5l-1 4M16 5l1 4"/><path d="M4 15l-1 5M20 15l1 5"/></svg>' }
+    { id: "jumper", name: "跳一跳", tag: "单人 · 新开放", cls: "green", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 15c3-2 5 1 8-1s4-4 6-3 2 6 1 7H4Z"/><path d="M9 5h6M10 3.5h4M8 5l-1 4M16 5l1 4"/><path d="M4 15l-1 5M20 15l1 5"/></svg>' },
+    { id: "climb", name: "登山小鸡", tag: "单人 · 新开放", cls: "green", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20c2-9 12-9 14-17"/><circle cx="16" cy="3.2" r="1.6"/><path d="M6 20c2-4 5-5 7-4"/></svg>' }
   ];
   window.HALL62 = HALL62;
 
@@ -17279,6 +17311,9 @@ function closeDreamHelp() {
   }
 
   function jy62PickGame(id) {
+    if (id === "climb") {
+      try { if (window.jyClimbOpen) { window.jyClimbOpen(); return; } } catch (e) {}
+    }
     if (id === "jumper") {
       JY62.mode = null;
       JY62.hostId = null;
@@ -20871,6 +20906,588 @@ function closeDreamHelp() {
   window.jyJumperRestart = jyJumperRestart; window.jyJumperExit = jyJumperExit;
   window.jyJumperWatchToggle = jyJumperWatchToggle; window.jyJumperChatKey = jyJumperChatKey;
   window.jyJumperChatSend = jyJumperChatSend;
+})();
+
+
+</script>
+<script>
+/* ================= 霁月机71 · 登山小鸡（支付宝「登山赛」复刻） ================= */
+(function () {
+  if (window.__jyClimbInited) return;
+  window.__jyClimbInited = true;
+
+  var W = 420, H = 640, dpr = 2;
+  var canvas, ctx, stage;
+  var CL = {
+    on: false, mode: "idle", raf: 0, lastT: 0,
+    player: { x: 210, y: 0, vy: 0, vx: 0, r: 11, squash: 0, face: 1 },
+    camY: 0, power: 0, charging: false, jumpStart: 0,
+    layers: [], minTop: 0, topIdx: -1, sinceWater: 0, lastWaterIdx: -99,
+    coins: [], score: 0, step: 0, coinGot: 0, best: 0, cloudSeed: 0,
+    bubbles: [], overDone: false, waterT: 0, waterOld: 0, tipT: 0
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function saveX() { try { window.__jySave && window.__jySave(); } catch (e) {} try { if (window.save) save(); } catch (e) {} }
+  function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+  function readBest() {
+    var b = 0;
+    try { if (window.DB && DB.jyClimbBest) b = DB.jyClimbBest; } catch (e) {}
+    return b;
+  }
+  function writeBest(b) {
+    try { if (!window.DB) return; DB.jyClimbBest = b; saveX(); } catch (e) {}
+  }
+
+  /* ---------- 世界：登山台阶 ---------- */
+  function layerId(i) { return "L" + i; }
+  function makeLayer(i, x0, w, top, type) {
+    return { i: i, x0: x0, w: w, top: top, type: type || "g", coin: false };
+  }
+  function genTo(topLimit) {
+    // 向屏幕上方（world y 更小）生成新层，直到覆盖 topLimit
+    var guard = 0;
+    while (CL.minTop > topLimit && guard < 600) {
+      guard++;
+      var i = CL.layers.length;
+      var prev = CL.layers[CL.layers.length - 1];
+      var prevX = prev ? prev.x0 : W / 2;
+      var gap = 46 + Math.random() * 24;            // 相邻层垂直间距
+      var top = CL.minTop - gap;
+      var shift = (Math.random() * 2 - 1) * 42;      // 水平错位
+      var x0 = Math.max(52, Math.min(W - 52, prevX + shift));
+      var w = 74 + Math.random() * 44;
+      var type = "g";
+      if (Math.random() < 0.08 && CL.sinceWater > 8 && i - CL.lastWaterIdx > 6) {
+        type = "w"; w = 150 + Math.random() * 50; x0 = Math.max(60, Math.min(W - 60, prevX + (Math.random() * 2 - 1) * 70));
+        CL.sinceWater = 0; CL.lastWaterIdx = i;
+      } else {
+        CL.sinceWater++;
+        if (Math.random() < 0.3) type = "y";            // 金色高台
+      }
+      var L = makeLayer(i, x0, w, top, type);
+      if (type !== "w" && Math.random() < 0.55) L.coin = true;
+      CL.layers.push(L);
+      CL.minTop = top;
+      // 金币实体
+      if (L.coin) CL.coins.push({ x: x0, y: top - 26, got: false, seed: Math.random() * 6.28 });
+    }
+  }
+  function firstPlatform() {
+    for (var i = 0; i < CL.layers.length; i++) if (CL.layers[i].type !== "w") return i;
+    return 0;
+  }
+  function layerAtIdx(i) { return CL.layers[i]; }
+
+  /* ---------- 控制 ---------- */
+  function jyClimbOpen() {
+    var page = $("jyGameClimb");
+    if (!page) { toast62("登山小鸡模块加载失败，请刷新"); return; }
+    try { showPage("jyGameClimb"); } catch (e) { page.classList.add("active"); }
+    canvas = $("jyClimbCanvas");
+    stage = $("jyClimbStage");
+    if (canvas) {
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+    }
+    resetGame();
+    bindClimbEvents();
+    CL.on = true;
+    CL.raf = requestAnimationFrame(loop);
+    var ov = $("jyClimbOver"); if (ov) ov.style.display = "none";
+    var hud = $("jyClimbHud"); if (hud) hud.style.display = "flex";
+  }
+  window.jyClimbOpen = jyClimbOpen;
+
+  function resetGame() {
+    CL.layers = []; CL.coins = [];
+    CL.score = 0; CL.step = 0; CL.coinGot = 0; CL.best = readBest();
+    CL.minTop = 0; CL.topIdx = -1; CL.sinceWater = 0; CL.lastWaterIdx = -99;
+    CL.overDone = false; CL.waterT = 0; CL.power = 0; CL.charging = false;
+    // 起点地面：top=590 的大宽草地（不可计分）。登山向上 = world y 越来越小
+    CL.layers.push(makeLayer(0, W / 2, 360, 590, "ground"));
+    CL.minTop = 590;
+    CL.player.x = W / 2; CL.player.y = 590; CL.player.vy = 0; CL.player.vx = 0;
+    CL.player.face = 1; CL.camY = CL.player.y - H * 0.66;
+    genTo(CL.camY - 160);          // 向上生成直到覆盖屏幕顶端
+    CL.topIdx = 0;
+    hudUpdate();
+  }
+
+  function bindClimbEvents() {
+    if (!stage) return;
+    var s = stage;
+    function down(e) {
+      e.preventDefault();
+      if (!CL.on || CL.mode === "over" || CL.mode === "water") return;
+      if (CL.mode === "idle") {
+        CL.charging = true; CL.power = 0; CL.mode = "charge"; CL.jumpStart = 0;
+      }
+    }
+    function up(e) {
+      e.preventDefault();
+      if (!CL.on) return;
+      if (CL.mode === "charge" && CL.charging) {
+        CL.charging = false;
+        doJump(CL.power);
+        CL.power = 0;
+      }
+    }
+    s.onmousedown = down; s.onmouseup = up; s.onmouseleave = function () { if (CL.charging) { CL.charging = false; CL.power = 0; if (CL.mode === "charge") CL.mode = "idle"; } };
+    s.ontouchstart = down; s.ontouchend = up; s.ontouchcancel = function () { CL.charging = false; CL.power = 0; if (CL.mode === "charge") CL.mode = "idle"; };
+  }
+
+  function doJump(p) {
+    var vy0 = -(360 + 380 * p);
+    CL.mode = "fly";
+    CL.player.vy = vy0;
+    CL.player.vx = 0;
+    CL.jumpStart = Date.now();
+    CL.player.squash = 1;
+  }
+
+  /* ---------- 主循环 ---------- */
+  function loop(ts) {
+    if (!CL.on) return;
+    var dt = Math.min(60, (ts || 0) - (CL.lastT || 0));
+    CL.lastT = ts;
+    update(dt, ts);
+    draw();
+    if (CL.mode !== "over") {
+      CL.raf = requestAnimationFrame(loop);
+    }
+  }
+
+  function update(dt, ts) {
+    var dtS = dt / 1000;
+    if (CL.mode === "water") {
+      CL.waterT += dtS;
+      // 气泡
+      if (Math.random() < 0.5) CL.bubbles.push({ x: Math.random() * W, y: H + 10, r: 3 + Math.random() * 8, s: 0.02 + Math.random() * 0.05 });
+      for (var bi = CL.bubbles.length - 1; bi >= 0; bi--) {
+        var b = CL.bubbles[bi];
+        b.y -= b.s * dt; b.x += Math.sin((b.y + CL.waterT * 30) / 40) * 0.15 * dt * 0.1;
+        if (b.y < -20) CL.bubbles.splice(bi, 1);
+      }
+      if (CL.waterT > 1.5) waterDone();
+      return;
+    }
+    if (CL.mode === "charge") {
+      CL.power = Math.min(1, CL.power + dt / 720);
+      CL.player.squash = Math.max(0, CL.player.squash - dt / 200);
+      return;
+    }
+    if (CL.mode === "idle") {
+      if (CL.player.squash > 0) CL.player.squash -= dt / 160;
+      return;
+    }
+    if (CL.mode === "fly") {
+      var g = 1250;
+      CL.player.vy += g * dtS;
+      // 水平追踪下一平台中心，保证能搭上（垂直起跳+微水平修正）
+      var tx = bestTargetX();
+      if (tx !== null) {
+        var dv = (tx - CL.player.x) * 5 * dtS;
+        CL.player.vx = dv; // 温和导引
+        CL.player.x += dv;
+      }
+      var p = CL.player;
+      var prevY = p.y;
+      p.y += CL.player.vy * dtS;
+      var falling = p.vy > 0;
+      for (var i = 0; i < CL.layers.length; i++) {
+        var L = CL.layers[i];
+        if (L.type === "w") {
+          // 水：玩家下降经过水面（防穿透：prevY < 水面 且 当前已到/越过）
+          if (falling && prevY <= L.top - 2 && p.y >= L.top - 6 && p.x > L.x0 - L.w / 2 + 10 && p.x < L.x0 + L.w / 2 - 10 && p.y - CL.camY < H - 20) {
+            enterWater(L);
+            return;
+          }
+          continue;
+        }
+        var left = L.x0 - L.w / 2 + 9, right = L.x0 + L.w / 2 - 9;
+        if (falling && prevY <= L.top + 1 && p.y >= L.top - 6 && p.x > left && p.x < right) {
+          // 着陆（ground 层也可以站，但不计分）
+          p.y = L.top;
+          p.vy = 0; p.vx = 0;
+          CL.mode = "idle";
+          CL.player.squash = 1;
+          if (L.type !== "ground") {
+            var isNew = L.i > CL.topIdx;
+            CL.topIdx = L.i;
+            if (isNew) {
+              CL.step++;
+              CL.score += 10;
+            }
+            // 吃金币
+            if (L.coin) {
+              L.coin = false;
+              for (var ci = 0; ci < CL.coins.length; ci++) {
+                var c = CL.coins[ci];
+                if (!c.got && Math.abs(c.y - (L.top - 26)) < 4 && Math.abs(c.x - L.x0) < 4) { c.got = true; break; }
+              }
+              CL.coinGot++;
+              CL.score += 15;
+            }
+            if (CL.score > CL.best) { CL.best = CL.score; writeBest(CL.best); }
+            hudUpdate();
+            // 继续生成上方平台
+            genTo(CL.camY - 300);
+          }
+          return;
+        }
+      }
+      // 金币飞行中收集
+      for (var j = 0; j < CL.coins.length; j++) {
+        var cc = CL.coins[j];
+        if (cc.got) continue;
+        if (Math.abs(cc.y - p.y) < 30 && Math.abs(cc.x - p.x) < 26) {
+          cc.got = true; CL.coinGot++; CL.score += 15;
+          if (CL.score > CL.best) { CL.best = CL.score; writeBest(CL.best); }
+          hudUpdate();
+        }
+      }
+      // 相机跟随
+      var want = p.y - H * 0.62;
+      CL.camY += (want - CL.camY) * Math.min(1, dt / 160);
+      // 掉出屏幕底部 -> 结束
+      if (p.y - CL.camY > H + 30) {
+        gameOver();
+        return;
+      }
+    }
+  }
+
+  function bestTargetX() {
+    var p = CL.player;
+    var best = null;
+    for (var i = 0; i < CL.layers.length; i++) {
+      var L = CL.layers[i];
+      if (L.type === "w" || L.type === "ground") continue;
+      if (L.top > p.y - 8) continue;            // 还在头顶上方未跨越
+      if (L.i < CL.topIdx) continue;            // 已走过的旧层不追踪
+      if (!best || L.top > best.top) best = L;  // 取最近的下一个目标（top 最大）
+    }
+    if (!best) return null;
+    return best.x0;
+  }
+
+  function enterWater(L) {
+    CL.mode = "water";
+    CL.waterT = 0;
+    CL.waterOld = CL.score;
+    CL.waterL = L;
+    CL.bubbles = [];
+    CL.score += 30;
+    if (CL.score > CL.best) { CL.best = CL.score; writeBest(CL.best); }
+    hudUpdate();
+    tipFlash("掉进河里啦！冲进海底神秘世界 +30");
+  }
+  function waterDone() {
+    var L = CL.waterL;
+    // 复活点：水塘上方约 2-3 层处的一块干燥平台
+    var revive = null;
+    for (var i = 0; i < CL.layers.length; i++) {
+      var xL = CL.layers[i];
+      if (xL.type === "w" || xL.type === "ground") continue;
+      if (L && xL.top < L.top - 150 && (!revive || xL.top > revive.top)) revive = xL;
+    }
+    if (!revive) revive = L;
+    CL.player.x = revive ? revive.x0 : CL.player.x;
+    CL.player.y = revive ? revive.top : CL.player.y;
+    CL.player.vy = 0; CL.mode = "idle";
+    CL.topIdx = revive ? revive.i : CL.topIdx;
+    CL.player.squash = 0;
+    var want = CL.player.y - H * 0.62;
+    CL.camY = want;
+    // 显示上岸提示（tip 文字）
+    tipFlash("小鸡被河水冲上了岸，继续爬！");
+    hudUpdate();
+  }
+
+  function gameOver() {
+    CL.mode = "over";
+    CL.overDone = true;
+    try { if (CL.raf) cancelAnimationFrame(CL.raf); } catch (e) {}
+    var best = CL.best;
+    hudUpdate();
+    var ov = $("jyClimbOver");
+    if (ov) {
+      ov.style.display = "flex";
+      var box = $("jyClimbOverBox");
+      if (box) box.innerHTML = "";
+      var scoreLine = $("jyClimbScoreFinal");
+      if (scoreLine) scoreLine.textContent = "本局 " + CL.score + " 分 · 最高 " + best + " 分";
+      var lineEl = $("jyClimbLineFinal");
+      if (lineEl) {
+        lineEl.textContent = "爬了 " + CL.step + " 层 · 吃到 " + CL.coinGot + " 个金币";
+      }
+    }
+    // 记战绩
+    try {
+      if (window.jyHistPush) {
+        window.jyHistPush({ text: "登山小鸡爬到 " + CL.step + " 层，得了 " + CL.score + " 分（金币 x" + CL.coinGot + "）", game: "登山小鸡", partner: "", ts: Date.now() });
+      }
+    } catch (e) {}
+    var rec = { score: CL.score, step: CL.step, coin: CL.coinGot, ts: Date.now() };
+    try {
+      if (!window.DB) return;
+      if (!DB.jyClimbRec) DB.jyClimbRec = [];
+      DB.jyClimbRec.unshift(rec);
+      if (DB.jyClimbRec.length > 60) DB.jyClimbRec = DB.jyClimbRec.slice(0, 60);
+      saveX();
+    } catch (e) {}
+  }
+
+  function hudUpdate() {
+    var s = $("jyClimbScore"); if (s) s.textContent = String(CL.score);
+    var m = $("jyClimbBest"); if (m) m.textContent = "最高 " + CL.best;
+    var h = $("jyClimbMeters"); if (h) h.textContent = CL.step * 3 + " m";
+    var coins = $("jyClimbCoins"); if (coins) coins.textContent = CL.coinGot;
+  }
+  function tipFlash(t) {
+    var tip = $("jyClimbTip");
+    if (!tip) return;
+    tip.textContent = t;
+    tip.style.opacity = "1";
+    clearTimeout(CL.tipT);
+    CL.tipT = setTimeout(function () { if (tip) tip.style.opacity = "0"; }, 2600);
+  }
+
+  function jyClimbRestart() {
+    var ov = $("jyClimbOver"); if (ov) ov.style.display = "none";
+    resetGame();
+    CL.on = true;
+    CL.raf = requestAnimationFrame(loop);
+  }
+  window.jyClimbRestart = jyClimbRestart;
+
+  function jyClimbExit() {
+    CL.on = false;
+    try { if (CL.raf) cancelAnimationFrame(CL.raf); } catch (e) {}
+    var ov = $("jyClimbOver"); if (ov) ov.style.display = "none";
+    try { showPage("jyGame62"); } catch (e) {}
+    try { if (window.jy62HallShow) jy62HallShow(); } catch (e) {}
+  }
+  window.jyClimbExit = jyClimbExit;
+
+  /* ---------- 绘制 ---------- */
+  function draw() {
+    if (!ctx) return;
+    var g = ctx;
+    var t = CL.lastT || 0;
+    // 天空
+    var sky = g.createLinearGradient(0, 0, 0, H);
+    if (CL.mode === "water") {
+      sky.addColorStop(0, "#0b2b57"); sky.addColorStop(1, "#105f8f");
+    } else {
+      sky.addColorStop(0, "#aee3ff"); sky.addColorStop(1, "#eafaff");
+    }
+    g.fillStyle = sky;
+    g.fillRect(0, 0, W, H);
+    if (CL.mode === "water") {
+      drawWaterWorld(g, t);
+      return;
+    }
+    // 云
+    g.fillStyle = "rgba(255,255,255,.85)";
+    for (var i = 0; i < 5; i++) {
+      var cx = ((i * 173 + t * 0.008 * (i % 2 ? 1 : -1)) % (W + 160) + W + 160) % (W + 160) - 80;
+      var cy = (i * 97 + CL.camY * 0.08) % (H * 0.6);
+      cloud(g, cx, cy, 26 + (i % 3) * 7);
+    }
+    // 远山
+    drawHill(g, 0.18, "#cfeecf", 190 + 20 * Math.sin(t / 900));
+    drawHill(g, 0.32, "#b3e0b3", 150);
+    // 平台
+    for (var pi = 0; pi < CL.layers.length; pi++) {
+      var L = CL.layers[pi];
+      var sy = L.top - CL.camY;
+      if (sy > -40 && sy < H + 80) drawPlatform(g, L, sy, t);
+    }
+    // 金币
+    for (var ci = 0; ci < CL.coins.length; ci++) {
+      var c = CL.coins[ci];
+      if (c.got) continue;
+      var cy2 = c.y - CL.camY;
+      if (cy2 < -30 || cy2 > H + 30) continue;
+      drawCoin(g, c.x, cy2 + Math.sin(t / 300 + c.seed) * 4, t, c.seed);
+    }
+    // 玩家
+    drawPlayer(g);
+    // 蓄力
+    if (CL.mode === "charge") {
+      var bw = 150, bh = 8, bx = (W - bw) / 2, by = H - 26;
+      g.fillStyle = "rgba(0,0,0,.15)"; rr(g, bx, by, bw, bh, 4); g.fill();
+      var grd = g.createLinearGradient(bx, 0, bx + bw, 0);
+      grd.addColorStop(0, "#ffe14d"); grd.addColorStop(1, "#ff9f1a");
+      g.fillStyle = grd; rr(g, bx, by, bw * Math.max(0.02, CL.power), bh, 4); g.fill();
+      g.fillStyle = "#8a6d1a"; g.font = "12px sans-serif"; g.textAlign = "center";
+      g.fillText("按住蓄力 · 松手起跳", W / 2, by + 22);
+    }
+    // 水位提示? 不需要
+  }
+
+  function drawWaterWorld(g, t) {
+    g.fillStyle = "rgba(255,255,255,.08)";
+    g.fillRect(0, 0, W, H);
+    // 波浪底
+    g.fillStyle = "rgba(20,80,140,.5)";
+    rr(g, -20, H - 90, W + 40, 90, 0); g.fill();
+    // 气泡
+    for (var i = 0; i < CL.bubbles.length; i++) {
+      var b = CL.bubbles[i];
+      g.beginPath(); g.arc(b.x, b.y, b.r, 0, 6.283);
+      g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 1.5; g.stroke();
+    }
+    var alpha = Math.min(1, CL.waterT / 0.5);
+    g.globalAlpha = alpha;
+    g.fillStyle = "#bfe8ff"; g.font = "bold 34px sans-serif"; g.textAlign = "center";
+    g.fillText("海底世界", W / 2, H * 0.3);
+    g.font = "15px sans-serif"; g.fillStyle = "#dff3ff";
+    g.fillText("小鸡掉进河里啦！金币 +30", W / 2, H * 0.3 + 32);
+    g.globalAlpha = 1;
+    if (CL.waterT > 1.0) {
+      g.fillStyle = "rgba(255,255,255,.8)"; g.font = "13px sans-serif";
+      g.fillText("被水流冲上岸…", W / 2, H * 0.78);
+    }
+    drawPlayerSwim(g);
+  }
+
+  function drawPlayerSwim(g) {
+    var p = CL.player, px = p.x, py = H * 0.5 + Math.sin(CL.waterT * 6) * 6;
+    g.save();
+    g.translate(px, py);
+    // 鱼尾摆动
+    g.fillStyle = "#fff";
+    g.beginPath(); g.moveTo(8, 0); g.lineTo(16, -7); g.lineTo(16, 7); g.closePath(); g.fill();
+    g.beginPath(); g.arc(0, 0, 12, 0, 6.283); g.fill();
+    g.fillStyle = "#e8402f";
+    g.beginPath(); g.arc(-2, -11, 5, 3.14, 6.28); g.fill();
+    g.fillStyle = "#222"; g.beginPath(); g.arc(-3, -1, 1.6, 0, 6.283); g.arc(3, -1, 1.6, 0, 6.283); g.fill();
+    g.restore();
+  }
+
+  function cloud(g, x, y, s) {
+    g.beginPath();
+    g.arc(x, y, s * 0.6, 0, 6.283);
+    g.arc(x + s * 0.7, y + 2, s * 0.45, 0, 6.283);
+    g.arc(x - s * 0.7, y + 3, s * 0.4, 0, 6.283);
+    g.fill();
+  }
+  function drawHill(g, k, color, base) {
+    g.fillStyle = color;
+    g.beginPath();
+    g.moveTo(0, H);
+    g.lineTo(0, H - base - Math.sin((0 + CL.camY * k) / 60) * 20);
+    for (var x = 0; x <= W; x += 10) {
+      var yy = H - base + Math.sin((x + CL.camY * k) / 70) * 22 + Math.sin((x * 2 + CL.camY * k * 0.5) / 40) * 8;
+      g.lineTo(x, yy);
+    }
+    g.lineTo(W, H);
+    g.closePath(); g.fill();
+  }
+  function rr(g, x, y, w, h, r) {
+    if (h <= 0) return;
+    var rad = Math.min(r, w / 2, h / 2);
+    g.beginPath();
+    g.moveTo(x + rad, y);
+    g.arcTo(x + w, y, x + w, y + h, rad);
+    g.arcTo(x + w, y + h, x, y + h, rad);
+    g.arcTo(x, y + h, x, y, rad);
+    g.arcTo(x, y, x + w, y, rad);
+    g.closePath();
+  }
+  function drawPlatform(g, L, sy, t) {
+    var x = L.x0, w = L.w, hP = 15;
+    if (L.type === "w") {
+      var half = w / 2;
+      g.fillStyle = "rgba(70,170,230,.55)";
+      rr(g, x - half, sy - 6, w, 12, 8); g.fill();
+      g.strokeStyle = "rgba(255,255,255,.7)"; g.lineWidth = 2;
+      for (var wi = 0; wi < 4; wi++) {
+        var wx0 = x - half + 14 + wi * 46 + ((t / 500) % 26);
+        if (wx0 > x + half - 30) wx0 -= w - 20;
+        g.beginPath(); g.moveTo(wx0, sy - 2); g.quadraticCurveTo(wx0 + 12, sy - 8, wx0 + 24, sy - 2); g.stroke();
+      }
+      // 提示字
+      g.fillStyle = "rgba(255,255,255,.8)"; g.font = "11px sans-serif"; g.textAlign = "center";
+      g.fillText("河", x, sy - 10);
+      return;
+    }
+    var isGround = L.type === "ground";
+    var body = isGround ? "#8fce6f" : L.type === "y" ? "#f5c542" : "#8fce6f";
+    var topC = isGround ? "#b6e58a" : L.type === "y" ? "#ffe08a" : "#c6eea0";
+    var shadow = isGround ? "#79b45c" : L.type === "y" ? "#d8a92e" : "#79b45c";
+    var x0 = x - w / 2;
+    g.fillStyle = "rgba(0,0,0,.08)"; rr(g, x0, sy + 3, w, hP, 6); g.fill();
+    g.fillStyle = shadow; rr(g, x0, sy + hP - 5, w, 5, 3); g.fill();
+    g.fillStyle = body; rr(g, x0, sy, w, hP, 6); g.fill();
+    g.fillStyle = topC; rr(g, x0 + 3, sy, w - 6, 5, 3); g.fill();
+    if (L.type === "y") {
+      g.fillStyle = "rgba(255,255,255,.35)"; rr(g, x0 + 8, sy + 6, 6, hP - 9, 2); g.fill();
+    } else if (L.type === "g") {
+      // 小草
+      g.strokeStyle = "#7fc35e"; g.lineWidth = 1.5;
+      for (var gi = x0 + 8; gi < x0 + w - 8; gi += 12) {
+        g.beginPath(); g.moveTo(gi, sy); g.lineTo(gi + 2, sy - 4); g.stroke();
+      }
+    }
+    if (L.coin) { /* 金币单独绘制 */ }
+  }
+  function drawCoin(g, x, y, t, seed) {
+    var r = 8 + Math.sin(t / 260 + seed) * 1;
+    g.save();
+    g.translate(x, y);
+    g.fillStyle = "rgba(0,0,0,.12)"; g.beginPath(); g.arc(1, 2, r, 0, 6.283); g.fill();
+    g.fillStyle = "#ffd23e";
+    g.beginPath(); g.arc(0, 0, r, 0, 6.283); g.fill();
+    g.fillStyle = "#f2a93b";
+    g.font = "bold 10px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText("¥", 0, 1);
+    g.restore();
+    g.textBaseline = "alphabetic";
+  }
+  function drawPlayer(g) {
+    var p = CL.player, sy = p.y - CL.camY;
+    if (sy < -60 || sy > H + 60) return;
+    var squash = CL.player.squash || 0;
+    var scX = 1 - squash * 0.25, scY = 1 + squash * 0.3;
+    g.save();
+    g.translate(p.x, sy);
+    g.scale(scX, scY);
+    // 阴影
+    g.fillStyle = "rgba(0,0,0,.12)"; g.beginPath(); g.ellipse(2, 12, 11, 4, 0, 0, 6.283); g.fill();
+    // 身体（白色圆滚滚小鸡）
+    g.fillStyle = "#fff";
+    g.beginPath(); g.ellipse(0, 0, 12, 12, 0, 0, 6.283); g.fill();
+    g.strokeStyle = "rgba(0,0,0,.08)"; g.lineWidth = 1; g.stroke();
+    // 翅膀
+    g.fillStyle = "#f2f5f7";
+    g.beginPath(); g.ellipse(-12, 2, 5, 7, 0.2, 0, 6.283); g.fill();
+    // 红鸡冠
+    g.fillStyle = "#e8402f";
+    g.beginPath(); g.moveTo(-4, -10); g.quadraticCurveTo(-6, -18, -1, -15); g.quadraticCurveTo(1, -21, 5, -14); g.quadraticCurveTo(9, -18, 7, -9); g.closePath(); g.fill();
+    // 眼睛
+    g.fillStyle = "#333";
+    g.beginPath(); g.arc(-4, -2, 1.8, 0, 6.283); g.arc(4, -2, 1.8, 0, 6.283); g.fill();
+    // 腮红
+    g.fillStyle = "rgba(255,120,120,.35)";
+    g.beginPath(); g.arc(-8, 3, 2.6, 0, 6.283); g.arc(8, 3, 2.6, 0, 6.283); g.fill();
+    // 嘴
+    g.fillStyle = "#ff9f1a";
+    g.beginPath(); g.moveTo(-2, 3); g.lineTo(2, 3); g.lineTo(0, 6); g.closePath(); g.fill();
+    g.restore();
+    // 飞行轨迹
+    if (CL.mode === "fly") {
+      g.fillStyle = "rgba(255,255,255,.6)";
+      g.beginPath(); g.arc(p.x - 14, sy + 6, 2.5, 0, 6.283); g.fill();
+      g.beginPath(); g.arc(p.x - 20, sy + 11, 2, 0, 6.283); g.fill();
+    }
+  }
+  window.__jyClimbDbg = function () { return { CL: CL, doJump: doJump, update: update, enterWater: enterWater, gameOver: gameOver, waterDone: waterDone }; };
 })();
 
 </script>
