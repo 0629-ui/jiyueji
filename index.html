@@ -17017,6 +17017,11 @@ function closeDreamHelp() {
       <div id="jyClimbTip" style="position:absolute;left:10px;right:10px;bottom:44px;text-align:center;font-size:13px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.25);opacity:0;transition:opacity .4s">轻点起跳，长按蓄力跳更高</div>
     </div>
     <div style="text-align:center;font-size:12px;color:var(--page-dim);padding:6px 0 0">点击/按住小屏幕让小鸡爬山；跳过平台会掉进河里，落河会触发隐藏「海底世界」彩蛋哦</div>
+    <div id="jyClimbWatch" style="display:none;max-width:420px;margin:8px auto 0;border:1px solid var(--line);border-radius:12px;overflow:hidden">
+      <div class="jy62-chat-head"><img class="avatar" id="jyClimbWatchAv" src="" alt=""><b id="jyClimbWatchName">TA 在看你玩</b><span style="flex:1"></span><span class="jy-mask-btn" style="background:rgba(0,0,0,.06);color:inherit" onclick="jyClimbWatchToggle()">收起</span></div>
+      <div class="jy62-chat-body" id="jyClimbWatchBody" style="height:150px;overflow:auto"></div>
+      <div class="jy62-chat-foot"><input id="jyClimbWatchInput" placeholder="边玩边聊几句…" onkeydown="jyClimbChatKey(event)"><button id="jyClimbWatchSend" onclick="jyClimbChatSend()">发送</button></div>
+    </div>
   </div>
 </div>
 <!-- 登山小鸡 结算弹层 -->
@@ -17026,6 +17031,15 @@ function closeDreamHelp() {
     <div style="font-size:34px;font-weight:900;color:#f60;text-align:center;margin:6px 0" id="jyClimbScoreFinal">0 分</div>
     <div class="sheet-desc" style="text-align:center" id="jyClimbLineFinal"></div>
     <div class="sheet-row"><button class="sheet-btn ghost" onclick="jyClimbExit()">退出</button><button class="sheet-btn primary" onclick="jyClimbRestart()">再来一局</button></div>
+  </div>
+</div>
+<!-- 登山小鸡 选观看角色 -->
+<div class="modal-mask" id="jyClimbWatchPickMask" onclick="if(event.target===this)jyClimbCancelPick()">
+  <div class="modal-sheet">
+    <h3>选一位角色看你爬山</h3>
+    <div class="sheet-desc" id="jyClimbPickHint"></div>
+    <div id="jyClimbPickList" style="max-height:44vh;overflow:auto"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="jyClimbCancelPick()">取消</button><button class="sheet-btn primary" onclick="jyClimbPickNone()">自己玩（不邀请）</button></div>
   </div>
 </div>
 
@@ -17313,6 +17327,8 @@ function closeDreamHelp() {
   function jy62PickGame(id) {
     if (id === "climb") {
       try { if (window.jyClimbOpen) { window.jyClimbOpen(); return; } } catch (e) {}
+      toast62("登山小鸡加载失败，请刷新后重试");
+      return;
     }
     if (id === "jumper") {
       JY62.mode = null;
@@ -20924,7 +20940,8 @@ function closeDreamHelp() {
     camY: 0, power: 0, charging: false, jumpStart: 0,
     layers: [], minTop: 0, topIdx: -1, sinceWater: 0, lastWaterIdx: -99,
     coins: [], score: 0, step: 0, coinGot: 0, best: 0, cloudSeed: 0,
-    bubbles: [], overDone: false, waterT: 0, waterOld: 0, tipT: 0
+    bubbles: [], overDone: false, waterT: 0, waterOld: 0, tipT: 0,
+    watch: null, watchBusy: false, watchLastAi: 0, watchChat: 0
   };
 
   function $(id) { return document.getElementById(id); }
@@ -20992,16 +21009,167 @@ function closeDreamHelp() {
       ctx = canvas.getContext("2d");
       ctx.scale(dpr, dpr);
     }
+    // 清空上次旁观状态
+    CL.watch = null; CL.watchBusy = false; CL.watchLastAi = 0; CL.watchChat = 0;
+    var w0 = $("jyClimbWatch"); if (w0) w0.style.display = "none";
+    var wb = $("jyClimbWatchBody"); if (wb) wb.innerHTML = "";
     resetGame();
     bindClimbEvents();
     CL.on = true;
+    CL.lastT = 0;
+    try { if (CL.raf) cancelAnimationFrame(CL.raf); } catch (e) {}
     CL.raf = requestAnimationFrame(loop);
     var ov = $("jyClimbOver"); if (ov) ov.style.display = "none";
     var hud = $("jyClimbHud"); if (hud) hud.style.display = "flex";
+    // 弹出选观看角色
+    try {
+      var ps = personaList() || [];
+      var hint = $("jyClimbPickHint");
+      if (hint) hint.textContent = "可以让一位角色在旁边看你爬，TA 会时不时搭话，战绩会记入记忆。";
+      var list = $("jyClimbPickList");
+      if (list) {
+        if (!ps.length) list.innerHTML = '<div class="pick-empty">还没有角色，先去「人设档案」添加</div>';
+        else {
+          list.innerHTML = ps.map(function (p) {
+            var ok = false;
+            try { var pl = personaPlan(p); ok = !!(pl && pl.baseUrl && pl.apiKey); } catch (e) {}
+            var av = "";
+            try { av = personaAvatarUrl(p); } catch (e) {}
+            return '<div class="jy-char-item' + (ok ? "" : " off") + '"' + (ok ? ' onclick="jyClimbPickWatch(\'' + String(p.id).replace(/'/g, "") + '\')"' : "") + '><img class="avatar" src="' + esc(av) + '" alt=""><div class="pick-main"><div class="pick-name">' + esc(p.name || "角色") + '</div><div class="pick-desc">' + (ok ? "会看你爬山并和你聊天" : "还没接入模型 API，无法旁观") + "</div></div></div>";
+          }).join("");
+        }
+      }
+      var m = $("jyClimbWatchPickMask");
+      if (m) m.classList.add("show");
+    } catch (e) {}
   }
   window.jyClimbOpen = jyClimbOpen;
 
+  /* 选角色 / 观看聊天 */
+  function clWatchPa() {
+    if (!CL.watch) return null;
+    try {
+      var pl = personaPlan(CL.watch);
+      if (pl && pl.baseUrl && pl.apiKey) return CL.watch;
+    } catch (e) {}
+    return null;
+  }
+  function clBubble(name, text, av) {
+    var body = $("jyClimbWatchBody");
+    if (!body) return;
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:6px;align-items:flex-start;margin:6px 8px;font-size:13px";
+    var avHtml = av ? '<img class="avatar" src="' + esc(av) + '" style="width:22px;height:22px;border-radius:50%;background:#eee;flex:none">' : '<span style="flex:none;width:22px;height:22px;border-radius:50%;background:#eee;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#888">' + esc((name || "T").slice(0, 1)) + "</span>";
+    row.innerHTML = avHtml + '<div><b style="color:#888;font-size:11px">' + esc(name || "TA") + '</b><div style="background:#f5f6f8;border-radius:10px;padding:5px 8px;margin-top:2px">' + esc(text) + "</div></div>";
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+  }
+  function clUserBubble(text) {
+    var body = $("jyClimbWatchBody");
+    if (!body) return;
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;justify-content:flex-end;margin:6px 8px;font-size:13px";
+    row.innerHTML = '<div style="max-width:75%;background:#2b7ef7;color:#fff;border-radius:10px;padding:5px 8px">' + esc(text) + "</div>";
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+  }
+  function clStartWatch(pa) {
+    CL.watch = pa;
+    CL.watchBusy = false; CL.watchLastAi = 0; CL.watchChat = 0;
+    var w = $("jyClimbWatch");
+    if (w) w.style.display = "block";
+    try {
+      var av = personaAvatarUrl(pa);
+      var avEl = $("jyClimbWatchAv");
+      if (avEl) avEl.src = av || "";
+    } catch (e) {}
+    var nm = $("jyClimbWatchName");
+    if (nm) nm.textContent = (pa.name || "TA") + " 在看你爬";
+    var body = $("jyClimbWatchBody");
+    if (body) body.innerHTML = "";
+    clBubble((pa.name || "TA"), "我看着你爬，别掉河里啦", pa.avatar || "");
+  }
+  function jyClimbPickNone() {
+    var m = $("jyClimbWatchPickMask");
+    if (m) m.classList.remove("show");
+    CL.watch = null;
+    var w = $("jyClimbWatch"); if (w) w.style.display = "none";
+  }
+  function jyClimbPickWatch(pid) {
+    var pa = null;
+    try { pa = findPersona(pid); } catch (e) {}
+    if (!pa) { toastX("未找到该角色"); return; }
+    var m = $("jyClimbWatchPickMask");
+    if (m) m.classList.remove("show");
+    clStartWatch(pa);
+  }
+  function jyClimbCancelPick() {
+    var m = $("jyClimbWatchPickMask");
+    if (m) m.classList.remove("show");
+    jyClimbExit();
+  }
+  function jyClimbWatchToggle() {
+    var w = $("jyClimbWatch");
+    if (!w) return;
+    var foot = $("jyClimbWatchInput");
+    if (w.style.display === "none") { w.style.display = "block"; if (foot) foot.focus(); }
+    else { w.style.display = "none"; }
+  }
+  function jyClimbChatKey(e) {
+    if (e.key === "Enter") jyClimbChatSend();
+  }
+  function jyClimbChatSend() {
+    var inp = $("jyClimbWatchInput");
+    if (!inp) return;
+    var text = inp.value.trim();
+    if (!text) return;
+    inp.value = "";
+    clUserBubble(text);
+    if (!CL.watch) { clBubble("提示", "这场没有角色旁观，先退出选一位角色再来聊天吧", ""); return; }
+    if (!clWatchPa()) { clBubble((CL.watch.name || "TA"), "我还没接上模型，说不了话", CL.watch.avatar || ""); return; }
+    if (CL.watchBusy) { clBubble((CL.watch.name || "TA"), "（我还在想上一句…）", CL.watch.avatar || ""); return; }
+    CL.watchBusy = true;
+    var prompt = "你正通过手机看玩家玩「登山小鸡」爬山小游戏，玩家边玩边给你发消息说：" + text + "。用你的口吻简短回复（20字内），像微信聊天。";
+    var timer = setTimeout(function () { CL.watchBusy = false; }, 26000);
+    callChat([{ role: "user", content: prompt }], CL.watch).then(function (txt) {
+      clearTimeout(timer);
+      CL.watchBusy = false;
+      var t = String(txt || "").trim();
+      if (t) { clBubble((CL.watch && CL.watch.name) || "TA", t, (CL.watch && CL.watch.avatar) || ""); }
+      try {
+        addMemorySourceFor(CL.watch, "gameChat", "玩家玩登山小鸡时给" + ((CL.watch && CL.watch.name) || "TA") + "发消息说：「" + text + "」，" + ((CL.watch && CL.watch.name) || "TA") + "回：「" + t + "」。");
+        jyHistPush({ text: "登山小鸡时聊了几句：你说「" + text + "」，TA说「" + t + "」", game: "登山小鸡", partner: (CL.watch && CL.watch.name) || "TA", ts: Date.now() });
+        saveX();
+      } catch (e) {}
+    }).catch(function () { clearTimeout(timer); CL.watchBusy = false; clBubble((CL.watch && CL.watch.name) || "TA", "（信号不太好，等下再聊）", (CL.watch && CL.watch.avatar) || ""); });
+  }
+  /* 角色旁观自动搭话 */
+  function jyClimbMaybeAi(ctx) {
+    if (!CL.watch || CL.watchBusy) return;
+    var now = Date.now();
+    if (now - CL.watchLastAi < 15000) return;
+    if (Math.random() > 0.6) return;
+    CL.watchLastAi = now;
+    jyClimbAskAi("玩家正在玩「登山小鸡」，你作为旁观者正在看他玩，可以随时吐槽或加油。玩家视角信息：" + ctx + "。请用你的口吻简短回复（20字内），像发微信消息一样。", false);
+  }
+  function jyClimbAskAi(promptText, force) {
+    if (!CL.watch || CL.watchBusy) return;
+    if (!clWatchPa()) return;
+    CL.watchBusy = true;
+    var timer = setTimeout(function () { CL.watchBusy = false; }, 26000);
+    callChat([{ role: "user", content: promptText }], CL.watch).then(function (txt) {
+      clearTimeout(timer);
+      CL.watchBusy = false;
+      var t = String(txt || "").trim();
+      if (t) { clBubble((CL.watch && CL.watch.name) || "TA", t, (CL.watch && CL.watch.avatar) || ""); }
+    }).catch(function () { clearTimeout(timer); CL.watchBusy = false; });
+  }
+  window.jyClimbPickNone = jyClimbPickNone; window.jyClimbPickWatch = jyClimbPickWatch;
+  window.jyClimbCancelPick = jyClimbCancelPick; window.jyClimbWatchToggle = jyClimbWatchToggle;
+  window.jyClimbChatKey = jyClimbChatKey; window.jyClimbChatSend = jyClimbChatSend;
+
   function resetGame() {
+    CL.mode = "idle";
     CL.layers = []; CL.coins = [];
     CL.score = 0; CL.step = 0; CL.coinGot = 0; CL.best = readBest();
     CL.minTop = 0; CL.topIdx = -1; CL.sinceWater = 0; CL.lastWaterIdx = -99;
@@ -21051,10 +21219,19 @@ function closeDreamHelp() {
   /* ---------- 主循环 ---------- */
   function loop(ts) {
     if (!CL.on) return;
-    var dt = Math.min(60, (ts || 0) - (CL.lastT || 0));
-    CL.lastT = ts;
-    update(dt, ts);
-    draw();
+    try {
+      var dt = Math.min(60, (ts || 0) - (CL.lastT || 0));
+      CL.lastT = ts;
+      update(dt, ts);
+      draw();
+    } catch (e) {
+      // 渲染/逻辑异常：停止循环并提示，避免画面冻结“无反应”
+      CL.on = false;
+      try { if (CL.raf) cancelAnimationFrame(CL.raf); } catch (e2) {}
+      try { if (window.console && console.error) console.error("[jyClimb]", e); } catch (e2) {}
+      try { toastX("登山小鸡出错了：" + ((e && e.message) || e)); } catch (e2) {}
+      return;
+    }
     if (CL.mode !== "over") {
       CL.raf = requestAnimationFrame(loop);
     }
@@ -21133,6 +21310,7 @@ function closeDreamHelp() {
             }
             if (CL.score > CL.best) { CL.best = CL.score; writeBest(CL.best); }
             hudUpdate();
+            jyClimbMaybeAi("玩家刚跳上了第 " + CL.step + " 层台阶" + (L.coin ? "还顺路捡了金币" : "") + "，爬得挺高。");
             // 继续生成上方平台
             genTo(CL.camY - 300);
           }
@@ -21147,6 +21325,7 @@ function closeDreamHelp() {
           cc.got = true; CL.coinGot++; CL.score += 15;
           if (CL.score > CL.best) { CL.best = CL.score; writeBest(CL.best); }
           hudUpdate();
+          jyClimbMaybeAi("玩家在半空接到一枚金币，眼力不错！");
         }
       }
       // 相机跟随
@@ -21184,6 +21363,7 @@ function closeDreamHelp() {
     if (CL.score > CL.best) { CL.best = CL.score; writeBest(CL.best); }
     hudUpdate();
     tipFlash("掉进河里啦！冲进海底神秘世界 +30");
+    jyClimbMaybeAi("玩家没跳稳掉进河里了！正在海底世界冒泡，你要不要笑他一下。");
   }
   function waterDone() {
     var L = CL.waterL;
@@ -21228,10 +21408,10 @@ function closeDreamHelp() {
     // 记战绩
     try {
       if (window.jyHistPush) {
-        window.jyHistPush({ text: "登山小鸡爬到 " + CL.step + " 层，得了 " + CL.score + " 分（金币 x" + CL.coinGot + "）", game: "登山小鸡", partner: "", ts: Date.now() });
+        window.jyHistPush({ text: "登山小鸡爬到 " + CL.step + " 层，得了 " + CL.score + " 分（金币 x" + CL.coinGot + "）", game: "登山小鸡", partner: (CL.watch && CL.watch.name) || "", ts: Date.now() });
       }
     } catch (e) {}
-    var rec = { score: CL.score, step: CL.step, coin: CL.coinGot, ts: Date.now() };
+    var rec = { score: CL.score, step: CL.step, coin: CL.coinGot, ts: Date.now(), pa: (CL.watch && CL.watch.name) || "" };
     try {
       if (!window.DB) return;
       if (!DB.jyClimbRec) DB.jyClimbRec = [];
@@ -21239,6 +21419,13 @@ function closeDreamHelp() {
       if (DB.jyClimbRec.length > 60) DB.jyClimbRec = DB.jyClimbRec.slice(0, 60);
       saveX();
     } catch (e) {}
+    if (CL.watch) {
+      try {
+        addMemorySourceFor(CL.watch, "game", "玩家玩登山小鸡，" + (CL.step > 0 ? "爬了 " + CL.step + " 层，得了 " + CL.score + " 分（金币 x" + CL.coinGot + "）" : "一开局就掉下去了") + (CL.step >= 40 ? "，登山健将！" : CL.step >= 15 ? "，爬得不错" : "。"));
+        saveX();
+      } catch (e) {}
+      jyClimbAskAi("玩家玩登山小鸡" + (CL.step > 0 ? "，爬了 " + CL.step + " 层得了 " + CL.score + " 分" : "，一开局就掉下去了") + "。你全程在旁观，现在游戏结束了，用你的口吻说句话（15字内）。", true);
+    }
   }
 
   function hudUpdate() {
@@ -21260,6 +21447,8 @@ function closeDreamHelp() {
     var ov = $("jyClimbOver"); if (ov) ov.style.display = "none";
     resetGame();
     CL.on = true;
+    CL.lastT = 0;
+    try { if (CL.raf) cancelAnimationFrame(CL.raf); } catch (e) {}
     CL.raf = requestAnimationFrame(loop);
   }
   window.jyClimbRestart = jyClimbRestart;
