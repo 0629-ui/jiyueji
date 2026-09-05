@@ -1008,7 +1008,8 @@ button,input,textarea,select{max-width:100%}
 .pdd-search-row button{background:linear-gradient(135deg,#ff5f8f,#ff8a5f);border:none;color:#fff;border-radius:10px;padding:0 16px;font-size:13px;cursor:pointer;}
 .pdd-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 20px;}
 .pdd-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;}
-.pdd-card img{width:100%;height:120px;object-fit:cover;display:block;}
+.pdd-card img{width:100%;height:120px;object-fit:cover;display:block;} .pdd-card .pdd-imgtext{width:100%;height:110px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff7e8,#ffe3d0);color:#e8872f;font-weight:800;font-size:22px;letter-spacing:1px;border-radius:10px 10px 0 0}
+  .pdd-cart-item .pdd-imgtext{width:64px;height:64px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff7e8,#ffe3d0);color:#e8872f;font-weight:700;font-size:16px;flex:none;margin-right:10px}
 .pdd-card-name{font-size:12px;padding:6px 8px 0;height:32px;overflow:hidden;}
 .pdd-card-price{color:#e6388a;font-size:13px;padding:2px 8px;}
 .pdd-card-price b{font-size:16px;}
@@ -1598,7 +1599,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 
 <!-- 拼某夕 -->
 <div class="page light-page" id="pdd">
-  <div class="page-head"><span class="back" onclick="goHome()">‹</span><div class="title">拼某夕</div></div>
+  <div class="page-head"><span class="back" onclick="goHome()">‹</span><div class="title">拼某夕</div><div style="display:flex;gap:6px;align-items:center"><span class="pdd-head-btn" id="pddHeadAcc" onclick="pddOpenAcc()">小号</span><span class="pdd-head-btn" onclick="pddAdminOpen()">+ 上新</span></div></div>
   <div class="pdd-tabs">
     <span class="pdd-tab active" data-pdd="shop" onclick="switchPddTab('shop')">商城</span>
     <span class="pdd-tab" data-pdd="cart" onclick="switchPddTab('cart')">购物车</span>
@@ -1624,12 +1625,70 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
   <div class="modal-sheet">
     <h3>确认订单</h3>
     <div class="sheet-desc" id="pddOrderDesc"></div>
+    <div class="sheet-desc pdd-buyer-line" onclick="pddAccOpenQuick()"><span>收货账号：<b id="pddOrderAccName">本尊</b></span><span class="pdd-change">切换</span></div>
     <div class="sheet-desc">支付方式</div>
     <div class="pdd-pay-options">
       <div class="pdd-pay-opt" onclick="pddPaySel('self')" id="pddPaySelf"><b>自付</b><span>用自己的钱包余额</span></div>
-      <div class="pdd-pay-opt" onclick="pddPaySel('proxy')" id="pddPayProxy"><b>代付</b><span>发起代付请求到聊天</span></div>
+      <div class="pdd-pay-opt" onclick="pddPaySel('proxy')" id="pddPayProxy"><b>好友代付</b><span>让角色帮你付款</span></div>
+      <div class="pdd-pay-opt" onclick="pddPaySel('group')" id="pddPayGroup"><b>拼团</b><span>2人团、可免拼</span></div>
+    </div>
+    <div id="pddGroupOpts" style="display:none;padding:2px 2px 8px;font-size:12px;color:var(--page-dim)"><label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="pddMianPin"> 免拼（不等人直接成团，按拼团价支付）</label></div>
+    <div id="pddPickCharRow" style="display:none;padding:2px 2px 8px">
+      <div class="sheet-desc" style="padding-bottom:4px">选择一位角色：<span id="pddPickCharName" style="color:#2a6cf3;font-weight:700">未选</span></div>
+      <div class="sheet-row" style="padding:0"><button class="sheet-btn ghost" style="flex:1" onclick="pddPickCharOpen()">选角色</button></div>
     </div>
     <div class="sheet-row"><button class="sheet-btn ghost" onclick="closePddOrder()">取消</button><button class="sheet-btn primary" onclick="pddConfirmOrder()">确认支付</button></div>
+  </div>
+</div>
+
+<!-- 拼某夕 账号管理 -->
+<div class="modal-mask" id="pddAccMask" onclick="if(event.target===this)pddCloseAcc()">
+  <div class="modal-sheet wide">
+    <h3>拼某夕账号</h3>
+    <div id="pddAccList" style="max-height:34vh;overflow:auto;padding:4px 2px"></div>
+    <div class="sheet-desc" style="padding-top:6px">当前账号资料（收货人）</div>
+    <input id="pddAccNick" class="form-input" style="width:100%;box-sizing:border-box" placeholder="网名（展示给TA看）">
+    <input id="pddAccAddr" class="form-input" style="width:100%;box-sizing:border-box;margin-top:6px" placeholder="收货地址">
+    <input id="pddAccPhone" class="form-input" style="width:100%;box-sizing:border-box;margin-top:6px" placeholder="手机号">
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="pddCloseAcc()">关闭</button><button class="sheet-btn primary" onclick="pddSaveAcc()">保存账号</button></div>
+  </div>
+</div>
+<!-- 拼某夕 商品管理/上新 -->
+<div class="modal-mask" id="pddAdminMask" onclick="if(event.target===this)pddCloseAdmin()">
+  <div class="modal-sheet wide">
+    <h3>上新商品</h3>
+    <div class="sheet-row" style="padding:2px 0">
+      <button class="sheet-btn primary" style="flex:1" onclick="pddAiAddGoods()">AI 生成商品</button>
+      <button class="sheet-btn" style="flex:1" onclick="pddManualGoods()">手动添加</button>
+    </div>
+    <div id="pddAdminForm" style="display:none;padding-top:6px">
+      <input id="pddMgName" class="form-input" style="width:100%;box-sizing:border-box" placeholder="商品名称">
+      <div style="display:flex;gap:6px;margin-top:6px"><input id="pddMgPrice" class="form-input" style="flex:1;min-width:0" placeholder="价格（元）"><input id="pddMgCat" class="form-input" style="flex:1;min-width:0" placeholder="分类（如数码）"></div>
+      <input id="pddMgImg" class="form-input" style="width:100%;box-sizing:border-box;margin-top:6px" placeholder="图片链接（可用生图结果，不填用文字卡片）">
+      <textarea id="pddMgDesc" class="form-input" style="width:100%;box-sizing:border-box;margin-top:6px;height:52px" placeholder="商品描述"></textarea>
+      <div class="sheet-row" style="padding-top:8px"><button class="sheet-btn ghost" onclick="pddCloseAdmin()">取消</button><button class="sheet-btn primary" onclick="pddManualSave()">上架</button></div>
+    </div>
+    <div id="pddAdminAi" style="display:none;padding-top:6px">
+      <textarea id="pddAiPrompt" class="form-input" style="width:100%;box-sizing:border-box;height:60px" placeholder="描述你想让 AI 生成的商品，如：一款清凉夏天用的电风扇"></textarea>
+      <div class="sheet-row" style="padding-top:8px"><button class="sheet-btn ghost" onclick="pddCloseAdmin()">取消</button><button class="sheet-btn primary" onclick="pddAiGenRun()">生成并上架</button></div>
+      <div class="sheet-desc" id="pddAiState" style="padding-top:6px;color:var(--page-dim)">生成会使用当前角色的对话模型，不填生图则商品图为文字卡片。</div>
+    </div>
+  </div>
+</div>
+<!-- 拼某夕 选角色（代付/拼团） -->
+<div class="modal-mask" id="pddPickCharMask" onclick="if(event.target===this)pddClosePickChar()">
+  <div class="modal-sheet wide">
+    <h3 id="pddPickCharTitle">选择角色</h3>
+    <div id="pddPickCharList" style="max-height:46vh;overflow:auto"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="pddClosePickChar()">取消</button></div>
+  </div>
+</div>
+<!-- 拼某夕 订单详情 -->
+<div class="modal-mask" id="pddOrderDetailMask" onclick="if(event.target===this)pddCloseOrderDetail()">
+  <div class="modal-sheet wide">
+    <h3>订单详情</h3>
+    <div id="pddOrderDetailBody"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="pddCloseOrderDetail()">关闭</button></div>
   </div>
 </div>
 
@@ -10891,7 +10950,11 @@ function aiTick() {
     }
     if (per.reverse && now - (per.lastReverseAt || 0) > (per.reverseInterval || 9e5) && Math.random() < 0.5) {
       per.lastReverseAt = now;
-      activeReverseCheck(t);
+      if (window.activePddReverseCheck && activePddReverseCheck(t)) {
+        /* 优先翻到拼某夕动态 */
+      } else {
+        activeReverseCheck(t);
+      }
     }
   });
   save();
@@ -12611,9 +12674,9 @@ function switchPcTab(i) {
       return '<div class="pc-card"><div class="pc-line">\u{1F3B5} ' + escapeHtml(m) + "</div></div>";
     }).join("");
   } else if (t === "\u8D2D\u7269") {
-    html = d.shop.map(function(m) {
+    html = (window.pddPcShopHtml ? window.pddPcShopHtml(d) : (d.shop || []).map(function(m) {
       return '<div class="pc-card"><div class="pc-line">\u{1F6D2} ' + escapeHtml(m) + "</div></div>";
-    }).join("");
+    }).join(""));
   } else if (t === "\u5065\u5EB7") {
     html = d.health.map(function(m) {
       return '<div class="pc-card"><div class="pc-line">\u2764 ' + escapeHtml(m) + "</div></div>";
@@ -12720,7 +12783,7 @@ function renderPdd() {
     return;
   }
   body.innerHTML = '<div class="pdd-grid">' + goods.map(function(g) {
-    return `<div class="pdd-card" onclick="openPddDetail('` + g.id + `')"><img src="` + g.img + '" alt=""><div class="pdd-card-name">' + escapeHtml(g.name) + '</div><div class="pdd-card-price">\xA5<b>' + g.price + '</b></div><div class="pdd-card-tag">' + g.cat + "</div></div>";
+    return `<div class="pdd-card" onclick="openPddDetail('` + g.id + `')">` + pddImgBlock(g, "pdd-card-img") + '<div class="pdd-card-name">' + escapeHtml(g.name) + '</div><div class="pdd-card-price">\xA5<b>' + g.price + '</b></div><div class="pdd-card-tag">' + g.cat + "</div></div>";
   }).join("") + "</div>";
 }
 __name(renderPdd, "renderPdd");
@@ -12743,9 +12806,10 @@ function switchPddTab(tab) {
         return x.id === k;
       })[0];
       if (!g) return "";
-      return '<div class="pdd-cart-item"><img src="' + g.img + '" alt=""><div class="pdd-cart-main"><div class="pdd-card-name">' + escapeHtml(g.name) + '</div><div class="pdd-cart-row">\xA5' + g.price + ` \xD7 <button onclick="pddCartQty('` + k + `',-1)">-</button> ` + cart[k] + ` <button onclick="pddCartQty('` + k + `',1)">+</button></div></div><button class="book-del" onclick="pddCartQty('` + k + `',-999)">\u5220</button></div>`;
+      return '<div class="pdd-cart-item">' + pddImgBlock(g, "pdd-cart-img") + '<div class="pdd-cart-main"><div class="pdd-card-name">' + escapeHtml(g.name) + '</div><div class="pdd-cart-row">\xA5' + g.price + ` \xD7 <button onclick="pddCartQty('` + k + `',-1)">-</button> ` + cart[k] + ` <button onclick="pddCartQty('` + k + `',1)">+</button></div></div><button class="book-del" onclick="pddCartQty('` + k + `',-999)">\u5220</button></div>`;
     }).join("") + '<button class="sheet-btn primary" style="margin:12px auto;display:block" onclick="pddCheckoutCart()">\u53BB\u7ED3\u7B97\uFF08' + pddCartTotal() + " \u5143\uFF09</button>";
   } else if (tab === "order") {
+    if (window.pddRenderOrderTab) { window.pddRenderOrderTab(); return; }
     var ods = pddOrders();
     if (!ods.length) {
       body.innerHTML = '<div class="empty-tip">\u8FD8\u6CA1\u6709\u8BA2\u5355</div>';
@@ -15705,6 +15769,7 @@ function closeDreamHelp() {
   <div class="page-head jy-game-head"><span class="back" onclick="goHome()">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800">小游戏</div><div class="jy-hall-head-extra"><button class="jy-mask-btn" id="jyHallMaskBtn" onclick="jy61OpenMaskPick()">玩家：本尊</button></div></div>
   <div class="jy-hall-body">
     <div class="jy-hall-tip">选一个小游戏，和你的 TA 边下棋边聊天。聊天和棋局都会记入 TA 的记忆。</div>
+    <div style="text-align:center;margin:8px 0 2px"><button class="jy-mask-btn" style="margin:0 auto" onclick="jyOpenHist()">⚓ 战绩记录</button></div>
     <div id="jyHallList"></div>
     <div class="jy-hall-tip" id="jyHallNote"></div>
   </div>
@@ -15724,6 +15789,23 @@ function closeDreamHelp() {
     <div class="jy-over" id="jyOverBox">
       <div class="jy-over-card"><div class="t" id="jyOverText"></div><div class="s" id="jyOverSub">棋局已记入TA的记忆。</div><div class="row"><button class="jy-small-btn primary" onclick="jy61RestartBtn()">再来一局</button><button class="jy-small-btn quit" onclick="jy61ExitGame()">返回大厅</button></div></div>
     </div>
+  </div>
+</div>
+
+<!-- 选边 -->
+<div class="modal-mask" id="jySideMask">
+  <div class="modal-sheet">
+    <div style="display:flex;align-items:center;gap:8px;padding-bottom:10px"><span class="back" onclick="jy61CloseSide()">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800" id="jySideTitle">选择执子</div><span style="width:28px"></span></div>
+    <div id="jySideList" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="sheet-desc" style="padding-top:6px;color:var(--page-dim)">无论选哪边，对局聊天与棋谱都会记入 TA 的记忆。</div>
+  </div>
+</div>
+<!-- 战绩记录 -->
+<div class="modal-mask" id="jyHistMask" onclick="if(event.target===this)jyCloseHist()">
+  <div class="modal-sheet wide">
+    <h3>战绩记录</h3>
+    <div id="jyHistList" style="max-height:52vh;overflow:auto"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="jyCloseHist()">关闭</button><button class="sheet-btn ghost" onclick="jyClearHist()">清空记录</button></div>
   </div>
 </div>
 
@@ -15917,17 +15999,65 @@ function closeDreamHelp() {
     JY61.chatHist = [];
     JY61.round = 0;
     JY61.startedAt = Date.now();
+    JY61.player = null;
     var titleEl = document.getElementById("jyGameTitle");
     var subEl = document.getElementById("jyGameSub");
-    if (JY61.mode === "gomoku") { if (titleEl) titleEl.textContent = "五子棋"; if (subEl) subEl.textContent = pa.name + " · 你执黑先行"; }
-    else if (JY61.mode === "xiangqi") { if (titleEl) titleEl.textContent = "象棋"; if (subEl) subEl.textContent = pa.name + " · 你执红先行"; }
-    showPage("jyGame");
-    if (JY61.mode === "gomoku") jyG5Init();
-    else if (JY61.mode === "xiangqi") jyXqInit();
-    jy61BallShow(true);
-    try { jy61MemLine(pa, "game", "你和玩家开始了一局「" + (JY61.mode === "gomoku" ? "五子棋" : "象棋") + "」，玩家和你对战。"); } catch (e) {}
+    if (JY61.mode === "gomoku") { if (titleEl) titleEl.textContent = "五子棋"; if (subEl) subEl.textContent = pa.name + " · 先选执子"; }
+    else if (JY61.mode === "xiangqi") { if (titleEl) titleEl.textContent = "象棋"; if (subEl) subEl.textContent = pa.name + " · 先选执子"; }
+    jy61RenderSide();
+    var sm = document.getElementById("jySideMask");
+    if (sm) sm.classList.add("show");
   }
   window.jy61StartWith = jy61StartWith;
+
+  function jy61RenderSide() {
+    var list = document.getElementById("jySideList");
+    var title = document.getElementById("jySideTitle");
+    if (!list) return;
+    var gomoku = JY61.mode === "gomoku";
+    if (title) title.textContent = gomoku ? "选择执子" : "选择执红 / 执黑";
+    var a = gomoku
+      ? [{ k: "b", t: "我执黑", s: "黑子先行，我先落子" }, { k: "w", t: "我执白", s: "白子后行，让 " + partnerName61() + " 先落子" }]
+      : [{ k: "r", t: "我执红", s: "红方先行，我在下方" }, { k: "b", t: "我执黑", s: "黑方后行，让 " + partnerName61() + " 先走" }];
+    list.innerHTML = a.map(function (x) {
+      return '<div class="jy-char-item" onclick="jy61SidePick(\'' + x.k + '\')"><div class="pick-main"><div class="pick-name">' + x.t + '</div><div class="pick-desc">' + x.s + '</div></div><span class="set-arrow">›</span></div>';
+    }).join("");
+  }
+  window.jy61RenderSide = jy61RenderSide;
+
+  function jy61SidePick(side) {
+    var pa = partner61();
+    if (!pa) { toast61("未找到该角色"); return; }
+    JY61.player = side;
+    var sm = document.getElementById("jySideMask");
+    if (sm) sm.classList.remove("show");
+    var titleEl = document.getElementById("jyGameTitle");
+    var subEl = document.getElementById("jyGameSub");
+    if (JY61.mode === "gomoku") {
+      if (titleEl) titleEl.textContent = "五子棋";
+      if (subEl) subEl.textContent = pa.name + " · " + (side === "w" ? "你执白（后手）" : "你执黑（先手）");
+      showPage("jyGame");
+      jyG5Init();
+      jy61BallShow(true);
+      if (side === "w") { setTimeout(function () { if (!JY61.over && G5.turn === "ai") { try { jyG5AiTurn(); } catch (e) {} } }, 400); }
+    } else if (JY61.mode === "xiangqi") {
+      if (titleEl) titleEl.textContent = "象棋";
+      if (subEl) subEl.textContent = pa.name + " · " + (side === "b" ? "你执黑（后手）" : "你执红（先手）");
+      showPage("jyGame");
+      jyXqInit();
+      jy61BallShow(true);
+      if (side === "b") { setTimeout(function () { if (!JY61.over && XQ.turn === "red") { try { jyXqAiTurn(); } catch (e) {} } }, 400); }
+    }
+    try { jy61MemLine(pa, "game", "你和玩家开始了一局「" + (JY61.mode === "gomoku" ? "五子棋" : "象棋") + "」，玩家" + (JY61.player === "w" ? "执白（后手）" : JY61.player === "b" && JY61.mode === "xiangqi" ? "执黑（后手）" : JY61.mode === "gomoku" ? "执黑（先手）" : "执红（先手）") + "，和你对战。"); } catch (e) {}
+  }
+  window.jy61SidePick = jy61SidePick;
+
+  function jy61CloseSide() {
+    var sm = document.getElementById("jySideMask");
+    if (sm) sm.classList.remove("show");
+    jy61ExitGame();
+  }
+  window.jy61CloseSide = jy61CloseSide;
 
   function jy61ExitGame() {
     JY61.over = true;
@@ -15996,6 +16126,14 @@ function closeDreamHelp() {
       addMemorySourceFor(pa, type, text);
       save61();
     } catch (e) {}
+    try {
+      if (!DB.jyHist) DB.jyHist = [];
+      var pname = "";
+      try { var ls = personaList(); for (var i = 0; i < ls.length; i++) { if (ls[i].id === pa.id) { pname = ls[i].name; break; } } } catch (e3) {}
+      DB.jyHist.unshift({ text: text, game: type || "对局", partner: pname || pa.name || "TA", ts: Date.now() });
+      if (DB.jyHist.length > 150) DB.jyHist = DB.jyHist.slice(0, 150);
+      try { save(); } catch (e4) {}
+    } catch (e2) {}
   }
 
   function jy61EndGame(winner, detail) {
@@ -16009,6 +16147,23 @@ function closeDreamHelp() {
       : "你和玩家下了一局" + gname + "，最后你赢了，玩家夸你厉害。";
     if (detail) line = "你和玩家下了一局" + gname + "（共" + (JY61.round || 1) + "个回合）。" + detail;
     jy61MemLine(pa, "game", line);
+    try {
+      var dbh = db();
+      if (dbh) {
+        if (!dbh.jyHist) dbh.jyHist = [];
+        dbh.jyHist.unshift({
+          id: Date.now(), mode: JY61.mode || "", game: gname,
+          partner: pa && pa.name ? pa.name : "",
+          result: winner === "draw" ? "平局" : isMe ? "你赢了" : "TA赢了",
+          rounds: JY61.round || 0,
+          side: JY61.player || "",
+          playerSide: JY61.mode === "gomoku" ? (JY61.player === "w" ? "执白" : "执黑") : (JY61.player === "b" ? "执黑" : "执红"),
+          ts: Date.now(), chat: (JY61.chatHist || []).slice(-30)
+        });
+        if (dbh.jyHist.length > 100) dbh.jyHist = dbh.jyHist.slice(0, 100);
+        save61();
+      }
+    } catch (e) {}
     var tip = document.getElementById("jyTurnTip");
     if (tip) tip.textContent = winner === "draw" ? "平局～" : isMe ? "你赢了这局！" : "TA 赢了这局～";
     var ov = document.getElementById("jyOverBox");
@@ -16026,15 +16181,26 @@ function closeDreamHelp() {
 
   /* ================= 五子棋 ================= */
   var G5 = { n: 15, board: null, turn: "me", meColor: "X", aiColor: "O" };
+  function g5MeVal() { return JY61.player === "w" ? 2 : 1; }
+  function g5AiVal() { return JY61.player === "w" ? 1 : 2; }
+  function g5MeWord() { return JY61.player === "w" ? "白子" : "黑子"; }
+  function g5AiWord() { return JY61.player === "w" ? "黑子" : "白子"; }
   function jyG5Init() {
     G5.board = [];
     for (var y = 0; y < G5.n; y++) { G5.board.push([]); for (var x = 0; x < G5.n; x++) G5.board[y].push(0); }
-    G5.turn = "me";
+    G5.turn = JY61.player === "w" ? "ai" : "me";
     JY61.over = false;
     JY61.round = 0;
     jyG5Render();
   }
-  function jyG5Restart() { jyG5Init(); toast61("已重新开局"); }
+  function jyG5Restart() {
+    jyG5Init();
+    if (JY61.player === "w") {
+      G5.turn = "ai";
+      setTimeout(function () { if (!JY61.over && G5.turn === "ai") { try { jyG5AiTurn(); } catch (e) {} } }, 350);
+    }
+    toast61("已重新开局");
+  }
 
   function jyG5Build() {
     var box = document.getElementById("jyBoardArea");
@@ -16051,7 +16217,7 @@ function closeDreamHelp() {
     html += "</div>";
     box.innerHTML = html;
     var tip = document.getElementById("jyTurnTip");
-    if (tip) tip.textContent = "轮到你落子（黑子）";
+    if (tip) tip.textContent = "轮到你落子（" + g5MeWord() + "）";
   }
 
   function jyG5Render() {
@@ -16082,16 +16248,16 @@ function closeDreamHelp() {
   window.jyG5Click = jyG5Click;
 
   function jyG5Place(who, x, y) {
-    G5.board[y][x] = who === "me" ? 1 : 2;
+    G5.board[y][x] = who === "me" ? g5MeVal() : g5AiVal();
     JY61.round++;
     jyG5Render();
     var tip = document.getElementById("jyTurnTip");
-    if (jyG5Win(x, y, who === "me" ? 1 : 2)) {
+    if (jyG5Win(x, y, who === "me" ? g5MeVal() : g5AiVal())) {
       jy61EndGame(who, null);
     } else if (JY61.round >= G5.n * G5.n) {
       jy61EndGame("draw", "棋盘下满了，你们下成了平局。");
     } else if (tip) {
-      tip.textContent = who === "me" ? "轮到你落子（黑子）" : partnerName61() + " 思考中…";
+      tip.textContent = who === "me" ? "轮到你落子（" + g5MeWord() + "）" : partnerName61() + " 思考中…";
     }
   }
 
@@ -16183,20 +16349,25 @@ function closeDreamHelp() {
     var done = function (mv) {
       if (!mv) { jy61ApiFail(); return; }
       if (JY61.over || G5.turn !== "ai") return;
-      G5.board[mv[1]][mv[0]] = 2;
+      G5.board[mv[1]][mv[0]] = g5AiVal();
       JY61.round++;
       jyG5Render();
-      if (jyG5Win(mv[0], mv[1], 2)) {
+      if (jyG5Win(mv[0], mv[1], g5AiVal())) {
         jy61EndGame("ai", partnerName61() + "五子连珠赢了。");
         return;
       }
       if (JY61.round >= G5.n * G5.n) { jy61EndGame("draw", "平局。"); return; }
       G5.turn = "me";
       var tip2 = document.getElementById("jyTurnTip");
-      if (tip2) tip2.textContent = "轮到你落子（黑子）";
+      if (tip2) tip2.textContent = "轮到你落子（" + g5MeWord() + "）";
     };
     if (!canApi) { jy61ApiFail(); return; }
-    var prompt = "你正在和玩家下五子棋，你执白(O)，玩家执黑(X)。当前棋盘（15x15，从上到下第1行到第15行，每行 '.'=空、'X'=玩家、'O'=你）：\n" + jyG5BoardText() + "\n现在轮到你落子。请只回复一个你选择落子的坐标，格式为「列,行」，列0-14从左到右，行0-14从上到下。不要解释。";
+    var prompt;
+    if (JY61.player === "w") {
+      prompt = "你正在和玩家下五子棋，你执黑(X)，玩家执白(O)。当前棋盘（15x15，从上到下第1行到第15行，每行 '.'=空、'X'=你、'O'=玩家）：\n" + jyG5BoardText() + "\n现在轮到你落子。请只回复一个你选择落子的坐标，格式为「列,行」，列0-14从左到右，行0-14从上到下。不要解释。";
+    } else {
+      prompt = "你正在和玩家下五子棋，你执白(O)，玩家执黑(X)。当前棋盘（15x15，从上到下第1行到第15行，每行 '.'=空、'X'=玩家、'O'=你）：\n" + jyG5BoardText() + "\n现在轮到你落子。请只回复一个你选择落子的坐标，格式为「列,行」，列0-14从左到右，行0-14从上到下。不要解释。";
+    }
     callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
       var mv = null;
       if (txt) {
@@ -16213,7 +16384,11 @@ function closeDreamHelp() {
   }
 
   /* ================= 象棋 ================= */
-  var XQ = { board: null, turn: "red" };
+  var XQ = { board: null, turn: "red", me: "red" };
+  function xqMeSide() { return JY61.player === "b" ? "black" : "red"; }
+  function xqAiSide() { return JY61.player === "b" ? "red" : "black"; }
+  function xqMeWord() { return JY61.player === "b" ? "黑方" : "红方"; }
+  function xqAiWord() { return JY61.player === "b" ? "红方" : "黑方"; }
   var XQ_PIECE = { K: "帅", A: "仕", E: "相", H: "马", R: "车", C: "炮", P: "兵", k: "将", a: "士", e: "象", h: "马", r: "车", c: "炮", p: "卒" };
   var XQ_IS_RED = { K: 1, A: 1, E: 1, H: 1, R: 1, C: 1, P: 1 };
   function xqSide(ch) { return XQ_IS_RED[ch] ? "red" : "black"; }
@@ -16431,19 +16606,26 @@ function closeDreamHelp() {
 
   function jyXqInit() {
     XQ.board = xqInitBoard();
+    XQ.me = xqMeSide();
     XQ.turn = "red";
     JY61.over = false;
     JY61.round = 0;
     jyXqRender();
   }
-  function jyXqRestart() { jyXqInit(); toast61("已重新开局"); }
+  function jyXqRestart() {
+    jyXqInit();
+    if (JY61.player === "b") {
+      setTimeout(function () { if (!JY61.over && XQ.turn === "red") { try { jyXqAiTurn(); } catch (e) {} } }, 350);
+    }
+    toast61("已重新开局");
+  }
   var xqSel = null;
   function jyXqClick(y, x) {
-    if (JY61.over || XQ.turn !== "red") return;
+    if (JY61.over || XQ.turn !== XQ.me) return;
     var ch = XQ.board[y][x];
     if (xqSel) {
       var sy = xqSel[0], sx = xqSel[1];
-      var legal = xqLegal(XQ.board, "red");
+      var legal = xqLegal(XQ.board, XQ.me);
       var hit = null;
       for (var i = 0; i < legal.length; i++) {
         var m = legal[i];
@@ -16454,12 +16636,12 @@ function closeDreamHelp() {
         jyXqApply(hit);
         return;
       }
-      if (ch && xqSide(ch) === "red") { xqSel = [y, x]; jyXqRender(); return; }
+      if (ch && xqSide(ch) === XQ.me) { xqSel = [y, x]; jyXqRender(); return; }
       xqSel = null;
       jyXqRender();
       return;
     }
-    if (ch && xqSide(ch) === "red") { xqSel = [y, x]; jyXqRender(); }
+    if (ch && xqSide(ch) === XQ.me) { xqSel = [y, x]; jyXqRender(); }
   }
   window.jyXqClick = jyXqClick;
 
@@ -16472,8 +16654,8 @@ function closeDreamHelp() {
     xqSel = null;
     jyXqRender();
     var tip = document.getElementById("jyTurnTip");
-    if (!xqHasKing(XQ.board, "black")) { jy61EndGame("me", "你用车马炮把TA的将吃了，赢了这局象棋。"); return; }
-    XQ.turn = "black";
+    if (!xqHasKing(XQ.board, xqAiSide())) { jy61EndGame("me", "你用车马炮把TA的" + (XQ.me === "red" ? "将" : "帅") + "吃了，赢了这局象棋。"); return; }
+    XQ.turn = xqAiSide();
     if (tip) tip.textContent = partnerName61() + " 思考中…";
     jyXqAiTurn();
   }
@@ -16498,13 +16680,14 @@ function closeDreamHelp() {
       var pl = personaPlan(pa);
       canApi = !!(pa && pl && pl.baseUrl && pl.apiKey);
     } catch (e) {}
-    var legal = xqLegal(XQ.board, "black");
+    var ai = xqAiSide();
+    var legal = xqLegal(XQ.board, ai);
     if (!legal.length) {
       jy61EndGame("me", "TA无子可走，这局你赢了。");
       return;
     }
     var done = function (idx) {
-      if (JY61.over || XQ.turn !== "black") return;
+      if (JY61.over || XQ.turn !== ai) return;
       var mv = null;
       if (idx !== null && idx !== undefined) {
         var n = parseInt(idx, 10);
@@ -16517,17 +16700,22 @@ function closeDreamHelp() {
       XQ.board[mv[0]][mv[1]] = "";
       JY61.round++;
       jyXqRender();
-      if (!xqHasKing(XQ.board, "red")) { jy61EndGame("ai", partnerName61() + "吃掉了你的帅，TA赢了这局。"); return; }
-      if (!xqLegal(XQ.board, "red").length) { jy61EndGame("ai", partnerName61() + "将死了你，TA赢了这局。"); return; }
-      XQ.turn = "red";
+      if (!xqHasKing(XQ.board, XQ.me)) { jy61EndGame("ai", partnerName61() + "吃掉了你的" + (XQ.me === "red" ? "帅" : "将") + "，TA赢了这局。"); return; }
+      if (!xqLegal(XQ.board, XQ.me).length) { jy61EndGame("ai", partnerName61() + "将死了你，TA赢了这局。"); return; }
+      XQ.turn = XQ.me;
       var tip = document.getElementById("jyTurnTip");
-      if (tip) tip.textContent = "轮到你走棋（红方）";
+      if (tip) tip.textContent = "轮到你走棋（" + xqMeWord() + "）";
     };
     if (!canApi) { jy61ApiFail(); return; }
     var cands = legal.map(function (m, i) {
       return (i + 1) + ": (" + m[2] + "," + m[3] + ")";
     }).join(" ");
-    var prompt = "你正在和玩家下中国象棋，你执黑（上方），玩家执红（下方）。当前棋盘用字母表示，红子大写（K帅 A仕 E相 H马 R车 C炮 P兵），黑子小写（k将 a士 e象 h马 r车 c炮 p卒），'.'为空。9列8行坐标用(行y,列x)，y0-9从上到下，x0-8从左到右。\n棋盘：\n" + xqBoardText() + "\n轮到你走棋。以下是所有合法走法编号（格式：编号: (目标行,目标列)）：" + cands + "\n请只回复一个合法走法的编号数字，不要解释。";
+    var prompt;
+    if (ai === "red") {
+      prompt = "你正在和玩家下中国象棋，你执红（下方），玩家执黑（上方）。当前棋盘用字母表示，红子大写（K帅 A仕 E相 H马 R车 C炮 P兵），黑子小写（k将 a士 e象 h马 r车 c炮 p卒），'.'为空。9列8行坐标用(行y,列x)，y0-9从上到下，x0-8从左到右。\n棋盘：\n" + xqBoardText() + "\n轮到你走棋。以下是所有合法走法编号（格式：编号: (目标行,目标列)）：" + cands + "\n请只回复一个合法走法的编号数字，不要解释。";
+    } else {
+      prompt = "你正在和玩家下中国象棋，你执黑（上方），玩家执红（下方）。当前棋盘用字母表示，红子大写（K帅 A仕 E相 H马 R车 C炮 P兵），黑子小写（k将 a士 e象 h马 r车 c炮 p卒），'.'为空。9列8行坐标用(行y,列x)，y0-9从上到下，x0-8从左到右。\n棋盘：\n" + xqBoardText() + "\n轮到你走棋。以下是所有合法走法编号（格式：编号: (目标行,目标列)）：" + cands + "\n请只回复一个合法走法的编号数字，不要解释。";
+    }
     callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
       var idx = null;
       if (txt) {
@@ -16542,7 +16730,7 @@ function closeDreamHelp() {
     var box = document.getElementById("jyBoardArea");
     if (!box) return;
     var legal = null;
-    try { if (!JY61.over && XQ.turn === "red") legal = xqLegal(XQ.board, "red"); } catch (e) {}
+    try { if (!JY61.over && XQ.turn === XQ.me) legal = xqLegal(XQ.board, XQ.me); } catch (e) {}
     var html = '<div class="jy-xqwrap"><div class="jy-xqboard">';
     var hits = {};
     if (legal) legal.forEach(function (m) {
@@ -16768,6 +16956,17 @@ function closeDreamHelp() {
 .wolf-action{min-height:50px;padding:4px 0;text-align:center}
 .wolf-input{flex:1;min-width:0;border:1px solid #ddd;border-radius:16px;padding:8px 12px;font-size:14px;outline:none;background:#fff}
 
+
+.pdd-head-btn{display:inline-block;font-size:12px;padding:4px 8px;border-radius:14px;background:rgba(230,56,138,.1);color:#e6388a;cursor:pointer;white-space:nowrap;line-height:1.4}
+.pdd-buyer-line{display:flex;align-items:center;justify-content:space-between;padding:6px 2px;cursor:pointer;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0;font-size:12px}
+.pdd-change{color:#2a6cf3;font-size:12px}
+.sheet-btn.danger{background:#e0354f;color:#fff;border-color:#e0354f}
+.jy-char-item.sel-acc{outline:2px solid #e6388a;border-radius:12px}
+.pdd-order-item{background:var(--card,#fff);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;cursor:pointer}
+.pdd-order-head{font-size:12px;color:var(--page-dim);display:flex;justify-content:space-between}
+.pdd-order-status{color:#e6388a}
+.pdd-order-main{font-size:14px;font-weight:700;margin:6px 0 2px}
+.pdd-order-foot{font-size:11px;color:var(--page-dim)}
 </style>
 <!-- 62 对局页 -->
 <div class="page light-page" id="jyGame62">
@@ -16775,7 +16974,31 @@ function closeDreamHelp() {
   <div class="jy-game-body"><div id="jy62BoardArea"></div></div>
 </div>
 
-<!-- 选 TA 浮层 -->
+<!-- 跳一跳（单人 + 角色观看聊天） -->
+<div class="page light-page" id="jyGameJumper">
+  <div class="page-head jy-game-head"><span class="back" onclick="jyJumperExit()">‹</span><div style="flex:1;min-width:0;text-align:center"><div class="jy-game-title">跳一跳</div><div class="jy-game-sub" id="jyJumperSub">单人游戏</div></div><span class="jy-mask-btn" style="background:rgba(0,0,0,.06);color:inherit" onclick="jyJumperRestart()">重开</span></div>
+  <div class="jy-game-body">
+    <div id="jyJumperStage" style="position:relative;width:100%;max-width:420px;margin:0 auto;background:linear-gradient(180deg,#d8ecff,#f3fbff);border-radius:14px;overflow:hidden;touch-action:none"></div>
+    <div style="display:flex;gap:6px;align-items:center;justify-content:center;padding:8px 0" id="jyJumperHud"><span class="jy-mask-btn" style="background:#f60;color:#fff">分数 <b id="jyJumperScore">0</b></span><span class="jy-mask-btn" id="jyJumperCombo">连续 0</span></div>
+    <div class="jy-turn-tip" id="jyJumperTip" style="text-align:center;font-size:13px;color:var(--page-dim)">长按蓄力，松开跳跃；跳上下一个方块得 1 分</div>
+    <div id="jyJumperWatch" style="display:none;max-width:420px;margin:0 auto;border:1px solid var(--line);border-radius:12px;overflow:hidden">
+      <div class="jy62-chat-head"><img class="avatar" id="jyJumperWatchAv" src="" alt=""><b id="jyJumperWatchName">TA 在看你玩</b><span style="flex:1"></span><span class="jy-mask-btn" style="background:rgba(0,0,0,.06);color:inherit" onclick="jyJumperWatchToggle()">收起</span></div>
+      <div class="jy62-chat-body" id="jyJumperWatchBody" style="height:150px;overflow:auto"></div>
+      <div class="jy62-chat-foot"><input id="jyJumperWatchInput" placeholder="边玩边聊几句…" onkeydown="jyJumperChatKey(event)"><button id="jyJumperWatchSend" onclick="jyJumperChatSend()">发送</button></div>
+    </div>
+  </div>
+</div>
+<!-- 跳一跳 选观看角色 -->
+<div class="modal-mask" id="jyJumperWatchPickMask" onclick="if(event.target===this)jyJumperCancelPick()">
+  <div class="modal-sheet">
+    <h3>选一位角色观看你跳</h3>
+    <div class="sheet-desc" id="jyJumperPickHint"></div>
+    <div id="jyJumperPickList" style="max-height:44vh;overflow:auto"></div>
+    <div class="sheet-row"><button class="sheet-btn ghost" onclick="jyJumperCancelPick()">取消</button><button class="sheet-btn primary" onclick="jyJumperPickNone()">自己玩（不邀请）</button></div>
+  </div>
+</div>
+
+<!-- 选 TA 层 -->
 <div class="jy62-mask" id="jy62CharMask">
   <div class="jy62-sheet">
     <div class="jy62-sheet-head"><span class="back" onclick="jy62CloseCharMask()">‹</span>选择和 TA 一起玩</div>
@@ -16976,7 +17199,8 @@ function closeDreamHelp() {
     { id: "mahjong", name: "麻将", tag: "多人 · 已开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="9" height="12" rx="1.5"/><path d="m6 6 3 3M6 9l3-3"/><rect x="12" y="9" width="9" height="12" rx="1.5"/><path d="M15 12v3M16.5 13.5h-3"/></svg>' },
     { id: "wolf", name: "狼人杀", tag: "多人 · 已开放", cls: "dark", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M12 4c2.5-1.8 6-1 8 .8-1.8 1-2.6 2.7-2.7 4.5C20 11 20 14 18 17l-2-2-1 3c-1 .6-3 .6-4 0l-1-3-2 2c-2-3-2-6-.3-7.7-.1-1.8-1-3.5-2.7-4.5C6 3 9.5 2.2 12 4Z"/><circle cx="9.5" cy="11" r=".9" fill="currentColor"/><circle cx="14.5" cy="11" r=".9" fill="currentColor"/></svg>' },
     { id: "chess", name: "国际象棋", tag: "双人 · 已开放", cls: "red", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 9h16M4 13h16M9 5v14M15 5v14"/><path d="M12 3.2c-.9 0-1.3.7-1.3 1.4 0 .8.6 1 1.3 1s1.3-.2 1.3-1c0-.7-.4-1.4-1.3-1.4Z"/></svg>' },
-    { id: "gold", name: "黄金矿工", tag: "双人 · 已开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 20h16M6 20V8h12v12"/><circle cx="12" cy="6.6" r="1.2"/><path d="M4 8h16l-1.4-3.4H5.4z"/><path d="M9 20v-4h2v4M13 20v-4h2v4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="4.5" r=".7" fill="currentColor" stroke="none"/></svg>' }
+    { id: "gold", name: "黄金矿工", tag: "双人 · 已开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 20h16M6 20V8h12v12"/><circle cx="12" cy="6.6" r="1.2"/><path d="M4 8h16l-1.4-3.4H5.4z"/><path d="M9 20v-4h2v4M13 20v-4h2v4" fill="currentColor" stroke="none"/><circle cx="17.5" cy="4.5" r=".7" fill="currentColor" stroke="none"/></svg>' },
+    { id: "jumper", name: "跳一跳", tag: "单人 · 新开放", cls: "green", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 15c3-2 5 1 8-1s4-4 6-3 2 6 1 7H4Z"/><path d="M9 5h6M10 3.5h4M8 5l-1 4M16 5l1 4"/><path d="M4 15l-1 5M20 15l1 5"/></svg>' }
   ];
   window.HALL62 = HALL62;
 
@@ -17055,6 +17279,14 @@ function closeDreamHelp() {
   }
 
   function jy62PickGame(id) {
+    if (id === "jumper") {
+      JY62.mode = null;
+      JY62.hostId = null;
+      JY62.friends = [];
+      if (window.jyJumperOpen) { window.jyJumperOpen(); }
+      else { toast62("跳一跳模块加载失败，请刷新页面"); }
+      return;
+    }
     JY62.mode = id;
     if (id === "gomoku" || id === "xiangqi") {
       if (typeof jy61PickGame === "function") { jy61PickGame(id); return; }
@@ -17317,6 +17549,13 @@ function closeDreamHelp() {
   function jy62MemLine(pa, type, text) {
     if (!pa || !text) return;
     try { addMemorySourceFor(pa, type, text); save62(); } catch (e) {}
+    try {
+      if (!DB.jyHist) DB.jyHist = [];
+      var pname = (typeof personaList === "function") && pa ? ((function(){try{var ls=personaList();for(var i=0;i<ls.length;i++){if(ls[i].id===pa.id)return ls[i].name;}}catch(e){}}()) || pa.name || "TA") : "TA";
+      DB.jyHist.unshift({ text: text, game: type || "对局", partner: pname, ts: Date.now() });
+      if (DB.jyHist.length > 150) DB.jyHist = DB.jyHist.slice(0, 150);
+      try { save(); } catch (e2) {}
+    } catch (e1) {}
   }
   window.jy62MemLine = jy62MemLine;
 
@@ -19538,4 +19777,1100 @@ function closeDreamHelp() {
 </script>
   try { if (window.PAGES && window.PAGES.indexOf("jyGame62") < 0) window.PAGES.push("jyGame62"); } catch (e) {}
 })();
+
+<script>
+/* ================= 霁月机70 · 拼某夕全链路增强 ================= */
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function toastX(t) { try { toast(t); } catch (e) {} }
+  function saveX() { try { save(); } catch (e) {} }
+  function maskOf(maskId) {
+    try {
+      var ms = DB.masks || [];
+      for (var i = 0; i < ms.length; i++) if (ms[i].id === maskId) return ms[i];
+    } catch (e) {}
+    return null;
+  }
+  /* 当前身份对应的全部账号（一个面具下可多号，跨面具切换走面具体系） */
+  function pddAllAccs() {
+    var out = [];
+    try {
+      if (DB.currentIdentity && DB.currentIdentity.maskId) {
+        var m = maskOf(DB.currentIdentity.maskId);
+        if (m && m.accounts) {
+          for (var i = 0; i < m.accounts.length; i++) {
+            var a = m.accounts[i];
+            out.push({ key: "m:" + m.id + ":a:" + a.id, maskId: m.id, accId: a.id, name: a.name || "小号", avatar: a.avatar || "" });
+          }
+        }
+      }
+    } catch (e) {}
+    if (!out.length) {
+      var def = "default";
+      try {
+        if (DB.currentIdentity && currentAcc()) def = currentAcc().name || def;
+      } catch (e) {}
+      out.push({ key: "self:" + def, maskId: null, accId: null, name: def, avatar: "" });
+    }
+    return out;
+  }
+  function pddCurAcc() {
+    var cur = null;
+    try { cur = DB.pddAccCur; } catch (e) {}
+    var list = pddAllAccs();
+    for (var i = 0; i < list.length; i++) if (list[i].key === cur) return list[i];
+    return list[0] || null;
+  }
+  function pddProfile() {
+    if (!DB.pddProfiles) DB.pddProfiles = {};
+    var a = pddCurAcc();
+    var key = a ? a.key : "self";
+    if (!DB.pddProfiles[key]) DB.pddProfiles[key] = { nick: (a && a.name) || "", addr: "", phone: "", avatar: (a && a.avatar) || "" };
+    return DB.pddProfiles[key];
+  }
+  function pddProfileOfKey(key) {
+    if (!DB.pddProfiles) DB.pddProfiles = {};
+    if (!DB.pddProfiles[key]) {
+      var nm = key;
+      try {
+        if (DB.currentIdentity && DB.currentIdentity.maskId) {
+          var m = maskOf(DB.currentIdentity.maskId);
+          var accId = key.split(":a:")[1];
+          if (m && m.accounts) for (var i = 0; i < m.accounts.length; i++) if (m.accounts[i].id === accId) nm = m.accounts[i].name || nm;
+        }
+      } catch (e) {}
+      DB.pddProfiles[key] = { nick: nm, addr: "", phone: "", avatar: "" };
+    }
+    return DB.pddProfiles[key];
+  }
+  function pddHeadLabel() {
+    var p = pddProfile();
+    return (p && p.nick) || "小号";
+  }
+  function pddRefreshHead() {
+    var el = $("pddHeadAcc");
+    if (el) el.textContent = pddHeadLabel();
+  }
+  /* ---------- 账号管理弹层 ---------- */
+  function pddOpenAcc() {
+    var list = pddAllAccs();
+    var box = $("pddAccList");
+    if (box) {
+      if (!list.length) { box.innerHTML = '<div class="pick-empty">还没有账号，先在「人设档案-小号」里建一个吧</div>'; }
+      else {
+        var cur = pddCurAcc();
+        box.innerHTML = list.map(function (a) {
+          var sel = cur && cur.key === a.key;
+          return '<div class="jy-char-item' + (sel ? " sel-acc" : "") + '" onclick="pddPickAcc(\'' + a.key + '\')"><img class="avatar" src="' + esc(a.avatar) + '" alt=""><div class="pick-main"><div class="pick-name">' + esc(a.name) + '</div><div class="pick-desc">' + (sel ? "当前收货账号" : "点击切换为该账号下单") + "</div></div></div>";
+        }).join("");
+      }
+    }
+    var p = pddProfile();
+    var iNick = $("pddAccNick"), iAddr = $("pddAccAddr"), iPhone = $("pddAccPhone");
+    if (iNick) iNick.value = p.nick || "";
+    if (iAddr) iAddr.value = p.addr || "";
+    if (iPhone) iPhone.value = p.phone || "";
+    var m = $("pddAccMask");
+    if (m) m.classList.add("show");
+  }
+  function pddPickAcc(key) {
+    DB.pddAccCur = key;
+    saveX();
+    pddRefreshHead();
+    pddOpenAcc();
+  }
+  function pddCloseAcc() { var m = $("pddAccMask"); if (m) m.classList.remove("show"); }
+  function pddSaveAcc() {
+    var p = pddProfile();
+    var iNick = $("pddAccNick"), iAddr = $("pddAccAddr"), iPhone = $("pddAccPhone");
+    if (iNick) p.nick = iNick.value.trim() || p.nick || "小号";
+    if (iAddr) p.addr = iAddr.value.trim();
+    if (iPhone) p.phone = iPhone.value.trim();
+    saveX();
+    pddRefreshHead();
+    toastX("收货账号已保存");
+    pddCloseAcc();
+  }
+  /* ---------- 上新商品 ---------- */
+  function pddAdminOpen() {
+    var m = $("pddAdminMask");
+    if (m) m.classList.add("show");
+    var f = $("pddAdminForm"), ai = $("pddAdminAi");
+    if (f) f.style.display = "none";
+    if (ai) ai.style.display = "none";
+  }
+  function pddCloseAdmin() { var m = $("pddAdminMask"); if (m) m.classList.remove("show"); }
+  function pddManualGoods() { var f = $("pddAdminForm"); if (f) f.style.display = "block"; var ai = $("pddAdminAi"); if (ai) ai.style.display = "none"; }
+  function pddAiAddGoods() { var f = $("pddAdminForm"); if (f) f.style.display = "none"; var ai = $("pddAdminAi"); if (ai) ai.style.display = "block"; }
+  function pddNextGid() {
+    var max = 0;
+    try {
+      (pddGoods() || []).forEach(function (g) {
+        var n = parseInt(String(g.id).replace(/\D/g, ""), 10);
+        if (!isNaN(n) && n > max) max = n;
+      });
+    } catch (e) {}
+    return "g" + (max + 1);
+  }
+  function pddManualSave() {
+    var name = ($("pddMgName") || {}).value || "";
+    var price = parseFloat(($("pddMgPrice") || {}).value);
+    var cat = ($("pddMgCat") || {}).value || "其他";
+    var img = ($("pddMgImg") || {}).value || "";
+    var desc = ($("pddMgDesc") || {}).value || "";
+    if (!name || !(price > 0)) { toastX("请填写商品名称和价格"); return; }
+    var goods = pddGoods();
+    goods.push({ id: pddNextGid(), name: name, price: Math.round(price * 100) / 100, img: img, cat: cat, desc: desc || name, manual: true });
+    saveX();
+    toastX("已上架「" + name + "」");
+    pddCloseAdmin();
+    switchPddTab("shop");
+  }
+  /* AI 生成商品：对话模型产出 JSON，无生图则文字卡片 */
+  function pddAiGenRun() {
+    var prompt = ($("pddAiPrompt") || {}).value || "";
+    if (!prompt) { toastX("先描述你想要 AI 生成的商品"); return; }
+    var pa = null;
+    try { pa = activePersona(); } catch (e) {}
+    if (!pa) { toastX("还没有角色，先去「人设档案」添加"); return; }
+    var pl = null;
+    try { pl = personaPlan(pa); } catch (e) {}
+    if (!(pl && pl.baseUrl && pl.apiKey)) { toastX("「" + (pa.name || "该角色") + "」还没接入模型 API，配置好才能 AI 上新"); return; }
+    var st = $("pddAiState");
+    if (st) st.textContent = "TA 正在想新品…";
+    var sys = "你现在是商品运营。根据玩家想法生成1款拼某夕风格商品，只输出 JSON：{\"name\":\"商品名\",\"cat\":\"分类\",\"price\":数字,\"desc\":\"一句话卖点\"}。不要输出别的。";
+    var msg = "玩家想要：\"" + prompt + "\"";
+    var timer = setTimeout(function () { if (st) st.textContent = "TA 想太久了，再试一次？"; }, 25000);
+    callChat([{ role: "system", content: sys }, { role: "user", content: msg }], pa).then(function (txt) {
+      clearTimeout(timer);
+      var obj = null;
+      try {
+        var s = String(txt || "");
+        var a = s.indexOf("{"); var b = s.lastIndexOf("}");
+        if (a >= 0 && b > a) s = s.slice(a, b + 1);
+        obj = JSON.parse(s);
+      } catch (e) { obj = null; }
+      if (!obj || !obj.name) { if (st) st.textContent = "没生成出有效商品，再试一次？"; toastX("生成失败，TA 没给到有效商品"); return; }
+      var price = Math.max(0.1, Math.round((parseFloat(obj.price) || 9.9) * 100) / 100);
+      var goods = pddGoods();
+      goods.push({ id: pddNextGid(), name: String(obj.name).slice(0, 40), price: price, img: "", cat: String(obj.cat || "其他").slice(0, 8), desc: String(obj.desc || obj.name).slice(0, 80), ai: true });
+      saveX();
+      if (st) st.textContent = "";
+      toastX("已上架「" + obj.name + "」");
+      pddCloseAdmin();
+      switchPddTab("shop");
+      try {
+        var log = chatLog(pa.id);
+        log.push({ role: "assistant", content: "我想了个新品「" + String(obj.name).slice(0, 40) + "」，已经放到拼某夕商城啦" + (obj.desc ? "，" + String(obj.desc).slice(0, 60) : "") + "～", time: Date.now(), avatar: pa.avatar || null });
+        saveX();
+      } catch (e) {}
+    }).catch(function () {
+      clearTimeout(timer);
+      if (st) st.textContent = "调用失败，再试一次？";
+      toastX("AI 调用失败");
+    });
+  }
+  /* ---------- 下单流程（覆盖旧实现） ---------- */
+  function pddOrderInit() {
+    var p = pddProfile();
+    var el = $("pddOrderAccName");
+    if (el) el.textContent = (p && p.nick) || "小号";
+    var g = $("pddGroupOpts"); if (g) g.style.display = "none";
+    var r = $("pddPickCharRow"); if (r) r.style.display = "none";
+    DB._pddChar = null;
+    DB._pddGroup = null;
+    var c = $("pddMianPin"); if (c) c.checked = false;
+    pddPaySel("self");
+  }
+  function pddPaySel(m) {
+    DB._pddPay = m;
+    var s = $("pddPaySelf"), p = $("pddPayProxy"), g = $("pddPayGroup");
+    if (s) s.className = "pdd-pay-opt" + (m === "self" ? " sel" : "");
+    if (p) p.className = "pdd-pay-opt" + (m === "proxy" ? " sel" : "");
+    if (g) g.className = "pdd-pay-opt" + (m === "group" ? " sel" : "");
+    var go = $("pddGroupOpts");
+    if (go) go.style.display = m === "group" ? "block" : "none";
+    var row = $("pddPickCharRow");
+    if (row) row.style.display = m === "proxy" ? "block" : "none";
+    if (m === "group") {
+      var items = DB._pddBuy || [];
+      var gp = items.reduce(function (s2, it) { return s2 + Math.round((it.price || 0) * 0.85 * 100) / 100 * it.qty; }, 0);
+      var desc = $("pddOrderDesc");
+      if (desc) {
+        var base = items.map(function (it) { return it.name + " ×" + it.qty; }).join("、");
+        desc.textContent = base + " ｜ 合计 ¥" + gp + "（拼团价）";
+      }
+    }
+  }
+  function pddBuyNow() {
+    var id = DB._pddDetail;
+    if (!id) return;
+    var g = pddGoods().filter(function (x) { return x.id === id; })[0];
+    if (!g) return;
+    DB._pddBuy = [{ id: g.id, name: g.name, price: g.price, qty: 1 }];
+    var desc = $("pddOrderDesc");
+    if (desc) desc.textContent = g.name + " ×1 ｜ 合计 ¥" + g.price;
+    pddOrderInit();
+    closePddDetail();
+    var m = $("pddOrderMask");
+    if (m) m.classList.add("show");
+  }
+  function pddCheckoutCart() {
+    var c = pddCart();
+    var items = [];
+    Object.keys(c).forEach(function (k) {
+      var g = pddGoods().filter(function (x) { return x.id === k; })[0];
+      if (g) items.push({ id: g.id, name: g.name, price: g.price, qty: c[k] });
+    });
+    if (!items.length) return;
+    DB._pddBuy = items;
+    var desc = $("pddOrderDesc");
+    if (desc) desc.textContent = items.map(function (it) { return it.name + " ×" + it.qty; }).join("、") + " ｜ 合计 ¥" + pddCartTotal();
+    pddOrderInit();
+    var m = $("pddOrderMask");
+    if (m) m.classList.add("show");
+  }
+  /* 选角色（代付对象） */
+  function pddPickCharOpen() {
+    var list = null;
+    try { list = personaList() || []; } catch (e) {}
+    if (!list || !list.length) { toastX("还没有角色，先去「人设档案」添加"); return; }
+    var box = $("pddPickCharList");
+    if (box) {
+      box.innerHTML = list.map(function (p) {
+        var ok = false;
+        try { var pl = personaPlan(p); ok = !!(pl && pl.baseUrl && pl.apiKey); } catch (e) {}
+        var av = "";
+        try { av = personaAvatarUrl(p); } catch (e) {}
+        return '<div class="jy-char-item' + (ok ? "" : " off") + '"' + (ok ? ' onclick="pddPickChar(\'' + String(p.id).replace(/'/g, "") + '\')"' : "") + '><img class="avatar" src="' + esc(av) + '" alt=""><div class="pick-main"><div class="pick-name">' + esc(p.name || "角色") + '</div><div class="pick-desc">' + (ok ? esc((p.intro || "").slice(0, 40)) : "还没接入模型 API，无法代付") + "</div></div></div>";
+      }).join("");
+    }
+    var m = $("pddPickCharMask");
+    if (m) m.classList.add("show");
+  }
+  function pddPickChar(pid) {
+    var pa = null;
+    try { pa = findPersona(pid); } catch (e) {}
+    if (!pa) { toastX("未找到该角色"); return; }
+    DB._pddChar = pa;
+    saveX();
+    var nm = $("pddPickCharName");
+    if (nm) nm.textContent = pa.name || "TA";
+    var m = $("pddPickCharMask");
+    if (m) m.classList.remove("show");
+  }
+  function pddClosePickChar() { var m = $("pddPickCharMask"); if (m) m.classList.remove("show"); }
+  /* 确认订单（覆盖旧实现）：self / proxy / group */
+  function pddConfirmOrder() {
+    var items = DB._pddBuy || [];
+    var total = items.reduce(function (s, it) { return s + it.price * it.qty; }, 0);
+    if (!items.length) return;
+    var pay = DB._pddPay || "self";
+    var prof = pddProfile();
+    var oid = "P" + Date.now().toString(36).toUpperCase();
+    var order = {
+      id: oid, items: items, total: total, pay: pay,
+      status: "已付款·待发货", time: Date.now(),
+      account: { key: (pddCurAcc() || {}).key || "self", name: (prof && prof.nick) || "", addr: (prof && prof.addr) || "", phone: (prof && prof.phone) || "" }
+    };
+    function closeOrder() {
+      var m = $("pddOrderMask");
+      if (m) m.classList.remove("show");
+      DB._pddBuy = null;
+      try { Object.keys(pddCart() || {}).forEach(function (k) { delete pddCart()[k]; }); } catch (e) {}
+      saveX();
+      switchPddTab("order");
+    }
+    if (pay === "self") {
+      if (!(DB.wallet && (DB.wallet.balance || 0) >= total)) { toastX("钱包余额不足，请先转入余额或选择好友代付"); return; }
+      DB.wallet.balance -= total;
+      if (!DB.wallet.logs) DB.wallet.logs = [];
+      DB.wallet.logs.unshift({ t: "拼某夕消费", amt: -total, time: Date.now() });
+      pddOrders().push(order);
+      pddNewsPush("你在拼某夕买了 " + (items[0] && items[0].name ? items[0].name : "商品") + (items.length > 1 ? " 等" + items.length + "件" : ""));
+      saveX();
+      try { renderWallet && renderWallet(); } catch (e) {}
+      toastX("支付成功，订单已创建");
+      closeOrder();
+      return;
+    }
+    if (pay === "proxy") {
+      var cp = DB._pddChar;
+      if (!cp) { toastX("先选一位角色帮你代付"); return; }
+      order.status = "TA 代付中";
+      order.charId = cp.id;
+      pddOrders().push(order);
+      pddNewsPush("你发起了一笔好友代付订单 #" + oid + "，等 " + (cp.name || "TA") + " 代付");
+      saveX();
+      closeOrder();
+      pddAskCharPay(order, cp);
+      return;
+    }
+    /* group 拼团 */
+    var groupPrice = items.reduce(function (s, it) { return s + Math.round((it.price || 0) * 0.85 * 100) / 100 * it.qty; }, 0);
+    var mian = false;
+    try { mian = !!($("pddMianPin") || {}).checked; } catch (e) {}
+    order.group = { mianpin: mian, groupPrice: groupPrice };
+    order.total = groupPrice;
+    order.status = mian ? "拼团成功·待发货" : "拼团中·还差1人";
+    pddOrders().push(order);
+    pddNewsPush("你参加了拼团：" + (items[0] && items[0].name ? items[0].name : "商品") + (mian ? "（免拼成团）" : "（还差1人）"));
+    saveX();
+    closeOrder();
+    if (!mian) {
+      /* 邀请 TA 一起拼 */
+      var pa0 = null;
+      try { pa0 = activePersona(); } catch (e) {}
+      if (pa0) {
+        try {
+          var log = chatLog(pa0.id);
+          log.push({ role: "assistant", content: "看到你在拼某夕拼「" + (items[0] && items[0].name ? items[0].name : "商品") + "」（还差1人，拼团价 ¥" + groupPrice + "），要我一起拼吗？", time: Date.now(), avatar: pa0.avatar || null });
+          addMemorySourceFor(pa0, "pdd", "玩家在拼某夕发起了拼团订单 #" + oid + "：" + (items[0] && items[0].name ? items[0].name : "商品") + "，还差1人成团，TA 想拉我一起拼。");
+          saveX();
+        } catch (e) {}
+      }
+      toastX("已发起拼团，可去订单详情免拼成团");
+    } else {
+      toastX("免拼成功，订单已创建");
+    }
+  }
+  function pddAskCharPay(order, cp) {
+    if (!cp || !order) return;
+    var can = false;
+    try { var pl = personaPlan(cp); can = !!(pl && pl.baseUrl && pl.apiKey); } catch (e) {}
+    try {
+      var log = chatLog(cp.id);
+      var nm = order.items.map(function (it) { return it.name + " ×" + it.qty; }).join("、");
+      log.push({ role: "assistant", content: "收到你的代付请求啦，订单 #" + order.id + "（" + nm + "，¥" + order.total + "）——你希望我帮忙付掉吗？", time: Date.now(), avatar: cp.avatar || null });
+      addMemorySourceFor(cp, "pdd", "玩家在拼某夕下单了「" + (order.items[0] && order.items[0].name ? order.items[0].name : "商品") + "」并发起代付请求（订单 #" + order.id + "，¥" + order.total + "），等我决定要不要帮忙付款。");
+      saveX();
+    } catch (e) {}
+    if (!can) { toastX("代付请求已发给 " + (cp.name || "TA") + "（TA 未接模型 API，可能不会回复）"); return; }
+    toastX("已请 " + (cp.name || "TA") + " 代付，等 TA 回复");
+    var prompt = "玩家在拼某夕买了东西想让你帮忙代付。订单 #" + order.id + "，商品：" + order.items.map(function (it) { return it.name + " ×" + it.qty; }).join("、") + "，金额 ¥" + order.total + "。请用你平时的口吻简短回复，明确表态是否愿意帮忙付款（说『同意/好啊』就是答应，说『不/拒绝』就是不答应），20字以内。";
+    var timer = setTimeout(function () {}, 26000);
+    callChat([{ role: "user", content: prompt }], cp).then(function (txt) {
+      clearTimeout(timer);
+      var t = String(txt || "").trim();
+      if (!t) return;
+      var ok = /同意|好|行|可以|帮|付|买|来|嗯|ok|OK|妥/.test(t) && !/不|拒绝|没钱|算了|不要|别/.test(t);
+      try {
+        var log2 = chatLog(cp.id);
+        log2.push({ role: "assistant", content: t.slice(0, 80), time: Date.now(), avatar: cp.avatar || null });
+        saveX();
+      } catch (e) {}
+      var ods = pddOrders();
+      for (var i = 0; i < ods.length; i++) {
+        if (ods[i].id === order.id) {
+          if (ok) {
+            ods[i].status = "TA 已代付·待发货";
+            pddNewsPush((cp.name || "TA") + " 帮你代付了订单 #" + order.id);
+            toastX(cp.name + " 已帮你代付，订单待发货");
+          } else {
+            ods[i].status = "代付被婉拒";
+            pddNewsPush((cp.name || "TA") + " 婉拒了代付订单 #" + order.id);
+            toastX(cp.name + " 暂时没答应代付");
+          }
+          saveX();
+          switchPddTab("order");
+          break;
+        }
+      }
+    }).catch(function () {
+      clearTimeout(timer);
+    });
+  }
+  function pddNewsPush(text) {
+    try {
+      if (!DB.pddNews) DB.pddNews = [];
+      DB.pddNews.unshift({ ts: Date.now(), text: text });
+      if (DB.pddNews.length > 30) DB.pddNews = DB.pddNews.slice(0, 30);
+    } catch (e) {}
+  }
+  /* ---------- 订单列表 / 详情 ---------- */
+  function pddRenderOrderTab() {
+    var body = $("pddBody");
+    if (!body) return;
+    var ods = pddOrders();
+    if (!ods.length) { body.innerHTML = '<div class="empty-tip">还没有订单</div>'; return; }
+    body.innerHTML = ods.slice().reverse().map(function (o) {
+      var accName = (o.account && o.account.name) || "";
+      var payTxt = o.pay === "self" ? "自付" : o.pay === "proxy" ? "代付" : "拼团";
+      return '<div class="pdd-order-item" onclick="pddOpenOrderDetail(\'' + o.id + '\')"><div class="pdd-order-head">订单 #' + esc(o.id) + ' <span class="pdd-order-status">' + esc(o.status || "") + '</span></div><div class="pdd-order-main">' + (o.items || []).map(function (it) { return esc(it.name) + " ×" + it.qty; }).join("、") + '</div><div class="pdd-order-foot">共 ¥' + o.total + " · " + payTxt + (accName ? " · " + esc(accName) : "") + " · " + new Date(o.time).toLocaleString() + "</div></div>";
+    }).join("");
+  }
+  function pddOpenOrderDetail(oid) {
+    var ods = pddOrders();
+    var o = null;
+    for (var i = 0; i < ods.length; i++) if (ods[i].id === oid) o = ods[i];
+    if (!o) return;
+    var acc = o.account || {};
+    var accLine = (acc.name ? "收货账号：" + esc(acc.name) : "收货账号：未设置网名") + "<br>" + (acc.addr ? esc(acc.addr) : "未填收货地址") + (acc.phone ? " · " + esc(acc.phone) : "");
+    var canRecv = /待发货|代付中|拼团中|免拼/.test(o.status || "") ? false : /已代付|拼团成功|发货/.test(o.status || "") || (o.status || "").indexOf("待收货") >= 0;
+    var canRefund = /待收货|已收货/.test(o.status || "");
+    var html = '<div class="sheet-desc" style="padding-bottom:6px">订单 #' + esc(o.id) + "</div>";
+    html += '<div class="pdd-detail-price" style="font-size:14px">¥<b>' + o.total + "</b></div>";
+    html += "<div style='font-size:12px;color:var(--page-dim);padding:4px 0 8px'>" + (o.items || []).map(function (it) { return esc(it.name) + " ×" + it.qty + "（¥" + it.price + "）"; }).join("<br>") + "</div>";
+    html += "<div class='sheet-desc' style='border-top:1px solid var(--line);padding-top:8px'>" + accLine + "</div>";
+    if (o.group && o.group.mianpin) html += "<div class='sheet-desc' style='padding-top:4px'>免拼成团 · 拼团价 ¥" + o.group.groupPrice + "</div>";
+    html += "<div class='sheet-desc' style='padding-top:4px'>状态：" + esc(o.status || "") + "</div>";
+    html += pddLogisticsHtml(o);
+    var btns = "";
+    if (/拼团中/.test(o.status || "")) btns += '<button class="sheet-btn primary" style="flex:1" onclick="pddGroupFree(\'' + o.id + '\')">免拼成团</button>';
+    if (canRecv) btns += '<button class="sheet-btn primary" style="flex:1" onclick="pddConfirmReceive(\'' + o.id + '\')">确认收货</button>';
+    if (canRefund) btns += '<button class="sheet-btn danger" style="flex:1" onclick="pddRefund(\'' + o.id + '\')">退货退款</button>';
+    html += '<div class="sheet-row" style="padding-top:10px">' + (btns || '<button class="sheet-btn ghost" style="flex:1" onclick="pddCloseOrderDetail()">关闭</button>') + "</div>";
+    var body = $("pddOrderDetailBody");
+    if (body) body.innerHTML = html;
+    var m = $("pddOrderDetailMask");
+    if (m) m.classList.add("show");
+  }
+  function pddCloseOrderDetail() { var m = $("pddOrderDetailMask"); if (m) m.classList.remove("show"); }
+  function pddSetStatus(oid, st, news) {
+    var ods = pddOrders();
+    for (var i = 0; i < ods.length; i++) if (ods[i].id === oid) { ods[i].status = st; break; }
+    saveX();
+    if (news) { pddNewsPush(news); saveX(); }
+  }
+  function pddGroupFree(oid) {
+    pddSetStatus(oid, "拼团成功·待发货", "你的拼团订单 #" + oid + " 免拼成团啦");
+    toastX("免拼成功，订单待发货");
+    pddCloseOrderDetail();
+    switchPddTab("order");
+    try {
+      var pa0 = activePersona();
+      if (pa0) { addMemorySourceFor(pa0, "pdd", "玩家把拼团订单 #" + oid + " 免拼成团了。"); saveX(); }
+    } catch (e) {}
+  }
+  function pddConfirmReceive(oid) {
+    pddSetStatus(oid, "已收货·完成", "你的拼某夕订单 #" + oid + " 已确认收货");
+    toastX("已确认收货");
+    pddCloseOrderDetail();
+    switchPddTab("order");
+  }
+  function pddRefund(oid) {
+    var ods = pddOrders();
+    var o = null;
+    for (var i = 0; i < ods.length; i++) if (ods[i].id === oid) o = ods[i];
+    if (!o) return;
+    var refunded = 0;
+    if (o.pay === "self" || o.pay === "group") {
+      refunded = o.total || 0;
+      try {
+        if (DB.wallet) {
+          DB.wallet.balance = (DB.wallet.balance || 0) + refunded;
+          if (!DB.wallet.logs) DB.wallet.logs = [];
+          DB.wallet.logs.unshift({ t: "拼某夕退款", amt: refunded, time: Date.now() });
+        }
+      } catch (e) {}
+    }
+    pddSetStatus(oid, "已退货退款", "你在拼某夕退了订单 #" + oid + (refunded ? "，¥" + refunded + " 已退回钱包" : ""));
+    saveX();
+    try { renderWallet && renderWallet(); } catch (e) {}
+    toastX(refunded ? "已退货退款，¥" + refunded + " 退回钱包" : "已退货退款");
+    pddCloseOrderDetail();
+    switchPddTab("order");
+  }
+  /* ---------- 角色反查：拼某夕动态（主动露出） ---------- */
+  function activePddReverseCheck(t) {
+    try {
+      if (!t || !DB.pddNews || !DB.pddNews.length) return false;
+      for (var i = 0; i < DB.pddNews.length; i++) {
+        var n = DB.pddNews[i];
+        if (n && !n.seen) {
+          n.seen = true;
+          var msg = "咦，我翻了下你的手机——" + n.text + "。";
+          try {
+            var log = chatLog(t.id);
+            log.push({ role: "assistant", content: msg, time: Date.now(), avatar: t.avatar || null });
+            addMemorySourceFor(t, "pdd", "我通过反查玩家的手机，看到 " + n.text + "。");
+            saveX();
+          } catch (e) {}
+          return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  }
+  /* ---------- 反查手机-购物 tab：真实订单优先 ---------- */
+  function pddPcShopHtml(d) {
+    var h = "";
+    try {
+      var ods = pddOrders() || [];
+      if (ods.length) {
+        var accName = "";
+        try { accName = pddHeadLabel(); } catch (e) {}
+        h += '<div class="pc-card" style="border:1px solid rgba(230,56,138,.35)"><div class="pc-card-t">我的拼某夕（收货人：' + esc(accName) + "）</div>";
+        h += ods.slice(0, 8).map(function (o) {
+          var nm = (o.items && o.items[0] && o.items[0].name) || "订单";
+          return '<div class="pc-line">📦 ' + esc(nm) + (o.items && o.items.length > 1 ? " 等" + o.items.length + "件" : "") + " · ¥" + o.total + " · " + esc(o.status || "") + "</div>";
+        }).join("");
+        h += "</div>";
+      }
+    } catch (e) {}
+    h += (d.shop || []).map(function (m) { return '<div class="pc-card"><div class="pc-line">🛒 ' + esc(m.goods || m) + "</div></div>"; }).join("");
+    return h;
+  }
+  /* 暴露 */
+  window.pddOpenAcc = pddOpenAcc; window.pddPickAcc = pddPickAcc; window.pddCloseAcc = pddCloseAcc; window.pddSaveAcc = pddSaveAcc;
+  window.pddAdminOpen = pddAdminOpen; window.pddCloseAdmin = pddCloseAdmin; window.pddManualGoods = pddManualGoods;
+  window.pddAiAddGoods = pddAiAddGoods; window.pddManualSave = pddManualSave; window.pddAiGenRun = pddAiGenRun;
+  window.pddOrderInit = pddOrderInit; window.pddPaySel = pddPaySel; window.pddBuyNow = pddBuyNow;
+  window.pddCheckoutCart = pddCheckoutCart; window.pddPickCharOpen = pddPickCharOpen; window.pddPickChar = pddPickChar;
+  window.pddClosePickChar = pddClosePickChar; window.pddConfirmOrder = pddConfirmOrder;
+  window.pddRenderOrderTab = pddRenderOrderTab; window.pddOpenOrderDetail = pddOpenOrderDetail;
+  window.pddCloseOrderDetail = pddCloseOrderDetail; window.pddGroupFree = pddGroupFree;
+  window.pddConfirmReceive = pddConfirmReceive; window.pddRefund = pddRefund;
+  window.pddNewsPush = pddNewsPush; window.activePddReverseCheck = activePddReverseCheck;
+  window.pddPcShopHtml = pddPcShopHtml;
+})();
+  /* 商品图：无图/生图失败时用文字色块回退 */
+  function pddImgBlock(g, cls) {
+    var u = g && g.img;
+    var show = u && /^https?:\/\//i.test(u);
+    if (show) return '<img class="' + (cls || "") + '" src="' + esc(u) + '" alt="">';
+    var nm = (g && g.name) || "商品";
+    return '<div class="' + (cls ? cls + " " : "") + 'pdd-imgtext">' + esc(nm.slice(0, 2)) + "</div>";
+  }
+  window.pddImgBlock = pddImgBlock;
+  /* 物流动态 */
+  function pddLogisticsHtml(o) {
+    var st = o.status || "";
+    var base = o.time || Date.now();
+    function fmt(d) { try { return new Date(d).toLocaleString(); } catch (e) { return ""; } }
+    if ((st.indexOf("代付中") >= 0 || st.indexOf("拼团中") >= 0 || st.indexOf("免拼") >= 0) && st.indexOf("成功") < 0) return '<div class="sheet-desc" style="padding-top:6px;color:var(--page-dim)">等待付款成团，商家尚未发货</div>';
+    if (st.indexOf("待发货") >= 0 || st.indexOf("待支付") >= 0) return '<div class="sheet-desc" style="padding-top:6px;color:var(--page-dim)">商家正在拣货打包，暂时还没有物流信息</div>';
+    if (st.indexOf("已退货退款") >= 0) return '<div class="sheet-desc" style="padding-top:6px;color:var(--page-dim)">退货包裹已揽收，¥' + o.total + ' 退款已原路退回</div>';
+    var rows = [
+      ["已揽收", "快件已由【极兔速递】揽收，准备发往转运中心", base + 2e6],
+      ["运输中", "快件到达【华东转运中心】，正在分拣转运", base + 2e7],
+      ["派送中", "快件到达派送点，快递员正在派送", base + 4e7]
+    ];
+    var over = st.indexOf("已收货") >= 0 || st.indexOf("完成") >= 0;
+    var html = '<div class="sheet-desc" style="padding-top:6px;font-weight:700">物流动态</div>';
+    html += rows.map(function (r) { return '<div class="sheet-desc" style="padding-top:3px;font-size:12px;color:var(--page-dim)">' + r[0] + " · " + r[1] + '<br><span style="font-size:11px">' + fmt(new Date(r[2])) + "</span></div>"; }).join("");
+    html += over ? '<div class="sheet-desc" style="padding-top:3px;font-size:12px;color:var(--page-dim)">已签收 · 快件已被本人签收，感谢使用拼某夕</div>' : '<div class="sheet-desc" style="padding-top:3px;font-size:12px;color:var(--page-dim)">快件即将送达，请保持手机畅通</div>';
+    return html;
+  }
+  window.pddLogisticsHtml = pddLogisticsHtml;
+
+
+</script>
+<script>
+/* ================= 霁月机70 · 战绩记录 + 跳一跳 ================= */
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function toastX(t) { try { toast(t); } catch (e) {} }
+  function saveX() { try { save(); } catch (e) {} }
+  function histDb() {
+    try { if (!DB.jyHist) DB.jyHist = []; return DB.jyHist; } catch (e) { return []; }
+  }
+  /* ---------- 战绩记录弹层 ---------- */
+  function jyOpenHist() {
+    var list = histDb();
+    var box = $("jyHistList");
+    if (!box) return;
+    var html = "";
+    /* 跳一跳战绩 */
+    try {
+      var recs = DB.jyJumperRec || [];
+      if (recs.length) {
+        html += '<div class="pc-card" style="border:1px solid rgba(255,102,0,.4)"><div class="pc-card-t">跳一跳</div>';
+        html += recs.slice(0, 10).map(function (r) {
+          return '<div class="pc-line">🏃 ' + (r.pa ? r.pa + " 旁观 · " : "") + "得分 " + r.score + " · " + new Date(r.ts).toLocaleString() + "</div>";
+        }).join("");
+        html += "</div>";
+      }
+    } catch (e) {}
+    if (!list.length) {
+      html += '<div class="empty-tip">还没有对局记录，去和 TA 下一局吧</div>';
+      box.innerHTML = html;
+      var m = $("jyHistMask");
+      if (m) m.classList.add("show");
+      return;
+    }
+    html += list.slice(0, 100).map(function (h) {
+      if (h && h.text) {
+        /* 62/68 文本型 */
+        return '<div class="pc-card"><div class="pc-card-t">' + esc(h.game || "对局") + (h.partner ? " · " + esc(h.partner) : "") + ' <span style="float:right;color:var(--page-dim);font-weight:400;font-size:11px">' + new Date(h.ts).toLocaleString() + "</span></div><div class='pc-line'>" + esc(h.text) + "</div></div>";
+      }
+      if (h && h.game) {
+        /* 61 结构化 */
+        var chatHtml = "";
+        if (h.chat && h.chat.length) {
+          chatHtml = h.chat.map(function (c) {
+            if (!c) return "";
+            var who = c.who === "me" ? "你" : (h.partner || "TA");
+            return '<div class="pc-line" style="color:var(--page-dim)">💬 ' + esc(who) + "：" + esc(c.text == null ? c.content : c.text) + "</div>";
+          }).join("");
+        }
+        return '<div class="pc-card"><div class="pc-card-t">' + esc(h.game) + " · " + esc(h.partner || "") + ' <span style="float:right;color:var(--page-dim);font-weight:400;font-size:11px">' + new Date(h.ts).toLocaleString() + "</span></div>" + "<div class='pc-line'>" + esc(h.playerSide || h.side || "") + " · 结果：" + esc(h.result || "") + " · 共" + (h.rounds || 0) + "回合</div>" + chatHtml + "</div>";
+      }
+      return "";
+    }).join("");
+    box.innerHTML = html;
+    var m = $("jyHistMask");
+    if (m) m.classList.add("show");
+  }
+  function jyCloseHist() { var m = $("jyHistMask"); if (m) m.classList.remove("show"); }
+  function jyClearHist() {
+    try { DB.jyHist = []; if (DB.jyJumperRec) DB.jyJumperRec = []; saveX(); } catch (e) {}
+    toastX("已清空战绩记录");
+    jyCloseHist();
+  }
+  window.jyOpenHist = jyOpenHist; window.jyCloseHist = jyCloseHist; window.jyClearHist = jyClearHist;
+  function jyHistPush(h) {
+    try {
+      if (!h) return;
+      histDb().unshift(h);
+      if (histDb().length > 150) histDb().splice(150);
+      saveX();
+    } catch (e) {}
+  }
+  window.jyHistPush = jyHistPush;
+
+  /* ================= 跳一跳 ================= */
+  var JP = {
+    on: false, stage: null, world: null, W: 0, H: 420,
+    blocks: [], cur: 0, score: 0, over: false,
+    playerEl: null, playerX: 60, standY: 0,
+    state: "idle", power: 0, raf: 0, lastT: 0, animT: 0,
+    fromX: 0, fromY: 0, toX: 0, flyT: 0, flyDur: 0, landCx: 0, okLand: false,
+    pa: null, busy: false, lastAi: 0, chatCount: 0
+  };
+  function jpReset() {
+    JP.blocks = [];
+    JP.cur = 0;
+    JP.score = 0;
+    JP.over = false;
+    JP.state = "idle";
+    JP.power = 0;
+    JP.pa = null;
+    JP.busy = false;
+    var b0 = { x: 30, w: 66, y: 0 };
+    var gap = 70 + Math.floor(Math.random() * 60);
+    var b1 = { x: b0.x + b0.w + gap, w: 46 + Math.floor(Math.random() * 42), y: (Math.random() < 0.5 ? -1 : 1) * Math.floor(Math.random() * 40) };
+    JP.blocks = [b0, b1];
+  }
+  function jpNextBlock() {
+    var last = JP.blocks[JP.blocks.length - 1];
+    var gap = 66 + Math.floor(Math.random() * 62);
+    var w = 44 + Math.floor(Math.random() * 44);
+    var y = last.y + (Math.random() < 0.55 ? 1 : -1) * (18 + Math.floor(Math.random() * 34));
+    if (y > 40) y = 40;
+    if (y < -90) y = -90;
+    JP.blocks.push({ x: last.x + last.w + gap, w: w, y: y });
+  }
+  function jpStandBlock() {
+    return JP.blocks[JP.cur] || JP.blocks[0];
+  }
+  function jpBaselineY() {
+    /* 舞台底部基线（块顶面坐标换算） */
+    var stageH = JP.H;
+    var b = jpStandBlock();
+    var baseTop = stageH - 96 - b.y; /* b.y 偏移：向上更高则顶部更上 */
+    return baseTop;
+  }
+  function jpStageSize() {
+    var s = $("jyJumperStage");
+    if (!s) return;
+    JP.stage = s;
+    JP.W = Math.max(220, s.clientWidth || 320);
+    JP.H = Math.min(430, Math.max(300, Math.round(JP.W * 1.1)));
+    s.style.height = JP.H + "px";
+  }
+  function jpBuild() {
+    var stage = $("jyJumperStage");
+    if (!stage) return;
+    stage.innerHTML = "";
+    var world = document.createElement("div");
+    world.id = "jyJumperWorld";
+    world.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%";
+    stage.appendChild(world);
+    JP.world = world;
+    /* 背景网格刻度 */
+    JP.blocks.forEach(function (b, i) {
+      var el = document.createElement("div");
+      el.className = "jp-block";
+      el.style.cssText = "position:absolute;border-radius:8px;background:" + (i === 0 ? "#333" : "#fff") + ";box-shadow:0 2px 6px rgba(0,0,0,.15);border:1px solid #d8d8d8;left:" + (b.x + 30) + "px;top:" + jpTopOf(b) + "px;width:" + b.w + "px;height:30px";
+      if (i === 0) el.style.background = "#111";
+      world.appendChild(el);
+    });
+    var p = document.createElement("div");
+    p.id = "jyJumperPlayer";
+    p.style.cssText = "position:absolute;left:" + JP.playerX + "px;top:" + (jpTopOf(jpStandBlock()) - 44) + "px;width:34px;height:44px;transform-origin:50% 100%";
+    p.innerHTML = '<div style="position:absolute;left:1px;bottom:4px;width:32px;height:22px;background:#2b7ef7;border-radius:14px 14px 8px 8px;box-shadow:inset -4px -4px 0 rgba(0,0,0,.12)"></div><div style="position:absolute;left:8px;bottom:24px;width:18px;height:18px;border-radius:50%;background:#ffd9a8;box-shadow:inset -3px -3px 0 rgba(0,0,0,.06)"></div><div style="position:absolute;left:13px;top:22px;width:8px;height:3px;border-radius:3px;background:#333"></div>';
+    world.appendChild(p);
+    JP.playerEl = p;
+    jpUpdateHud();
+    jpUpdateTip("按住蓄力，松开跳跃");
+    jpRenderPower();
+  }
+  function jpTopOf(b) {
+    return JP.H - 96 - b.y - 30;
+  }
+  function jpPlayerStandTop() {
+    return JP.H - 96 - jpStandBlock().y - 30;
+  }
+  function jpUpdateHud() {
+    var s = $("jyJumperScore");
+    if (s) s.textContent = JP.score;
+    var sub = $("jyJumperSub");
+    if (sub) sub.textContent = "得分 " + JP.score;
+  }
+  function jpUpdateTip(t) {
+    var tip = $("jyJumperTip");
+    if (tip) tip.textContent = t;
+  }
+  function jpRenderPower() {
+    var bar = $("jyJumperPower");
+    if (!bar) return;
+    bar.style.width = Math.round(JP.power * 100) + "%";
+  }
+  function jpSetPlayerTop(t) {
+    if (JP.playerEl) JP.playerEl.style.top = t + "px";
+  }
+  function jpStartFly(powerVal) {
+    var cur = jpStandBlock();
+    var next = JP.blocks[JP.cur + 1];
+    if (!next) return;
+    JP.state = "fly";
+    JP.power = 0;
+    var gap = next.x - (cur.x + cur.w);
+    var reach = gap + next.w * 0.95 + cur.w * 0.55;
+    var d = reach * (0.18 + 0.82 * powerVal);
+    var curCx = cur.x + 30 + cur.w / 2;
+    JP.fromX = curCx;
+    JP.fromY = jpPlayerStandTop();
+    JP.toX = curCx + d;
+    JP.flyT = 0;
+    JP.flyDur = 260 + Math.round(d * 0.9);
+    JP.animT = null;
+    jpUpdateTip("跳！");
+  }
+  function jpFlyTick(dt) {
+    JP.flyT += dt;
+    var t = Math.min(1, JP.flyT / JP.flyDur);
+    var e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    var x = JP.fromX + (JP.toX - JP.fromX) * e;
+    var y = JP.fromY - 96 * 4 * t * (1 - t);
+    var pEl = JP.playerEl;
+    if (pEl) {
+      pEl.style.left = x + "px";
+      pEl.style.top = y + "px";
+    }
+    if (t >= 1) { jpLand(); return; }
+  }
+  function jpLand() {
+    var cur = jpStandBlock();
+    var next = JP.blocks[JP.cur + 1];
+    var pEl = JP.playerEl;
+    var nextCx = next.x + 30 + next.w / 2;
+    var half = next.w * 0.5;
+    var hit = JP.toX >= nextCx - half * 0.82 && JP.toX <= nextCx + half * 0.82;
+    if (hit) {
+      JP.cur++;
+      JP.score++;
+      var cx = Math.min(Math.max(JP.toX, next.x + 30 + next.w * 0.28), next.x + 30 + next.w * 0.72);
+      var dx = cx - 60;
+      /* 整屏平移：把世界左移，让玩家回固定点 */
+      JP.blocks.forEach(function (b) { b.x -= dx; });
+      var cur2 = jpStandBlock();
+      if (pEl) {
+        pEl.style.left = 60 + "px";
+        pEl.style.top = (JP.H - 96 - cur2.y - 30 - 44) + "px";
+      }
+      /* 平滑滚动 + 新建下块 */
+      if (JP.world) JP.world.style.transition = "transform .18s ease-out";
+      /* 视觉微滚动已由位移完成 */
+      jpNextBlock();
+      jpAppendBlockEl(JP.blocks[JP.blocks.length - 1]);
+      JP.state = "idle";
+      JP.power = 0;
+      jpUpdateHud();
+      jpUpdateTip("漂亮！按住蓄力继续");
+      jpMaybeAiComment("玩家刚跳上了新方块，目前得分 " + JP.score);
+      /* 每 10 分加快一点 */
+      return;
+    }
+    /* 失败 */
+    JP.over = true;
+    JP.state = "dead";
+    jpUpdateTip("哎呀，掉了");
+    if (pEl) {
+      pEl.style.transition = "top .5s ease-in, opacity .5s";
+      pEl.style.top = (JP.H + 60) + "px";
+      pEl.style.opacity = "0.4";
+    }
+    setTimeout(function () {
+      jpGameOverUi();
+    }, 520);
+  }
+  function jpAppendBlockEl(b) {
+    var world = JP.world;
+    if (!world) return;
+    var el = document.createElement("div");
+    el.className = "jp-block";
+    el.style.cssText = "position:absolute;border-radius:8px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15);border:1px solid #d8d8d8;left:" + (b.x + 30) + "px;top:" + jpTopOf(b) + "px;width:" + b.w + "px;height:30px";
+    world.appendChild(el);
+  }
+  function jpMaybeAiComment(ctx) {
+    if (!JP.pa) return;
+    var now = Date.now();
+    if (now - JP.lastAi < 12000) return;
+    if (JP.busy) return;
+    if (Math.random() > 0.6) return;
+    JP.lastAi = now;
+    jpAskAi(ctx, false);
+  }
+  function jpGameOverUi() {
+    var tip = $("jyJumperTip");
+    if (tip) tip.textContent = "游戏结束 · 得分 " + JP.score;
+    var hud = $("jyJumperHud");
+    if (hud) {
+      hud.innerHTML = '<span class="jy-mask-btn" style="background:#f60;color:#fff">得分 <b>' + JP.score + "</b></span><button class='jy-mask-btn' style='background:rgba(0,0,0,.06);color:inherit' onclick='jyJumperRestart()'>再来一局</button><button class='jy-mask-btn' style='background:rgba(0,0,0,.06);color:inherit' onclick='jyJumperExit()'>退出</button>";
+    }
+    try {
+      if (!DB.jyJumperRec) DB.jyJumperRec = [];
+      DB.jyJumperRec.unshift({ score: JP.score, pa: JP.pa ? JP.pa.name : "", ts: Date.now() });
+      if (DB.jyJumperRec.length > 50) DB.jyJumperRec = DB.jyJumperRec.slice(0, 50);
+      saveX();
+    } catch (e) {}
+    if (JP.pa) {
+      try {
+        addMemorySourceFor(JP.pa, "game", "玩家玩跳一跳，" + (JP.score > 0 ? "连续跳上了 " + JP.score + " 个方块" : "一开局就掉了下来") + (JP.score >= 10 ? "，跳得挺溜" : JP.score >= 5 ? "，还不错" : "。"));
+        jyHistPush({ text: "玩家玩跳一跳，" + (JP.score > 0 ? "跳上了 " + JP.score + " 个方块" : "一开局就掉了"), game: "跳一跳", partner: JP.pa.name || "TA", ts: Date.now() });
+        saveX();
+      } catch (e) {}
+      jpAskAi("玩家在玩跳一跳" + (JP.score > 0 ? "，得了 " + JP.score + " 分" : "，可惜掉下来了") + "。你全程在旁观，现在游戏结束了，用你的口吻说句话（15字内）。", true);
+    }
+  }
+  function jpAskAi(userText, force) {
+    if (!JP.pa || JP.busy) return;
+    var can = false;
+    try { var pl = personaPlan(JP.pa); can = !!(pl && pl.baseUrl && pl.apiKey); } catch (e) {}
+    if (!can) return;
+    JP.busy = true;
+    var prompt = "玩家正在玩「跳一跳」小游戏，你作为旁观者正在看他玩，可以随时吐槽或加油。玩家视角信息：" + userText + "。请用你的口吻简短回复（20字内），像发微信消息一样。";
+    var timer = setTimeout(function () { JP.busy = false; }, 26000);
+    callChat([{ role: "user", content: prompt }], JP.pa).then(function (txt) {
+      clearTimeout(timer);
+      JP.busy = false;
+      var t = String(txt || "").trim();
+      if (t) { jpBubble((JP.pa && JP.pa.name) || "TA", t, (JP.pa && JP.pa.avatar) || ""); }
+    }).catch(function () { clearTimeout(timer); JP.busy = false; });
+  }
+  function jpBubble(name, text, av) {
+    var body = $("jyJumperWatchBody");
+    if (!body) return;
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:6px;align-items:flex-start;margin:6px 8px;font-size:13px";
+    var avHtml = av ? '<img class="avatar" src="' + esc(av) + '" style="width:22px;height:22px;border-radius:50%;background:#eee;flex:none">' : '<span style="flex:none;width:22px;height:22px;border-radius:50%;background:#eee;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#888">' + esc((name || "T").slice(0, 1)) + "</span>";
+    row.innerHTML = avHtml + '<div><b style="color:#888;font-size:11px">' + esc(name || "TA") + '</b><div style="background:#f5f6f8;border-radius:10px;padding:5px 8px;margin-top:2px">' + esc(text) + "</div></div>";
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+  }
+  function jpUserBubble(text) {
+    var body = $("jyJumperWatchBody");
+    if (!body) return;
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;justify-content:flex-end;margin:6px 8px;font-size:13px";
+    row.innerHTML = '<div style="max-width:75%;background:#2b7ef7;color:#fff;border-radius:10px;padding:5px 8px">' + esc(text) + "</div>";
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+  }
+  /* 入口：从 62 大厅调起 */
+  function jyJumperOpen() {
+    var ps = [];
+    try { ps = personaList() || []; } catch (e) {}
+    var hint = $("jyJumperPickHint");
+    if (hint) hint.textContent = "可以让一位角色在旁边看你玩，TA 会时不时搭话，战绩会记入记忆。";
+    var list = $("jyJumperPickList");
+    if (list) {
+      if (!ps.length) list.innerHTML = '<div class="pick-empty">还没有角色，先去「人设档案」添加</div>';
+      else {
+        list.innerHTML = ps.map(function (p) {
+          var ok = false;
+          try { var pl = personaPlan(p); ok = !!(pl && pl.baseUrl && pl.apiKey); } catch (e) {}
+          var av = "";
+          try { av = personaAvatarUrl(p); } catch (e) {}
+          return '<div class="jy-char-item' + (ok ? "" : " off") + '"' + (ok ? ' onclick="jyJumperPickWatch(\'' + String(p.id).replace(/'/g, "") + '\')"' : "") + '><img class="avatar" src="' + esc(av) + '" alt=""><div class="pick-main"><div class="pick-name">' + esc(p.name || "角色") + '</div><div class="pick-desc">' + (ok ? "会看你玩并和你聊天" : "还没接入模型 API，无法旁观") + "</div></div></div>";
+        }).join("");
+      }
+    }
+    var m = $("jyJumperWatchPickMask");
+    if (m) m.classList.add("show");
+    showPage("jyGameJumper");
+  }
+  function jyJumperPickNone() {
+    var m = $("jyJumperWatchPickMask");
+    if (m) m.classList.remove("show");
+    jyJumperStartGame(null);
+  }
+  function jyJumperPickWatch(pid) {
+    var pa = null;
+    try { pa = findPersona(pid); } catch (e) {}
+    if (!pa) { toastX("未找到该角色"); return; }
+    var m = $("jyJumperWatchPickMask");
+    if (m) m.classList.remove("show");
+    jyJumperStartGame(pa);
+  }
+  function jyJumperCancelPick() { var m = $("jyJumperWatchPickMask"); if (m) m.classList.remove("show"); showPage("jyGame62"); }
+  function jyJumperStartGame(pa) {
+    JP.pa = pa;
+    JP.chatCount = 0;
+    JP.lastAi = 0;
+    var watch = $("jyJumperWatch");
+    if (watch) watch.style.display = "none";
+    if (pa) {
+      try {
+        var av = personaAvatarUrl(pa);
+        var avEl = $("jyJumperWatchAv");
+        if (avEl) { avEl.src = av || ""; }
+      } catch (e) {}
+      var nm = $("jyJumperWatchName");
+      if (nm) nm.textContent = (pa.name || "TA") + " 在看你玩";
+      var watch2 = $("jyJumperWatch");
+      if (watch2) watch2.style.display = "block";
+      var body = $("jyJumperWatchBody");
+      if (body) body.innerHTML = "";
+      jpBubble((pa.name || "TA"), "我看着你跳，别掉沟里啦", pa.avatar || "");
+    }
+    jpReset();
+    jpStageSize();
+    var old = $("jyJumperPowerWrap");
+    if (!old) {
+      var wrap = document.createElement("div");
+      wrap.id = "jyJumperPowerWrap";
+      wrap.style.cssText = "height:6px;border-radius:4px;background:rgba(0,0,0,.08);overflow:hidden;max-width:420px;margin:6px auto 0";
+      wrap.innerHTML = '<div id="jyJumperPower" style="height:100%;width:0;background:linear-gradient(90deg,#7ecb20,#ffb800,#ff6a00);border-radius:4px"></div>';
+      var stage = $("jyJumperStage");
+      if (stage && stage.parentNode) stage.parentNode.insertBefore(wrap, stage.nextSibling);
+    } else { old.style.display = "block"; }
+    jpBuild();
+    JP.on = true;
+    bindJpEvents();
+    jpLoopStart();
+  }
+  function jpLoopStart() {
+    try { if (JP.raf) cancelAnimationFrame(JP.raf); } catch (e) {}
+    JP.lastT = 0;
+    JP.raf = requestAnimationFrame(jpLoop);
+  }
+  function bindJpEvents() {
+    var stage = $("jyJumperStage");
+    if (!stage || !JP.on) return;
+    function down(e) {
+      e.preventDefault();
+      if (JP.over || JP.state !== "idle") return;
+      JP.state = "charging";
+      JP.power = 0;
+      jpUpdateTip("蓄力中…");
+    }
+    function up(e) {
+      e.preventDefault();
+      if (JP.over || JP.state !== "charging") return;
+      var p = Math.min(1, JP.power);
+      if (p < 0.04) { JP.state = "idle"; JP.power = 0; jpRenderPower(); jpUpdateTip("按太短啦，重新按住蓄力"); return; }
+      jpStartFly(p);
+    }
+    stage.ontouchstart = down;
+    stage.ontouchend = up;
+    stage.onmousedown = down;
+    stage.onmouseup = up;
+    stage.onmouseleave = function () { if (JP.state === "charging") { JP.state = "idle"; JP.power = 0; jpRenderPower(); } };
+  }
+  function jpLoop(ts) {
+    if (!JP.on) return;
+    var dt = Math.min(60, (ts || 0) - (JP.lastT || 0));
+    JP.lastT = ts;
+    if (JP.state === "charging") {
+      JP.power = Math.min(1, JP.power + dt / 950);
+      jpRenderPower();
+      var scale = 1 - JP.power * 0.25;
+      if (JP.playerEl) { JP.playerEl.style.transform = "scaleY(" + scale + ")"; }
+      var tip = $("jyJumperTip");
+      if (tip) tip.textContent = "蓄力 " + Math.round(JP.power * 100) + "%";
+    } else if (JP.state === "fly") {
+      if (JP.playerEl) JP.playerEl.style.transform = "rotate(" + (JP.flyT / JP.flyDur * 10 - 5) + "deg) scale(1)";
+      jpFlyTick(dt);
+    } else if (JP.state === "idle") {
+      if (JP.playerEl) JP.playerEl.style.transform = "scale(1)";
+      jpRenderPower();
+    }
+    if (!JP.over || JP.state !== "dead") {
+      JP.raf = requestAnimationFrame(jpLoop);
+    }
+  }
+  function jyJumperRestart() {
+    var hud = $("jyJumperHud");
+    if (hud) hud.innerHTML = '<span class="jy-mask-btn" style="background:#f60;color:#fff">分数 <b id="jyJumperScore">0</b></span><span class="jy-mask-btn" id="jyJumperCombo">再来一局</span>';
+    var pw = $("jyJumperPowerWrap");
+    if (pw) pw.style.display = "block";
+    var tip = $("jyJumperTip");
+    if (tip) { tip.style.display = "block"; }
+    jpReset();
+    jpStageSize();
+    var watch = $("jyJumperWatch");
+    if (watch && JP.pa) watch.style.display = "block";
+    jpBuild();
+    JP.on = true;
+    bindJpEvents();
+    jpLoopStart();
+    if (JP.pa) { var body = $("jyJumperWatchBody"); if (body) body.innerHTML = ""; jpBubble((JP.pa.name || "TA"), "再来一局，我看着呢", JP.pa.avatar || ""); }
+  }
+  function jyJumperExit() {
+    JP.on = false;
+    try { if (JP.raf) cancelAnimationFrame(JP.raf); } catch (e) {}
+    try { var pw = $("jyJumperPowerWrap"); if (pw) pw.style.display = "none"; } catch (e) {}
+    showPage("jyGame62");
+    try { if (window.jy62HallShow) jy62HallShow(); } catch (e) {}
+  }
+  /* 观看面板 */
+  function jyJumperWatchToggle() {
+    var w = $("jyJumperWatch");
+    if (!w) return;
+    var foot = $("jyJumperWatchInput");
+    if (w.style.display === "none") { w.style.display = "block"; if (foot) foot.focus(); }
+    else { w.style.display = "none"; }
+  }
+  function jyJumperChatKey(e) {
+    if (e.key === "Enter") jyJumperChatSend();
+  }
+  function jyJumperChatSend() {
+    var inp = $("jyJumperWatchInput");
+    if (!inp) return;
+    var text = inp.value.trim();
+    if (!text) return;
+    inp.value = "";
+    jpUserBubble(text);
+    if (!JP.pa) { jpBubble("提示", "这场没有角色旁观，先退出选一位角色再来聊天吧", ""); return; }
+    var can = false;
+    try { var pl = personaPlan(JP.pa); can = !!(pl && pl.baseUrl && pl.apiKey); } catch (e) {}
+    if (!can) { jpBubble((JP.pa.name || "TA"), "我还没接上模型，说不了话", JP.pa.avatar || ""); return; }
+    if (JP.busy) { jpBubble((JP.pa.name || "TA"), "（我还在想上一句…）", JP.pa.avatar || ""); return; }
+    JP.busy = true;
+    var prompt = "你正通过手机看玩家玩「跳一跳」，玩家边玩边给你发消息说：" + text + "。用你的口吻简短回复（20字内），像微信聊天。";
+    var timer = setTimeout(function () { JP.busy = false; }, 26000);
+    callChat([{ role: "user", content: prompt }], JP.pa).then(function (txt) {
+      clearTimeout(timer);
+      JP.busy = false;
+      var t = String(txt || "").trim();
+      if (t) { jpBubble((JP.pa && JP.pa.name) || "TA", t, (JP.pa && JP.pa.avatar) || ""); }
+      try {
+        addMemorySourceFor(JP.pa, "gameChat", "玩家玩跳一跳时给" + ((JP.pa && JP.pa.name) || "TA") + "发消息说：「" + text + "」，" + ((JP.pa && JP.pa.name) || "TA") + "回：「" + t + "」。");
+        jyHistPush({ text: "跳一跳时聊了几句：你说「" + text + "」，TA说「" + t + "」", game: "跳一跳", partner: (JP.pa && JP.pa.name) || "TA", ts: Date.now() });
+        saveX();
+      } catch (e) {}
+    }).catch(function () { clearTimeout(timer); JP.busy = false; jpBubble((JP.pa && JP.pa.name) || "TA", "（信号不太好，等下再聊）", (JP.pa && JP.pa.avatar) || ""); });
+  }
+  window.jyJumperOpen = jyJumperOpen; window.jyJumperPickNone = jyJumperPickNone;
+  window.jyJumperPickWatch = jyJumperPickWatch; window.jyJumperCancelPick = jyJumperCancelPick;
+  window.jyJumperRestart = jyJumperRestart; window.jyJumperExit = jyJumperExit;
+  window.jyJumperWatchToggle = jyJumperWatchToggle; window.jyJumperChatKey = jyJumperChatKey;
+  window.jyJumperChatSend = jyJumperChatSend;
+})();
+
 </script>
