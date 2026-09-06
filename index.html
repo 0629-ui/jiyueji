@@ -1393,6 +1393,33 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 .map-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;gap:10px;color:#5a7a5a;font-size:13px}
 .map-loading .ld{width:26px;height:26px;border:3px solid rgba(47,158,99,.25);border-top-color:#2f9e63;border-radius:50%;animation:mapSpin .8s linear infinite}
 @keyframes mapSpin{to{transform:rotate(360deg)}}
+
+/* v76 桌面分页 + 拖动整理 */
+.home-top-fixed{z-index:8;padding:66px 18px 0;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.home-top-fixed .widget-row{margin:0}
+.home-pager{position:relative;flex:1;min-height:0;overflow:hidden;z-index:8;margin:8px 0 0}
+.home-track{position:absolute;inset:0;display:flex;align-items:stretch;transition:transform .34s cubic-bezier(.22,.9,.3,1);will-change:transform}
+.home-page{flex:0 0 100%;width:100%;min-width:0;height:100%;display:flex;flex-direction:column;padding:0 12px 2px;box-sizing:border-box;overflow:hidden}
+.hp-widgets{flex-shrink:0;display:flex;flex-direction:column;gap:9px;max-height:34vh;overflow-y:auto;padding:2px 2px;margin-bottom:4px}
+.hp-widgets::-webkit-scrollbar{display:none}
+.hp-grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px 6px;padding:10px 6px 6px;align-content:start;overflow-y:auto}
+.hp-grid::-webkit-scrollbar{display:none}
+.hp-grid .app{transition:transform .24s cubic-bezier(.25,.8,.25,1);touch-action:pan-y;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.hp-grid .app.dragging,.hp-widgets .hw-item.dragging{position:fixed;z-index:9999;pointer-events:none;margin:0;transition:none;will-change:transform;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.hp-grid .app.dragging .app-icon{transform:scale(1.07)}
+.hp-grid .app.drop-ghost{visibility:hidden;background:rgba(255,255,255,.10);border:1.6px dashed rgba(255,255,255,.45);border-radius:17px;opacity:.55;pointer-events:none}
+.hp-widgets .hw-item.drop-ghost{visibility:hidden;border:1.8px dashed rgba(255,255,255,.5);border-radius:20px;opacity:.5;pointer-events:none}
+.hp-grid.jiggle .app:not(.dragging){animation:jyJiggle .16s ease-in-out infinite alternate}
+.hp-widgets.jiggle .hw-item:not(.dragging){animation:jyJiggle .16s ease-in-out infinite alternate}
+@keyframes jyJiggle{from{transform:rotate(-.7deg)}to{transform:rotate(.7deg)}}
+.hp-grid .app.drop-lock{opacity:.9}
+.home-dots{display:flex;justify-content:center;align-items:center;gap:6px;padding:2px 0 6px;z-index:8;flex-shrink:0;pointer-events:none}
+.hd-dot{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.3);transition:all .25s ease}
+.hd-dot.on{width:19px;background:rgba(255,255,255,.9)}
+.hp-del-x{position:absolute;top:-7px;right:-9px;width:19px;height:19px;border-radius:50%;background:#ff3b30;color:#fff;font-size:12px;line-height:19px;text-align:center;z-index:12;display:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.jiggle .hp-del-x{display:block}
+.hp-del-x:active{transform:scale(.85)}
+.hp-widgets .hw-item{position:relative}
 </style>
 </head>
 <body>
@@ -1416,7 +1443,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 <!-- 主屏 -->
 <div class="page dark-page" id="home">
   <div class="home-add-plus" id="homeAddPlus" onclick="openWidgetPick()">＋</div>
-  <div class="home-top">
+  <div class="home-top-fixed">
     <div class="user-card" onclick="openApp('me')">
       <img class="avatar" id="homeMeAvatar" src="https://i.pravatar.cc/100?img=12" alt=""><div style="flex:1">
       <div class="u-name" id="homeMeName">我</div>
@@ -1427,9 +1454,9 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <div class="widget-row">
       <div class="widget widget-clock"><div class="w-time" id="homeClock">9:41</div><div class="w-date" id="homeDate">星期六 8月29日</div></div>
     </div>
-    <div class="home-widgets" id="homeWidgets"></div>
   </div>
-  <div class="app-grid" id="homeGrid"></div>
+  <div class="home-pager" id="homePager"><div class="home-track" id="homeTrack"></div></div>
+  <div class="home-dots" id="homeDots"></div>
   <div class="dock">
     <div class="app" data-app="messages" onclick="openApp('messages')"><div class="app-icon"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></div></div>
     <div class="app" data-app="persona" onclick="openApp('persona')"><div class="app-icon"><svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></div></div>
@@ -6352,12 +6379,13 @@ function appendBubble(from, text, withTime, opts) {
   row2.innerHTML = '<img class="avatar" src="' + avatar + '" alt=""><div class="bubble">' + inner + "</div>" + time;
   var av = row2.querySelector(".avatar");
   if (av) {
-    av.title = "\u53CC\u51FB\u62CD\u4E00\u62CD";
+    av.title = "\u53CC\u51FB\u62CD\u4E00\u62CD\uFF0C\u5355\u51FB\u770B\u5FC3\u58F0";
     av.addEventListener("dblclick", function(e) {
       e.stopPropagation();
       if (from === "me") patSelf();
       else patAI();
     });
+    if (from !== "me") jyHeartBindAvatar(av, k, "single");
   }
   if (from !== "me" && DB.settings.translate && !opts.img && isForeignText(text)) maybeTranslate(row2, text, opts.idx);
   if (opts.idx !== void 0) bindBubbleMenu(row2, from, opts.idx);
@@ -6382,11 +6410,12 @@ function appendGroupBubble(from, text, withTime, opts) {
   row2.innerHTML = '<div class="chat-msg-name">' + escapeHtml(t.name || from) + '</div><div style="display:flex;align-items:flex-start"><img class="avatar" src="' + chatTargetAvatar(from) + '" alt=""><div class="bubble">' + inner + "</div></div>" + time;
   var av = row2.querySelector(".avatar");
   if (av) {
-    av.title = "\u53CC\u51FB\u62CD\u4E00\u62CD";
+    av.title = "\u53CC\u51FB\u62CD\u4E00\u62CD\uFF0C\u5355\u51FB\u770B\u5FC3\u58F0";
     av.addEventListener("dblclick", function(e) {
       e.stopPropagation();
       patAI();
     });
+    if (from && from !== "me") jyHeartBindAvatar(av, from, "group");
   }
   if (DB.settings.translate && !opts.img && isForeignText(text)) maybeTranslate(row2, text, opts.idx);
   if (opts.idx !== void 0) bindBubbleMenu(row2, "them", opts.idx);
@@ -6932,6 +6961,7 @@ function commitAiReply(log, reply) {
   }
   reloadHistory();
   save();
+  try { jyHeartAfterSingleReply(log, sp, finalReply); } catch (e) {}
 }
 __name(commitAiReply, "commitAiReply");
 function sendMessage() {
@@ -7146,6 +7176,7 @@ function replyGroupNow(gid) {
         log.push({ role: "assistant", from: mid, content: vReply, innerVoice: sp2.voice ? sp2.voice : null, time: Date.now() });
         appendGroupBubble(mid, vReply, true, { idx: log.length - 1, voice: sp2.voice });
         hist.push({ role: "assistant", content: vReply });
+        try { jyHeartAfterGroupReply(gid, mid, t, vReply, lastUser); } catch (e) {}
         if (isPersona) {
           addGroupMemorySource(gid, mid, "\u7FA4\u804A\uFF1A\u6211\uFF1A" + lastUser + "\uFF5C" + (t ? t.name : "\u6210\u5458") + "\uFF1A" + vReply);
           if (t.persona && t.persona.groupSync && t.persona.groupSync.enabled && t.persona.groupSync.groupIds.indexOf(gid) > -1) {
@@ -7435,7 +7466,12 @@ function callChat(messages, pa) {
     }
     var data = yield res.json();
     if (data && data.choices && data.choices.length && data.choices[0].message) {
-      return data.choices[0].message.content;
+      var _msg = data.choices[0].message;
+      try {
+        var _rc = _msg.reasoning_content || _msg.reasoning || null;
+        window.__jyLastModelReason = { ts: Date.now(), text: _rc ? String(_rc) : null, content: _msg.content || "" };
+      } catch (e) {}
+      return _msg.content;
     }
     throw new Error("\u8FD4\u56DE\u683C\u5F0F\u5F02\u5E38");
   });
@@ -23155,4 +23191,917 @@ function closeDreamHelp() {
   else initTrpgUi();
 
 })();
+</script>
+
+<style>
+/* ===== 心声卡片 V2 ===== */
+#jyHeartRoot{position:fixed;top:0;left:0;right:0;bottom:0;z-index:997;display:none;align-items:flex-end;justify-content:center;background:rgba(8,8,14,.42);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#jyHeartRoot.show{display:flex;animation:jyHmFade .18s ease}
+@keyframes jyHmFade{from{opacity:0}to{opacity:1}}
+#jyHeartRoot .jh-card{width:min(420px,94vw);max-height:84vh;margin-bottom:calc(env(safe-area-inset-bottom,0px) + 30px);background:linear-gradient(180deg,#fffdfa,#f6f7fb);border-radius:26px;box-shadow:0 16px 46px rgba(20,10,40,.28);display:flex;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;animation:jyHmUp .22s ease}
+@keyframes jyHmUp{from{transform:translateY(28px);opacity:.5}to{transform:none;opacity:1}}
+#jyHeartRoot .jh-head{position:relative;padding:20px 18px 14px;background:linear-gradient(135deg,#ffe3f2 0%,#e6e9ff 60%,#ddf4ff 100%);display:flex;align-items:center;gap:12px;flex-shrink:0}
+#jyHeartRoot .jh-close{position:absolute;right:12px;top:12px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(0,0,0,.06);color:#666;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#jyHeartRoot .jh-avatar{width:52px;height:52px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.14);flex-shrink:0;background:#eee}
+#jyHeartRoot .jh-who{min-width:0;flex:1}
+#jyHeartRoot .jh-name{font-size:17px;font-weight:800;color:#1b1b23;display:flex;align-items:center;gap:7px}
+#jyHeartRoot .jh-name .jh-nametxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#jyHeartRoot .jh-online{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.75);white-space:nowrap}
+#jyHeartRoot .jh-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+#jyHeartRoot .jh-meta{font-size:11px;color:rgba(0,0,0,.5);margin-top:3px}
+#jyHeartRoot .jh-moodtag{align-self:flex-start;font-size:11px;font-weight:700;color:#7b2c5f;background:rgba(255,255,255,.65);padding:5px 11px;border-radius:14px;white-space:nowrap;margin-top:2px}
+#jyHeartRoot .jh-body{padding:14px 18px 6px;overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+#jyHeartRoot .jh-whisper{margin:0 0 10px;padding:14px 16px;background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:18px;font-size:15px;line-height:1.75;color:#26262e;position:relative;box-shadow:0 3px 10px rgba(60,30,90,.05)}
+#jyHeartRoot .jh-whisper .jw-tag{display:inline-block;font-size:9px;font-weight:700;color:#b889d8;letter-spacing:1px;margin-bottom:6px}
+#jyHeartRoot .jh-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+#jyHeartRoot .jh-cell{background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.045);border-radius:14px;padding:9px 12px}
+#jyHeartRoot .jh-cell.full{grid-column:1/-1}
+#jyHeartRoot .jh-cell .jc-k{font-size:9px;color:#999;letter-spacing:1px;display:flex;align-items:center;gap:4px;margin-bottom:3px}
+#jyHeartRoot .jh-cell .jc-v{font-size:12px;color:#2a2a34;line-height:1.5;word-break:break-word}
+#jyHeartRoot .jh-reply{margin:2px 2px 8px;font-size:11px;color:#9a8fa6;background:rgba(120,90,150,.06);border-radius:12px;padding:8px 12px;line-height:1.6}
+#jyHeartRoot .jh-reply b{color:#7c6a8f;font-weight:700}
+#jyHeartRoot .jh-chain{margin:2px 2px 12px}
+#jyHeartRoot .jh-chain-hd{display:flex;align-items:center;gap:6px;font-size:10px;color:#8b7aa3;cursor:pointer;user-select:none}
+#jyHeartRoot .jh-chain-hd .ar{transition:transform .18s}
+#jyHeartRoot .jh-chain-hd.open .ar{transform:rotate(90deg)}
+#jyHeartRoot .jh-chain-body{display:none;margin-top:6px;background:#101019;color:#b9d8ff;border-radius:12px;padding:10px 12px;font-size:11px;line-height:1.8;white-space:pre-wrap;word-break:break-word;max-height:170px;overflow-y:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+#jyHeartRoot .jh-chain-body.show{display:block}
+#jyHeartRoot .jh-history{margin:6px 2px 4px}
+#jyHeartRoot .jh-hist-t{font-size:10px;color:#999;letter-spacing:1px;margin:8px 2px 6px;display:flex;align-items:center;gap:5px}
+#jyHeartRoot .jh-hist-line{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:12px;cursor:pointer;transition:background .15s}
+#jyHeartRoot .jh-hist-line:hover,.jh-hist-line.on{background:rgba(120,90,150,.08)}
+#jyHeartRoot .jh-hist-line .hl-mood{font-size:14px;flex-shrink:0}
+#jyHeartRoot .jh-hist-line .hl-txt{flex:1;min-width:0;font-size:11px;color:#666;line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+#jyHeartRoot .jh-hist-line .hl-time{font-size:9px;color:#bbb;flex-shrink:0}
+#jyHeartRoot .jh-empty{text-align:center;color:#9b94a6;padding:34px 18px;line-height:2;font-size:13px}
+#jyHeartRoot .jh-empty .je-emoji{font-size:30px;margin-bottom:6px}
+#jyHeartRoot .jh-foot{padding:6px 14px calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:8px;flex-shrink:0}
+#jyHeartRoot .jh-btn{flex:1;border:none;border-radius:16px;padding:10px 0;font-size:12px;font-weight:700;cursor:pointer}
+#jyHeartRoot .jh-btn.light{background:rgba(0,0,0,.05);color:#555}
+#jyHeartRoot .jh-btn.primary{background:linear-gradient(135deg,#b48ae0,#7f9cf5);color:#fff;box-shadow:0 4px 12px rgba(127,156,245,.35)}
+</style>
+<script>
+(function () {
+  if (window.__jyHeartV2) return;
+  window.__jyHeartV2 = true;
+  var BUSY = {};
+  var S = { roleId: null, scene: null, idx: 0, gid: null };
+  function esc(x) {
+    try { return window.escapeHtml(x); } catch (e) {
+      return String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  }
+  function hEnabled() {
+    return true; // 强制心声：每次回复必生成，不可关闭、无本地兜底
+  }
+  var _lastFailHint = 0;
+  function failHint(msg) {
+    try {
+      var now = Date.now();
+      if (now - _lastFailHint < 12000) return;
+      _lastFailHint = now;
+      if (window.toast) toast(msg);
+    } catch (e) {}
+  }
+  function heartOf(roleId) {
+    if (!DB) return null;
+    if (!DB.jyHeart || typeof DB.jyHeart !== "object") DB.jyHeart = {};
+    if (!DB.jyHeart[roleId] || !DB.jyHeart[roleId].list) DB.jyHeart[roleId] = { list: [] };
+    return DB.jyHeart[roleId];
+  }
+  function fmtTime(ts) {
+    var d = new Date(ts || Date.now());
+    function p(n) { return String(n).padStart(2, "0"); }
+    return p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+  function dotColor(o) {
+    o = String(o || "");
+    if (o.indexOf("在线") === 0) return "#34c759";
+    if (o.indexOf("忙碌") === 0) return "#ff9f0a";
+    if (o.indexOf("勿扰") === 0) return "#ff3b30";
+    if (o.indexOf("睡觉") === 0) return "#8a7bff";
+    if (o.indexOf("隐身") === 0) return "#5ac8fa";
+    if (o.indexOf("离线") === 0) return "#8e8e93";
+    return "#8e8e93";
+  }
+  function parseJsonLoose(raw) {
+    try {
+      var s = String(raw || "").trim();
+      var i = s.indexOf("```");
+      if (i >= 0) { s = s.replace(/```json/gi, "```").split("```").filter(function (x) { return x.trim(); }).join(""); }
+      i = s.indexOf("{");
+      var j = s.lastIndexOf("}");
+      if (i >= 0 && j > i) s = s.slice(i, j + 1);
+      var o = JSON.parse(s);
+      return o && typeof o === "object" ? o : null;
+    } catch (e) { return null; }
+  }
+  function str(v, d) {
+    if (v === undefined || v === null) return d != null ? d : "";
+    return String(v).trim() || (d != null ? d : "");
+  }
+  function lastUserOf(log) {
+    if (!log || !log.length) return "";
+    for (var i = log.length - 1; i >= 0; i--) {
+      var m = log[i];
+      if (m && m.role === "user" && typeof m.content === "string" && m.content.trim() && !m.type) return m.content.trim();
+    }
+    return "";
+  }
+  function resolvePa(roleId) {
+    try {
+      var t = window.chatTarget ? chatTarget(roleId) : null;
+      if (!t) return { t: null, pa: null };
+      var pa = t.persona || t.npc || null;
+      return { t: t, pa: pa };
+    } catch (e) { return { t: null, pa: null }; }
+  }
+  /* 生成一条心声：fetch API 硬驱动 */
+  function genHeart(roleId, scene, gid, reply, lastUser, silent) {
+    return new Promise(function (resolve) {
+      try {
+        var r = resolvePa(roleId);
+        var t = r.t, pa = r.pa;
+        if (!t || !t.name) { resolve(false); return; }
+        var p;
+        try { p = pa ? personaPlan(pa) : null; } catch (e) { p = null; }
+        if (!p) p = window.activePlan ? activePlan("chat") : null;
+        if (!p || !p.baseUrl || !p.apiKey) { failHint("心声生成失败：还没接入对话模型 API，角色回复后心声无法生成"); resolve(false); return; }
+        var name = t.name;
+        var style = t.style || "自然";
+        var intro = String(t.intro || "").slice(0, 220);
+        var sys0 = String(t.system || "").slice(0, 220);
+        var memtxt = "";
+        try {
+          if (pa && window.buildMemoryInject) memtxt = String(buildMemoryInject(pa) || "").slice(0, 500);
+        } catch (e) { memtxt = ""; }
+        var sys = "你是霁月机的「心声引擎」，负责为聊天角色生成内心独白。\n当前角色：" + name + "（性格：" + style + "）";
+        if (intro) sys += "\n角色简介：" + intro;
+        if (sys0) sys += "\n角色设定节选：" + sys0;
+        if (memtxt) sys += "\n角色近期记忆：" + memtxt;
+        sys += "\n要求：完全以" + name + "的第一人称思考，输出一个 JSON 对象。只输出 JSON，禁止输出多余文字、禁止 Markdown 代码块。字段：\n- mood：此刻心情（emoji+2~6字），如 \"😊 有点小开心\"\n- online：此刻在线状态，只能取「在线/忙碌/离线/隐身/睡觉/勿扰」之一\n- whisper：心声碎碎念（8~45字第一人称心里话，真实不客套，体现口吻与情绪，不能是发给玩家的客套话）\n- place：此刻所在地点（具体，如\"公司工位/图书馆/出租屋沙发/地铁上\"）\n- schedule：此刻或接下来的日程（10~30字）\n- distance：与屏幕那头玩家的距离感（日常口语，如\"隔了三条街\"，10~20字）";
+        var sceneDesc = scene === "group" ? "你正在群聊「" + (gid && window.findGroup ? (findGroup(gid) || {}).name || "群" : "群") + "」里，和玩家及其他群成员聊天" : "你正在和玩家单聊";
+        var usr = "【场景】" + sceneDesc + "\n【刚才的对话】\n玩家：「" + (lastUser || "……") + "」\n" + name + "：「" + String(reply || "").slice(0, 500) + "」\n【任务】以" + name + "的身份，输出在这条回复发出后、立刻浮现在心里的心声 JSON。";
+        var url = String(p.baseUrl).replace(/\/+$/, "") + "/chat/completions";
+        var ac = new AbortController();
+        var timer = setTimeout(function () { try { ac.abort(); } catch (e) {} }, 30000);
+        fetch(url, { method: "POST", signal: ac.signal, headers: { "Content-Type": "application/json", "Authorization": "Bearer " + p.apiKey }, body: JSON.stringify({ model: p.model || "gpt-3.5-turbo", messages: [{ role: "system", content: sys }, { role: "user", content: usr }], temperature: 0.9 }) }).then(function (res) {
+          clearTimeout(timer);
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        }).then(function (data) {
+          var msg = data && data.choices && data.choices[0] && data.choices[0].message;
+          if (!msg) throw new Error("no message");
+          var reason = msg.reasoning_content || msg.reasoning || null;
+          var obj = parseJsonLoose(msg.content);
+          if (!obj) {
+            // 模型把 JSON 藏在思考里时兜底一次
+            if (reason) obj = parseJsonLoose(reason);
+            if (!obj) throw new Error("parse fail");
+          }
+          var entry = {
+            ts: Date.now(),
+            scene: scene,
+            gid: gid || null,
+            reply: String(reply || "").slice(0, 300),
+            lastUser: String(lastUser || "").slice(0, 200),
+            mood: str(obj.mood, "✨ 情绪微妙"),
+            online: str(obj.online, "在线"),
+            whisper: str(obj.whisper, "……"),
+            place: str(obj.place, "屏幕对面"),
+            schedule: str(obj.schedule, "正在想你怎么还没回消息"),
+            distance: str(obj.distance, "隔着一块屏幕"),
+            reason: reason ? String(reason) : null
+          };
+          var lst = heartOf(roleId);
+          if (lst) {
+            lst.list.unshift(entry);
+            if (lst.list.length > 40) lst.list.length = 40;
+          }
+          // 记入角色记忆（心声与回复记忆同源机制）
+          try {
+            var memtxt2 = "心声（" + fmtTime(entry.ts) + "）：" + entry.mood + "·" + entry.online + "，心声：" + entry.whisper + "。此刻在" + entry.place + "，日程：" + entry.schedule + "，与玩家相距：" + entry.distance;
+            if (scene === "group") {
+              var t2 = window.chatTarget ? chatTarget(roleId) : null;
+              if (t2 && t2.persona) addMemorySourceFor(t2.persona, "heart", memtxt2);
+              else if (t2 && t2.originPersonaId && window.findPersona) { var op = findPersona(t2.originPersonaId); if (op) addMemorySourceFor(op, "heart", memtxt2); }
+              else if (window.addGroupMemorySource && gid) addGroupMemorySource(gid, roleId, "（" + name + "的心声）" + memtxt2);
+            } else {
+              if (window.addMemorySourceFor && pa) addMemorySourceFor(pa, "heart", memtxt2);
+            }
+          } catch (e) {}
+          try { if (window.save) save(); } catch (e) {}
+          try {
+            if (!silent) { if (window.toast) toast(name + " 的心声已更新"); }
+          } catch (e) {}
+          refreshIfOpen(roleId);
+          resolve(true);
+        }).catch(function (e) {
+          clearTimeout(timer);
+          try { failHint("心声生成失败：" + (e && e.message || "接口异常，心声必须由 API 生成")); } catch (e2) {}
+          resolve(false);
+        });
+      } catch (e) {
+        try { failHint("心声生成失败：接口不可用，心声必须由 API 生成"); } catch (e2) {}
+        resolve(false);
+      }
+    });
+  }
+  /* 单聊：角色回复后必生成一次心声 */
+  window.jyHeartAfterSingleReply = function (log, sp, finalReply) {
+    try {
+      if (!hEnabled()) return;
+      var pid = window.currentChatId ? currentChatId() : null;
+      if (!pid) return;
+      if (window.chatKind && chatKind(pid) === "group") return;
+      var t = window.chatTarget ? chatTarget(pid) : null;
+      if (!t || !t.name || t.kind === "group") return;
+      var replyTxt = String(finalReply || "").trim() || String((sp && (sp.pat || sp.moment || sp.voice)) || "").trim();
+      if (!replyTxt) return;
+      var lu = lastUserOf(log);
+      if (BUSY[pid]) return;
+      BUSY[pid] = true;
+      genHeart(pid, "single", null, replyTxt, lu, true).then(function () { BUSY[pid] = false; }, function () { BUSY[pid] = false; });
+    } catch (e) {}
+  };
+  /* 群聊：每个回复成员生成心声 */
+  window.jyHeartAfterGroupReply = function (gid, mid, t, reply, lastUser) {
+    try {
+      if (!hEnabled()) return;
+      if (!mid || !reply) return;
+      if (BUSY[mid]) return;
+      BUSY[mid] = true;
+      genHeart(mid, "group", gid, reply, lastUser || "", true).then(function () { BUSY[mid] = false; }, function () { BUSY[mid] = false; });
+    } catch (e) {}
+  };
+  /* 头像绑定：单击看心声（防双击拍一拍冲突） */
+  window.jyHeartBindAvatar = function (av, roleId, scene) {
+    if (!av || !roleId) return;
+    av.style.cursor = "pointer";
+    var t = null;
+    av.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (t) { clearTimeout(t); t = null; }
+      if (e.detail && e.detail > 1) return;
+      t = setTimeout(function () {
+        t = null;
+        window.jyHeartOpenCard(roleId, scene || null);
+      }, 250);
+    });
+  };
+  function ensureRoot() {
+    var r = document.getElementById("jyHeartRoot");
+    if (!r) {
+      r = document.createElement("div");
+      r.id = "jyHeartRoot";
+      document.body.appendChild(r);
+    }
+    return r;
+  }
+  function refreshIfOpen(roleId) {
+    if (!S.roleId || S.roleId !== roleId) return;
+    var r = document.getElementById("jyHeartRoot");
+    if (r && r.classList.contains("show")) renderCard();
+  }
+  function emptyHtml(t) {
+    if (!t) t = {};
+    var hasPlan = false;
+    try {
+      var p = pa4role(t.roleId);
+      hasPlan = !!(p && p.baseUrl && p.apiKey);
+    } catch (e) {}
+    var btn = hasPlan ? '<button class="jh-btn primary" onclick="jyHeartForceNow()">现在就听 TA 的心声</button>' : '<button class="jh-btn light" onclick="jyHeartClose()">关闭</button>';
+    return '<div class="jh-empty"><div class="je-emoji">🫧</div>TA 还没有心声<br>角色每次回复后，心声都会在这里浮现<br><span style="font-size:11px;color:#bbb">点击聊天里的角色头像查看 · 支持历史与思维链</span></div><div class="jh-foot">' + btn + '</div>';
+  }
+  function pa4role(roleId) {
+    var r = resolvePa(roleId);
+    try { if (r.pa) return personaPlan(r.pa); } catch (e) {}
+    return window.activePlan ? activePlan("chat") : null;
+  }
+  function histHtml() {
+    var lst = heartOf(S.roleId);
+    var list = (lst && lst.list) || [];
+    var out = "";
+    for (var i = 0; i < list.length; i++) {
+      if (i === S.idx) continue;
+      var it = list[i];
+      if (i >= 8) break;
+      out += '<div class="jh-hist-line' + (i === S.idx ? " on" : "") + '" onclick="jyHeartPick(' + i + ')"><span class="hl-mood">' + esc(it.mood || "💭") + '</span><span class="hl-txt">' + esc(it.whisper || "") + '</span><span class="hl-time">' + fmtTime(it.ts) + '</span></div>';
+    }
+    if (!out) return "";
+    return '<div class="jh-history"><div class="jh-hist-t">📚 最近的心声历史</div>' + out + '</div>';
+  }
+  function renderCard() {
+    var r = ensureRoot();
+    var lst = heartOf(S.roleId);
+    var list = (lst && lst.list) || [];
+    var t = window.chatTarget ? chatTarget(S.roleId) : null;
+    var name = t ? t.name : S.roleId;
+    var avatar = window.chatTargetAvatar ? chatTargetAvatar(S.roleId) : "";
+    if (!list.length) {
+      r.innerHTML = '<div class="jh-card"><div class="jh-head"><button class="jh-close" onclick="jyHeartClose()">✕</button><img class="jh-avatar" src="' + esc(avatar) + '" alt=""><div class="jh-who"><div class="jh-name"><span class="jh-nametxt">' + esc(name) + '</span></div><div class="jh-meta">' + (t && t.name ? "角色心声" : "") + '</div></div></div><div class="jh-body">' + emptyHtml() + '</div></div>';
+      return;
+    }
+    var cur = list[S.idx] || list[0];
+    var mood = str(cur.mood, "💭");
+    var online = str(cur.online, "在线");
+    var reasonTxt = cur.reason || null;
+    if (!reasonTxt) {
+      try {
+        var lr = window.__jyLastModelReason;
+        if (lr && lr.text && lr.ts && (Date.now() - lr.ts < 30000)) reasonTxt = lr.text;
+      } catch (e) {}
+    }
+    var sceneTxt = cur.scene === "group" ? (cur.gid && window.findGroup ? (function(){var g=findGroup(cur.gid);return g?g.name:"";})() : "") || "群聊" : "单聊";
+    var html = "";
+    html += '<div class="jh-head"><button class="jh-close" onclick="jyHeartClose()">✕</button>';
+    html += '<img class="jh-avatar" src="' + esc(avatar) + '" alt=""><div class="jh-who"><div class="jh-name"><span class="jh-nametxt">' + esc(name) + '</span><span class="jh-online"><span class="jh-dot" style="background:' + dotColor(online) + '"></span>' + esc(online) + '</span></div><div class="jh-meta">' + fmtTime(cur.ts) + ' · ' + esc(sceneTxt) + ' · 点开即听</div></div><span class="jh-moodtag">' + esc(mood) + '</span></div>';
+    html += '<div class="jh-body">';
+    html += '<div class="jh-whisper"><span class="jw-tag">心声碎碎念</span><div>' + esc(cur.whisper) + '</div></div>';
+    html += '<div class="jh-grid">';
+    html += '<div class="jh-cell full"><div class="jc-k">📍 当前位置</div><div class="jc-v">' + esc(cur.place) + '</div></div>';
+    html += '<div class="jh-cell"><div class="jc-k">🗓 当前日程</div><div class="jc-v">' + esc(cur.schedule) + '</div></div>';
+    html += '<div class="jh-cell"><div class="jc-k">📏 与你的距离</div><div class="jc-v">' + esc(cur.distance) + '</div></div>';
+    html += '</div>';
+    if (cur.lastUser || cur.reply) {
+      html += '<div class="jh-reply"><b>刚才：</b>' + esc(cur.lastUser ? "你说「" + cur.lastUser + "」" : "") + (cur.lastUser && cur.reply ? "<br>" : "") + (cur.reply ? esc(name) + " 回：「" + cur.reply + "」" : "") + '</div>';
+    }
+    html += '<div class="jh-chain">';
+    if (reasonTxt) {
+      html += '<div class="jh-chain-hd" onclick="jyHeartChainToggle(this)"><span class="ar">▸</span>🧠 模型本体思维链（' + fmtTime(cur.ts) + '）</div><div class="jh-chain-body">' + esc(reasonTxt) + '</div>';
+    } else {
+      html += '<div class="jh-chain-hd" style="cursor:default;color:#c3b8cf">🧠 本次模型未返回思维链</div>';
+    }
+    html += '</div>';
+    html += histHtml();
+    html += '</div>';
+    html += '<div class="jh-foot"><button class="jh-btn light" onclick="jyHeartForceNow()">🔄 再听一条</button><button class="jh-btn primary" onclick="jyHeartClose()">知道了</button></div>';
+    r.innerHTML = '<div class="jh-card">' + html + '</div>';
+  }
+  window.jyHeartPick = function (idx) {
+    S.idx = idx;
+    renderCard();
+  };
+  window.jyHeartChainToggle = function (el) {
+    var b = el.parentNode ? el.parentNode.querySelector(".jh-chain-body") : null;
+    if (b) { var show = !b.classList.contains("show"); b.classList.toggle("show", show); el.classList.toggle("open", show); }
+  };
+  window.jyHeartClose = function () {
+    var r = document.getElementById("jyHeartRoot");
+    if (r) r.classList.remove("show");
+    S.roleId = null;
+  };
+  window.jyHeartForceNow = function () {
+    if (!S.roleId) return;
+    try {
+      var roleId = S.roleId;
+      var gid = null, scene = "single", log = null;
+      if (S.scene === "group") { scene = "group"; gid = S.gid || (window.currentChatId ? currentChatId() : null); }
+      if (scene === "single") { log = window.chatLog ? chatLog(roleId) : null; }
+      else { log = gid && window.chatLog ? chatLog(gid) : null; }
+      var lastUser = "";
+      var reply = "";
+      if (log && log.length) {
+        lastUser = lastUserOf(log);
+        for (var i = log.length - 1; i >= 0; i--) {
+          var m = log[i];
+          if (m && m.role === "assistant" && typeof m.content === "string" && m.content.trim()) { reply = m.content.trim(); break; }
+        }
+      }
+      if (!reply) { try { if (window.toast) toast("还没有可生成心声的消息，先聊一句吧"); } catch (e) {} return; }
+      if (BUSY[roleId]) return;
+      BUSY[roleId] = true;
+      genHeart(roleId, scene, gid, reply, lastUser, false).then(function () { BUSY[roleId] = false; }, function () { BUSY[roleId] = false; });
+    } catch (e) {}
+  };
+  window.jyHeartOpenCard = function (roleId, scene) {
+    try {
+      if (!roleId) return;
+      S.roleId = roleId;
+      S.scene = scene || null;
+      S.idx = 0;
+      S.gid = null;
+      if (S.scene === "group" && window.currentChatId) S.gid = currentChatId();
+      var r = ensureRoot();
+      renderCard();
+      r.classList.add("show");
+    } catch (e) {}
+  };
+})();
+</script>
+<script>
+/* ===== 霁月机76 · 桌面分页 + 长按拖动整理（App / 小组件可跨页搬） ===== */
+var JY76 = { active: 0, pages: null, drag: null, mode: "idle", suppressClickUntil: 0 };
+var JY76_PAGE_CAP = 12;
+var JY76_WID_PAGE_CAP = 6;
+
+function jy76EnsureUid() {
+  try {
+    (DB.widgets || []).forEach(function(w, i) {
+      if (!w.uid) w.uid = "wg" + i + "_" + Math.random().toString(36).slice(2, 8);
+    });
+  } catch (e) {}
+}
+function jy76Pages() {
+  if (!DB.homeLayout || !DB.homeLayout.pages || !DB.homeLayout.pages.length) {
+    var arr = (DB.homeOrder && DB.homeOrder.length) ? DB.homeOrder.slice() : (DEFAULT_HOME_ORDER ? DEFAULT_HOME_ORDER.slice() : []);
+    var pages = [];
+    for (var i = 0; i < arr.length; i += JY76_PAGE_CAP) pages.push({ apps: arr.slice(i, i + JY76_PAGE_CAP), wids: [] });
+    if (!pages.length) pages.push({ apps: [], wids: [] });
+    DB.homeLayout = { pages: pages };
+  }
+  jy76EnsureUid();
+  var pool = DB.widgets || [];
+  pool.forEach(function(w) {
+    var found = false;
+    DB.homeLayout.pages.forEach(function(pg) { if (pg.wids && pg.wids.indexOf(w.uid) >= 0) found = true; });
+    if (!found) DB.homeLayout.pages[0].wids.push(w.uid);
+  });
+  DB.homeLayout.pages.forEach(function(pg) { if (!pg.apps) pg.apps = []; if (!pg.wids) pg.wids = []; });
+  return DB.homeLayout.pages;
+}
+function jy76WidgetByUid(uid) {
+  var pool = DB.widgets || [];
+  for (var i = 0; i < pool.length; i++) if (pool[i].uid === uid) return pool[i];
+  return null;
+}
+function jy76WidgetIdxByUid(uid) {
+  var pool = DB.widgets || [];
+  for (var i = 0; i < pool.length; i++) if (pool[i].uid === uid) return i;
+  return -1;
+}
+function jy76CleanPages() {
+  if (JY76.pages.length > 1) {
+    JY76.pages = JY76.pages.filter(function(pg, idx) {
+      return idx === 0 || (pg.apps && pg.apps.length) || (pg.wids && pg.wids.length);
+    });
+    DB.homeLayout.pages = JY76.pages;
+  }
+  if (JY76.active >= JY76.pages.length) JY76.active = JY76.pages.length - 1;
+  if (JY76.active < 0) JY76.active = 0;
+}
+function jy76UpdateTrack() {
+  var t = document.getElementById("homeTrack");
+  var pager = document.getElementById("homePager");
+  if (!t || !pager) return;
+  t.style.transform = "translateX(" + (-JY76.active * pager.clientWidth) + "px)";
+}
+function jy76RenderDots() {
+  var box = document.getElementById("homeDots");
+  if (!box) return;
+  if (JY76.pages.length <= 1) { box.style.visibility = "hidden"; box.innerHTML = ""; return; }
+  box.style.visibility = "visible";
+  var html = "";
+  for (var i = 0; i < JY76.pages.length; i++) {
+    html += '<span class="hd-dot' + (i === JY76.active ? " on" : "") + '"></span>';
+  }
+  box.innerHTML = html;
+}
+function jy76RenderPageWidgets(pg) {
+  var track = document.getElementById("homeTrack");
+  if (!track) return;
+  var box = track.querySelector('.hp-widgets[data-pg="' + pg + '"]');
+  if (!box) return;
+  box.innerHTML = "";
+  var pgObj = JY76.pages[pg];
+  (pgObj.wids || []).forEach(function(uid) {
+    var w = jy76WidgetByUid(uid);
+    if (!w) return;
+    var idx = jy76WidgetIdxByUid(uid);
+    var el = document.createElement("div");
+    el.className = "hw-item hw-" + w.type;
+    el.setAttribute("data-widx", idx);
+    el.setAttribute("data-uid", uid);
+    el.innerHTML = '<span class="hp-del-x" onclick="event.stopPropagation();jy76DeleteWidget(\'' + uid + '\')">✕</span>' + widgetHtml(w, idx);
+    box.appendChild(el);
+  });
+  if (!pgObj.wids || !pgObj.wids.length) {
+    box.innerHTML = '<div class="hp-wid-empty" style="display:none"></div>';
+  }
+}
+function jy76RenderPageGrid(pg) {
+  var track = document.getElementById("homeTrack");
+  if (!track) return;
+  var grid = track.querySelector('.hp-grid[data-pg="' + pg + '"]');
+  if (!grid) return;
+  var html = "";
+  var pgObj = JY76.pages[pg];
+  (pgObj.apps || []).forEach(function(id) {
+    var m = HOME_APP_META[id];
+    if (!m) return;
+    html += '<div class="app" data-app="' + id + '" onclick="openApp(\'' + id + '\')"><div class="app-icon">' + m.icon + '</div><div class="app-name">' + m.name + "</div></div>";
+  });
+  grid.innerHTML = html;
+}
+function jy76RenderAll() {
+  var track = document.getElementById("homeTrack");
+  if (!track) return;
+  JY76.pages = jy76Pages();
+  jy76CleanPages();
+  var html = "";
+  for (var i = 0; i < JY76.pages.length; i++) {
+    html += '<div class="home-page" data-page="' + i + '"><div class="hp-widgets" data-pg="' + i + '"></div><div class="hp-grid" data-pg="' + i + '"></div></div>';
+  }
+  track.innerHTML = html;
+  for (var w = 0; w < JY76.pages.length; w++) jy76RenderPageWidgets(w);
+  for (var g = 0; g < JY76.pages.length; g++) jy76RenderPageGrid(g);
+  jy76RenderDots();
+  jy76UpdateTrack();
+  try { save(); } catch (e) {}
+}
+function renderHomeWidgets() {
+  var track = document.getElementById("homeTrack");
+  if (!track || !track.childNodes.length) {
+    var ob = document.getElementById("homeWidgets");
+    if (ob) {
+      ob.innerHTML = "";
+      var list = homeWidgets();
+      list.forEach(function(w, i) {
+        var el = document.createElement("div");
+        el.className = "hw-item hw-" + w.type;
+        el.setAttribute("data-widx", i);
+        el.innerHTML = widgetHtml(w, i);
+        bindWidgetLongPress(el, i);
+        ob.appendChild(el);
+      });
+    }
+    try { updateWidgetTimes(); } catch (e) {}
+    return;
+  }
+  JY76.pages = jy76Pages();
+  for (var i = 0; i < JY76.pages.length; i++) jy76RenderPageWidgets(i);
+  try { updateWidgetTimes(); } catch (e) {}
+}
+function renderHomeGrid() {
+  var track = document.getElementById("homeTrack");
+  if (!track || !track.childNodes.length) {
+    var og = document.getElementById("homeGrid");
+    if (og) {
+      var html = "";
+      homeOrderArr().forEach(function(id) {
+        var m = HOME_APP_META[id];
+        if (!m) return;
+        html += '<div class="app" data-app="' + id + '" onclick="openApp(\'' + id + '\')"><div class="app-icon">' + m.icon + '</div><div class="app-name">' + m.name + "</div></div>";
+      });
+      og.innerHTML = html;
+    }
+    return;
+  }
+  JY76.pages = jy76Pages();
+  for (var i = 0; i < JY76.pages.length; i++) jy76RenderPageGrid(i);
+  jy76RenderDots();
+  jy76UpdateTrack();
+}
+function addWidget(type) {
+  var list = homeWidgets();
+  list.push({ type: type, data: widgetDefaults(type) });
+  jy76EnsureUid();
+  save();
+  var uid = list[list.length - 1].uid;
+  JY76.pages = jy76Pages();
+  JY76.pages[0].wids = JY76.pages[0].wids.filter(function(x) { return x !== uid; });
+  JY76.pages[JY76.active].wids.push(uid);
+  save();
+  renderHomeWidgets();
+  renderHomeGrid();
+  closeWidgetPick();
+  try { toast("已添加「" + widgetTypeName(type) + "」：点文字改内容、点图片换图、整理模式可拖动/长按✕删除"); } catch (e) {}
+}
+function jy76DeleteWidget(uid) {
+  var pool = DB.widgets || [];
+  for (var i = 0; i < pool.length; i++) {
+    if (pool[i].uid === uid) {
+      var wt = pool[i].type;
+      pool.splice(i, 1);
+      break;
+    }
+  }
+  JY76.pages = jy76Pages();
+  JY76.pages.forEach(function(pg) { pg.wids = pg.wids.filter(function(x) { return x !== uid; }); });
+  jy76CleanPages();
+  save();
+  renderHomeWidgets();
+  renderHomeGrid();
+  try { toast("已删除小组件"); } catch (e) {}
+  jy76ExitEdit();
+}
+function jy76SetActive(n) {
+  var pager = document.getElementById("homePager");
+  if (!pager) return;
+  JY76.pages = jy76Pages();
+  if (n < 0) n = 0;
+  if (n >= JY76.pages.length) n = JY76.pages.length - 1;
+  JY76.active = n;
+  jy76UpdateTrack();
+  jy76RenderDots();
+}
+function jy76EnterEdit() {
+  var track = document.getElementById("homeTrack");
+  if (!track) return;
+  track.querySelectorAll(".hp-grid, .hp-widgets").forEach(function(c) { c.classList.add("jiggle"); });
+}
+function jy76ExitEdit() {
+  var track = document.getElementById("homeTrack");
+  if (!track) return;
+  track.querySelectorAll(".hp-grid, .hp-widgets").forEach(function(c) { c.classList.remove("jiggle"); });
+}
+var jy76EdgeTimer = 0;
+function jy76BeginDrag(kind, el, sx, sy) {
+  if (JY76.drag && JY76.drag.on) return;
+  var pageEl = el.closest ? el.closest(".home-page") : null;
+  var fromPg = pageEl ? parseInt(pageEl.getAttribute("data-page"), 10) : JY76.active;
+  var rect = el.getBoundingClientRect();
+  var ghost = document.createElement("div");
+  ghost.className = kind === "app" ? "app drop-ghost" : "hw-item drop-ghost";
+  ghost.style.width = rect.width + "px";
+  ghost.style.height = rect.height + "px";
+  ghost.id = "jy76Ghost";
+  var id = kind === "app" ? (el.dataset.app || "") : (el.dataset.uid || "");
+  JY76.drag = { on: true, kind: kind, id: id, fromPg: fromPg, el: el, ghost: ghost, startX: sx, startY: sy, neighbor: null, after: false, lastEdge: 0 };
+  JY76.mode = "drag";
+  document.body.classList.add("no-scroll");
+  el.classList.add("dragging");
+  el.style.width = rect.width + "px";
+  el.style.height = rect.height + "px";
+  el.style.left = rect.left + "px";
+  el.style.top = rect.top + "px";
+  el.style.transform = "translate(0px,0px) scale(1.06)";
+  var cont = jy76ContainerOf(kind, fromPg);
+  if (cont) cont.insertBefore(ghost, el.nextSibling || null);
+  jy76EnterEdit();
+  try { toast(kind === "app" ? "拖动图标：拖到屏幕左右边缘可翻页换页放置" : "拖动小组件：拖到屏幕左右边缘可换页放置"); } catch (e) {}
+  JY76.suppressClickUntil = Date.now() + 600;
+}
+function jy76ContainerOf(kind, pg) {
+  var track = document.getElementById("homeTrack");
+  if (!track) return null;
+  var sel = kind === "app" ? ".hp-grid" : ".hp-widgets";
+  return track.querySelector(sel + '[data-pg="' + pg + '"]');
+}
+function jy76DragMove(e) {
+  var d = JY76.drag;
+  if (!d || !d.on) return;
+  e.preventDefault();
+  var el = d.el;
+  el.style.transform = "translate(" + (e.clientX - d.startX) + "px," + (e.clientY - d.startY) + "px) scale(1.06)";
+  var pager = document.getElementById("homePager");
+  var vw = pager ? pager.clientWidth : window.innerWidth;
+  var now = Date.now();
+  if (e.clientX <= 26 || e.clientX >= vw - 26) {
+    if (!d.lastEdge || now - d.lastEdge > 420) {
+      d.lastEdge = now;
+      var dir = e.clientX <= 26 ? -1 : 1;
+      var ni = JY76.active + dir;
+      if (ni >= 0 && ni < JY76.pages.length) {
+        jy76SetActive(ni);
+        jy76MoveGhost(e);
+      }
+    }
+  } else {
+    d.lastEdge = 0;
+  }
+  jy76MoveGhost(e);
+}
+function jy76MoveGhost(e) {
+  var d = JY76.drag;
+  if (!d || !d.on) return;
+  var cont = jy76ContainerOf(d.kind, JY76.active);
+  if (!cont) return;
+  var ghost = d.ghost;
+  if (ghost.parentElement !== cont) cont.appendChild(ghost);
+  var items = [];
+  cont.querySelectorAll(d.kind === "app" ? ".app:not(.dragging)" : ".hw-item:not(.dragging)").forEach(function(it) {
+    if (it === ghost) return;
+    items.push(it);
+  });
+  var best = null, bestD = 1e18, after = false;
+  var rx = e.clientX, ry = e.clientY;
+  items.forEach(function(it) {
+    var r = it.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var ddx = rx - cx, ddy = ry - cy;
+    var dist = ddx * ddx + ddy * ddy;
+    var inRowBand = Math.abs(ddy) <= r.height * 1.6;
+    if (dist < bestD) {
+      bestD = dist;
+      best = it;
+      if (d.kind === "app") {
+        after = ddx > r.width * 0.35 || (!inRowBand && ddy > r.height * 0.35);
+      } else {
+        after = ry > cy;
+      }
+    }
+  });
+  if (best) {
+    d.neighbor = d.kind === "app" ? (best.dataset.app || "") : (best.dataset.uid || "");
+    d.after = after;
+    var oldR = ghost.getBoundingClientRect();
+    cont.insertBefore(ghost, after && best.nextSibling ? best.nextSibling : best);
+    var nR = ghost.getBoundingClientRect();
+    var mvx = oldR.left - nR.left, mvy = oldR.top - nR.top;
+    if (mvx || mvy) {
+      ghost.style.transition = "none";
+      ghost.style.transform = "translate(" + mvx + "px," + mvy + "px)";
+      void ghost.offsetWidth;
+      ghost.style.transition = "transform .18s ease";
+      ghost.style.transform = "";
+    }
+  } else {
+    d.neighbor = null;
+    cont.appendChild(ghost);
+  }
+}
+function jy76DoDrop() {
+  var d = JY76.drag;
+  if (!d || !d.on) return;
+  var kind = d.kind, id = d.id;
+  var pages = JY76.pages = jy76Pages();
+  var fromPg = d.fromPg >= 0 && d.fromPg < pages.length ? d.fromPg : 0;
+  var tp = JY76.active >= 0 && JY76.active < pages.length ? JY76.active : 0;
+  var targetPage = pages[tp];
+  pages.forEach(function(pg) {
+    if (kind === "app") pg.apps = pg.apps.filter(function(x) { return x !== id; });
+    else pg.wids = pg.wids.filter(function(x) { return x !== id; });
+  });
+  var arr = kind === "app" ? pages[tp].apps : pages[tp].wids;
+  var full = kind === "app" && arr.length >= JY76_PAGE_CAP && tp !== fromPg;
+  var fullW = kind !== "app" && arr.length >= JY76_WID_PAGE_CAP && tp !== fromPg;
+  if (full || fullW) {
+    pages[fromPg][kind === "app" ? "apps" : "wids"].push(id);
+    try { toast(kind === "app" ? "这页满啦，长按图标拖到屏幕边缘翻页放到别的页" : "这页小组件太多，先搬到别的页吧"); } catch (e) {}
+    jy76CleanupDrop(true);
+    return;
+  }
+  var idx = d.neighbor ? arr.indexOf(d.neighbor) : -1;
+  if (idx >= 0) {
+    if (d.after) idx = idx + 1;
+  } else {
+    idx = arr.length;
+  }
+  if (idx < 0) idx = 0;
+  if (idx > arr.length) idx = arr.length;
+  arr.splice(idx, 0, id);
+  save();
+  jy76CleanupDrop(false);
+}
+function jy76CleanupDrop(reverted) {
+  var d = JY76.drag;
+  if (!d) return;
+  try {
+    if (d.ghost && d.ghost.parentElement) d.ghost.parentElement.removeChild(d.ghost);
+    if (d.el) {
+      d.el.classList.remove("dragging");
+      d.el.style.width = "";
+      d.el.style.height = "";
+      d.el.style.left = "";
+      d.el.style.top = "";
+      d.el.style.transform = "";
+    }
+  } catch (e) {}
+  JY76.drag = null;
+  JY76.mode = "idle";
+  try { document.body.classList.remove("no-scroll"); } catch (e) {}
+  jy76ExitEdit();
+  renderHomeGrid();
+  renderHomeWidgets();
+  try { save(); } catch (e) {}
+}
+function jy76BindInteractions() {
+  var pager = document.getElementById("homePager");
+  var track = document.getElementById("homeTrack");
+  if (!pager || !track || pager.dataset.jy76) return;
+  pager.dataset.jy76 = "1";
+  var sx = 0, sy = 0, baseActive = 0, pid = null, longTimer = null, moved = false;
+  var downOn = null;
+  pager.addEventListener("pointerdown", function(e) {
+    if (JY76.drag && JY76.drag.on) return;
+    var appEl = e.target.closest ? e.target.closest(".hp-grid .app") : null;
+    var widEl = e.target.closest ? e.target.closest(".hp-widgets .hw-item") : null;
+    var jig = pager.querySelector(".hp-grid.jiggle, .hp-widgets.jiggle");
+    downOn = null;
+    if (appEl) downOn = { kind: "app", el: appEl };
+    else if (widEl) {
+      if (e.target.closest(".hp-del-x")) return;
+      downOn = { kind: "wid", el: widEl };
+    }
+    sx = e.clientX; sy = e.clientY; moved = false; baseActive = JY76.active;
+    pid = e.pointerId;
+    JY76.mode = "maybe";
+    try { pager.setPointerCapture(pid); } catch (err) {}
+    if (downOn) {
+      longTimer = setTimeout(function() {
+        if (moved || !downOn) return;
+        jy76BeginDrag(downOn.kind, downOn.el, sx, sy);
+      }, 350);
+    }
+    function onWinMove(ev) {
+      if (ev.pointerId !== pid) return;
+      if (Math.abs(ev.clientX - sx) > 9 || Math.abs(ev.clientY - sy) > 9) moved = true;
+    }
+    function onWinUp(ev) {
+      if (ev.pointerId !== pid) return;
+      window.removeEventListener("pointermove", onWinMove);
+      window.removeEventListener("pointerup", onWinUp);
+      window.removeEventListener("pointercancel", onWinUp);
+    }
+    window.addEventListener("pointermove", onWinMove);
+    window.addEventListener("pointerup", onWinUp);
+    window.addEventListener("pointercancel", onWinUp);
+  });
+  pager.addEventListener("pointermove", function(e) {
+    if (e.pointerId !== pid) return;
+    if (JY76.drag && JY76.drag.on) { jy76DragMove(e); return; }
+    if (JY76.mode === "maybe") {
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) {
+        JY76.mode = "scroll";
+        if (longTimer) { clearTimeout(longTimer); longTimer = null; }
+        return;
+      }
+      if (Math.abs(dx) > 6) {
+        if (longTimer) { clearTimeout(longTimer); longTimer = null; }
+        JY76.mode = "slide";
+      } else {
+        return;
+      }
+    }
+    if (JY76.mode !== "slide") return;
+    var dx2 = e.clientX - sx;
+    var w = pager.clientWidth;
+    track.style.transition = "none";
+    var tx = -baseActive * w + dx2;
+    var maxT = -(JY76.pages.length - 1) * w;
+    if (tx > 0) tx = tx * 0.35;
+    if (tx < maxT) tx = maxT + (tx - maxT) * 0.35;
+    track.style.transform = "translateX(" + tx + "px)";
+  });
+  function settleSlide() {
+    if (longTimer) { clearTimeout(longTimer); longTimer = null; }
+    var w = pager.clientWidth;
+    var off = 0;
+    try {
+      var m = /translateX\(([-\d.]+)px\)/.exec(track.style.transform);
+      if (m) off = parseFloat(m[1]);
+    } catch (e) {}
+    var cur = Math.round(-off / w);
+    if (cur < 0) cur = 0;
+    if (cur >= JY76.pages.length) cur = JY76.pages.length - 1;
+    track.style.transition = "transform .3s cubic-bezier(.22,.9,.3,1)";
+    jy76SetActive(cur);
+  }
+  pager.addEventListener("pointerup", function(e) {
+    if (e.pointerId !== pid) return;
+    pid = null;
+    if (JY76.drag && JY76.drag.on) { jy76DoDrop(); JY76.suppressClickUntil = Date.now() + 500; return; }
+    if (JY76.mode === "slide") settleSlide();
+    if (JY76.mode === "maybe") {
+      if (longTimer) { clearTimeout(longTimer); longTimer = null; }
+    }
+    JY76.mode = "idle";
+  });
+  pager.addEventListener("pointercancel", function(e) {
+    if (e.pointerId !== pid) return;
+    pid = null;
+    if (JY76.drag && JY76.drag.on) { jy76DoDrop(); return; }
+    if (JY76.mode === "slide") settleSlide();
+    JY76.mode = "idle";
+  });
+  document.addEventListener("click", function(e) {
+    if (Date.now() < JY76.suppressClickUntil) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (JY76.drag && JY76.drag.on) return;
+    var jig = pager.querySelector(".hp-grid.jiggle, .hp-widgets.jiggle");
+    if (jig) {
+      if (!e.target.closest(".hp-grid .app") && !e.target.closest(".hp-widgets .hw-item") && !e.target.closest(".home-add-plus")) {
+        jy76ExitEdit();
+      }
+    }
+  }, true);
+}
+function jy76Boot() {
+  var home = document.getElementById("home");
+  if (!home || home.dataset.jy76) return;
+  home.dataset.jy76 = "1";
+  jy76EnsureUid();
+  JY76.pages = jy76Pages();
+  jy76RenderAll();
+  jy76BindInteractions();
+  try {
+    var topName = document.getElementById("homeMeName");
+    if (topName && !topName.textContent.trim()) topName.textContent = "我";
+  } catch (e) {}
+}
+(function () {
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    setTimeout(jy76Boot, 80);
+  } else {
+    window.addEventListener("DOMContentLoaded", function() { setTimeout(jy76Boot, 80); });
+  }
+  window.addEventListener("load", function() { setTimeout(jy76Boot, 30); });
+})();
+
 </script>
