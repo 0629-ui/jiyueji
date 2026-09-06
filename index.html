@@ -10,17 +10,220 @@
 <meta name="screen-orientation" content="portrait">
 <meta name="x5-orientation" content="portrait">
 <meta name="360-orientation" content="portrait">
-<title>霁月机 · AI 前端框架</title>
-<script>
+<title>霁月机 · AI 前端框架</title><script>
+/* ===== 霁月机77 · 全量老内核兼容层（Opera Mini/旧WebView/永恒浏览器） =====
+   必须在任何业务脚本之前执行：补齐缺失的 ES5+/DOM API，避免"Script error."黑屏。 */
+(function () {
+  function isFn(x) { return typeof x === "function"; }
+  /* console 兜底 */
+  if (typeof window !== "undefined" && !window.console) {
+    var noop = function () {};
+    window.console = { log: noop, warn: noop, error: noop, info: noop, debug: noop };
+  }
+  /* Element.matches / closest */
+  if (typeof Element !== "undefined") {
+    if (!Element.prototype.matches) {
+      Element.prototype.matches = Element.prototype.matchesSelector ||
+        Element.prototype.mozMatchesSelector || Element.prototype.msMatchesSelector ||
+        Element.prototype.webkitMatchesSelector || function (sel) {
+          var node = this, nodes = (node.parentNode || node.ownerDocument).querySelectorAll(sel), i = 0;
+          while (nodes[i] && nodes[i] !== node) i++;
+          return !!nodes[i];
+        };
+    }
+    if (!Element.prototype.closest) {
+      Element.prototype.closest = function (sel) {
+        var el = this;
+        while (el && el.nodeType === 1) { if (el.matches(sel)) return el; el = el.parentNode; }
+        return null;
+      };
+    }
+    /* Element.remove */
+    if (!Element.prototype.remove) {
+      Element.prototype.remove = function () {
+        if (this.parentNode) this.parentNode.removeChild(this);
+      };
+    }
+    /* classList 兜底（基于 className 的实时解析，不用 DOMTokenList） */
+    if (!document.documentElement.classList || typeof document.documentElement.classList.toggle !== "function") {
+      (function () {
+        function tokenList(el) {
+          var cache = { el: el };
+          function list() { return String(el.className || "").split(/\s+/).filter(function (x) { return x !== ""; }); }
+          cache.add = function () {
+            var cur = el.className ? String(el.className).split(/\s+/) : [];
+            for (var i = 0; i < arguments.length; i++) {
+              var c = String(arguments[i]);
+              if (cur.indexOf(c) === -1) cur.push(c);
+            }
+            el.className = cur.join(" ");
+          };
+          cache.remove = function () {
+            var cur = el.className ? String(el.className).split(/\s+/) : [];
+            for (var i = 0; i < arguments.length; i++) {
+              var c = String(arguments[i]);
+              for (var j = cur.length - 1; j >= 0; j--) if (cur[j] === c) cur.splice(j, 1);
+            }
+            el.className = cur.join(" ");
+          };
+          cache.toggle = function (c, force) {
+            c = String(c);
+            var cur = el.className ? String(el.className).split(/\s+/) : [];
+            var has = cur.indexOf(c) !== -1;
+            if (force === true && !has) cur.push(c);
+            else if (force === false && has) cur.splice(cur.indexOf(c), 1);
+            else if (force === undefined) { if (has) cur.splice(cur.indexOf(c), 1); else cur.push(c); }
+            el.className = cur.join(" ");
+            return force === undefined ? !has : force;
+          };
+          cache.contains = function (c) {
+            return list().indexOf(String(c)) !== -1;
+          };
+          cache.item = function (i) { return list()[i] || null; };
+          cache.length = 0;
+          return cache;
+        }
+        try {
+          Object.defineProperty(Element.prototype, "classList", { get: function () { return tokenList(this); } });
+        } catch (e) {
+          Element.prototype.classList = { add: function(){}, remove: function(){}, toggle: function(){ return false; }, contains: function(){ return false; }, item: function(){ return null; } };
+        }
+      })();
+    }
+    /* dataset 兜底（缓存对象，读写互见；不保证回写 attribute，页面逻辑依赖同引用即可） */
+    if (!document.documentElement.dataset || typeof document.documentElement.dataset !== "object" || Object.keys(document.documentElement.dataset).length === undefined) {
+      (function () {
+        function camel(k) { return k.replace(/-([a-z])/g, function (m, c) { return c.toUpperCase(); }); }
+        function build(el) {
+          var o = {};
+          if (el.attributes) {
+            for (var i = 0; i < el.attributes.length; i++) {
+              var a = el.attributes[i], n = a.name;
+              if (n.indexOf("data-") === 0 && n.length > 5) {
+                (function (key, val) {
+                  try {
+                    Object.defineProperty(o, key, { get: function () { return el.getAttribute("data-" + key.replace(/([A-Z])/g, function (m, c) { return "-" + c.toLowerCase(); })); }, set: function (v) { el.setAttribute("data-" + key.replace(/([A-Z])/g, function (m, c) { return "-" + c.toLowerCase(); }), v); }, enumerable: true, configurable: true });
+                  } catch (e2) { o[key] = val; }
+                })(camel(n.slice(5)), a.value);
+              }
+            }
+          }
+          return o;
+        }
+        try {
+          Object.defineProperty(Element.prototype, "dataset", {
+            get: function () {
+              if (!this.__jyDS) { try { Object.defineProperty(this, "__jyDS", { value: build(this), writable: true, configurable: true }); } catch (e) { this.__jyDS = build(this); } }
+              return this.__jyDS;
+            }
+          });
+        } catch (e) {}
+      })();
+    }
+  }
+  /* NodeList.forEach（老内核 NodeList 无 forEach） */
+  if (typeof NodeList !== "undefined" && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = function (fn, ctx) {
+      for (var i = 0; i < this.length; i++) fn.call(ctx || null, this[i], i, this);
+    };
+  }
+  /* rAF 兜底 */
+  if (typeof window !== "undefined") {
+    if (!window.requestAnimationFrame) {
+      window.requestAnimationFrame = function (cb) { return setTimeout(function () { cb(Date.now()); }, 16); };
+      window.cancelAnimationFrame = function (id) { clearTimeout(id); };
+    }
+  }
+  /* Promise 基础兜底（仅当宿主完全没有 Promise 时启用；API 面：then/catch/all/resolve/finally） */
+  if (typeof window !== "undefined" && !window.Promise) {
+    function PromisePoly(fn) {
+      var self = this;
+      self._v = undefined; self._s = 0; self._q = [];
+      function settle(s, v) { if (self._s) return; self._s = s; self._v = v; setTimeout(flush, 0); }
+      function flush() { for (var i = 0; i < self._q.length; i++) self._q[i](self._s, self._v); self._q = []; }
+      try { fn(function (v) { settle(1, v); }, function (v) { settle(2, v); }); } catch (e) { settle(2, e); }
+    }
+    PromisePoly.prototype.then = function (ok, fail) {
+      var self = this, P = PromisePoly;
+      return new P(function (res, rej) {
+        function run(s, v) {
+          try {
+            if (s === 1) { if (typeof ok === "function") { var r = ok(v); if (r && typeof r.then === "function") r.then(res, rej); else res(r); } else res(v); }
+            else { if (typeof fail === "function") { var r2 = fail(v); if (r2 && typeof r2.then === "function") r2.then(res, rej); else res(r2); } else rej(v); }
+          } catch (e) { rej(e); }
+        }
+        if (self._s) setTimeout(function () { run(self._s, self._v); }, 0);
+        else self._q.push(run);
+      });
+    };
+    PromisePoly.prototype["catch"] = function (f) { return this.then(null, f); };
+    PromisePoly.resolve = function (v) { return new PromisePoly(function (res) { res(v); }); };
+    PromisePoly.reject = function (v) { return new PromisePoly(function (res, rej) { rej(v); }); };
+    PromisePoly.all = function (arr) {
+      return new PromisePoly(function (res, rej) {
+        var left = arr.length, out = new Array(arr.length), done = false, i;
+        if (!arr.length) { res(out); return; }
+        for (i = 0; i < arr.length; i++) (function (idx) {
+          PromisePoly.resolve(arr[idx]).then(function (v) { if (done) return; out[idx] = v; left--; if (!left) { done = true; res(out); } }, function (e) { if (!done) { done = true; rej(e); } });
+        })(i);
+      });
+    };
+    window.Promise = PromisePoly;
+  }
+  /* String 基础兜底 */
+  if (typeof String !== "undefined") {
+    if (!String.prototype.trim) String.prototype.trim = function () { return this.replace(/^\s+|\s+$/g, ""); };
+    if (!String.prototype.startsWith) String.prototype.startsWith = function (p) { return this.slice(0, p.length) === p; };
+    if (!String.prototype.endsWith) String.prototype.endsWith = function (p) { return this.slice(-p.length) === p; };
+    if (!String.prototype.includes) String.prototype.includes = function (p, i) { return this.indexOf(p, i || 0) !== -1; };
+  }
+  /* 数组基础兜底 */
+  if (typeof Array !== "undefined") {
+    if (!Array.prototype.indexOf) Array.prototype.indexOf = function (v) { for (var i = 0; i < this.length; i++) if (this[i] === v) return i; return -1; };
+    if (!Array.prototype.find) Array.prototype.find = function (fn) { for (var i = 0; i < this.length; i++) if (fn(this[i], i, this)) return this[i]; };
+    if (!Array.prototype.findIndex) Array.prototype.findIndex = function (fn) { for (var i = 0; i < this.length; i++) if (fn(this[i], i, this)) return i; return -1; };
+    if (!Array.from) Array.from = function (o) { var r = []; for (var i = 0; i < o.length; i++) r.push(o[i]); return r; };
+  }
+  /* localStorage 访问安全（无/禁用时给内存版，避免 DB 初始化 throw） */
+  if (typeof window !== "undefined") {
+    var lsOk = true, memLS = {}, memKey = {};
+    try { window.localStorage.setItem("__jy_ls_test", "1"); window.localStorage.removeItem("__jy_ls_test"); } catch (e) { lsOk = false; }
+    if (!lsOk) {
+      try {
+        Object.defineProperty(window, "localStorage", { value: {
+          getItem: function (k) { return Object.prototype.hasOwnProperty.call(memLS, k) ? memLS[k] : null; },
+          setItem: function (k, v) { memLS[k] = String(v); },
+          removeItem: function (k) { delete memLS[k]; },
+          clear: function () { memLS = {}; memKey = {}; },
+          key: function (i) { return Object.keys(memLS)[i] || null; },
+          get length() { return Object.keys(memLS).length; }
+        }, configurable: true });
+      } catch (e) {}
+    }
+  }
+})();
+</script>
+
 /* 霁月机64 · 全局错误兜底：黑屏时显示错误信息，便于定位与老旧内核提示 */
 (function () {
+  try { window.__jyT0 = window.__jyT0 || Date.now(); } catch (e) {}
   function show(msg, stack) {
     try {
       if (document.getElementById('jyErrLayer')) return;
       var d = document.createElement('div');
       d.id = 'jyErrLayer';
       d.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;background:#fff;color:#222;z-index:2147483000;padding:28px 18px;overflow:auto;font:13px/1.8 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;white-space:pre-wrap;word-break:break-all;';
-      d.textContent = '[霁月机] 页面运行遇到错误，无法正常显示。\n\n错误信息：' + (msg || '未知错误') + (stack ? '\n\n详情：' + stack : '') + '\n\n如果这是 Opera 旧版 / Opera Mini，请升级浏览器或改用系统浏览器 / Chrome 打开。';
+      var extra = '';
+      var isScript = !msg || String(msg).indexOf('Script error') !== -1 || String(msg) === '[object Event]';
+      if (isScript) {
+        extra = '\n\n[诊断] 错误被浏览器隐藏(Script error)，常见于 Opera Mini/旧内核缺少新 API。';
+        try {
+          extra += '\nUA: ' + String(navigator.userAgent).slice(0, 160);
+          extra += '\n已运行: ' + Math.round((Date.now() - (window.__jyT0 || Date.now())) / 1000) + ' 秒';
+        } catch (e) {}
+        extra += '\n\n建议操作：\n1. 清除浏览器缓存后刷新页面；\n2. 若使用 Opera Mini / 旧版 Opera，请改用系统浏览器或 Chrome 打开；\n3. 仍失败可截图本页反馈。';
+      }
+      d.textContent = '[霁月机] 页面运行遇到错误，无法正常显示。\n\n错误信息：' + (msg || '未知错误') + (stack ? '\n\n详情：' + stack : '') + extra;
       (document.body || document.documentElement).appendChild(d);
     } catch (e) {}
   }
