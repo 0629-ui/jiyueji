@@ -36,6 +36,19 @@
   });
 })();
 </script>
+<script>
+/* 霁月机73 · 全局 esc 兜底：修复拼某夕 pddImgBlock 等顶层函数 esc is not defined */
+(function () {
+  function fallback(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  try {
+    if (typeof window.esc === "function") return;
+    if (typeof escapeHtml === "function") { window.esc = function (s) { try { return escapeHtml(s); } catch (e) { return fallback(s); } }; }
+    else { window.esc = fallback; }
+  } catch (e) { window.esc = fallback; }
+})();
+</script>
 <style>
 :root{
   --bg-deep:#0a0a0a;--bg-mid:#141414;--bg-soft:#1d1d1d;
