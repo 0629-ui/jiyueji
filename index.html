@@ -6863,17 +6863,131 @@ function editMsg(idx) {
   toast("\u5DF2\u7F16\u8F91");
 }
 __name(editMsg, "editMsg");
+/* ===== 79 删除双选项：仅删除 / 删除并清除角色记忆 ===== */
+function askDeleteAction(title, brief, isMulti, count, cb) {
+  try { closeBubbleMenu(); } catch (e) {}
+  var mask = document.createElement("div");
+  mask.style.cssText = "position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:2147483010;display:flex;align-items:flex-end;justify-content:center";
+  var sheet = document.createElement("div");
+  sheet.style.cssText = "width:100%;max-width:520px;background:#fff;border-radius:18px 18px 0 0;padding:16px 18px 22px;box-sizing:border-box;box-shadow:0 -6px 24px rgba(0,0,0,.18)";
+  var head = document.createElement("div");
+  head.style.cssText = "text-align:center;font-size:16px;font-weight:800;color:#222;line-height:1.5;padding-bottom:2px";
+  head.textContent = title;
+  sheet.appendChild(head);
+  if (brief) {
+    var sub = document.createElement("div");
+    sub.style.cssText = "text-align:center;font-size:12px;color:#8a8f98;margin-top:4px;line-height:1.6;word-break:break-all;max-height:42px;overflow:hidden";
+    sub.textContent = brief;
+    sheet.appendChild(sub);
+  }
+  function mkBtn(label, desc, color, action) {
+    var b = document.createElement("div");
+    b.style.cssText = "margin-top:12px;padding:11px 14px;border-radius:12px;border:1.5px solid #e4e6eb;background:#fff;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px";
+    var l = document.createElement("div");
+    var t = document.createElement("div");
+    t.style.cssText = "font-size:15px;font-weight:700;color:" + color;
+    t.textContent = label;
+    var d = document.createElement("div");
+    d.style.cssText = "font-size:12px;color:#8a8f98;margin-top:3px;line-height:1.5";
+    d.textContent = desc || "";
+    l.appendChild(t);
+    if (desc) l.appendChild(d);
+    var ar = document.createElement("span");
+    ar.style.cssText = "color:#c3c7ce;font-size:18px;flex:0 0 auto";
+    ar.textContent = "›";
+    b.appendChild(l);
+    b.appendChild(ar);
+    b.onclick = function () { if (mask.parentNode) mask.parentNode.removeChild(mask); action(); };
+    sheet.appendChild(b);
+  }
+  mkBtn("仅删除消息", isMulti ? "只从聊天里删掉这 " + count + " 条，角色的记忆还会留着" : "只从聊天里删掉，角色的记忆还会留着这段", "#2b6ee0", function () { cb("msg"); });
+  mkBtn("删除并清除角色记忆", isMulti ? "同时把这 " + count + " 条从角色的记忆里永久抹掉" : "同时把这段从角色的记忆里永久抹掉，TA 不会再想起", "#d3382c", function () { cb("both"); });
+  var c = document.createElement("div");
+  c.style.cssText = "margin-top:12px;text-align:center;font-size:14px;color:#6b7280;padding:9px 0 2px;border-top:1px solid #f0f1f3;cursor:pointer";
+  c.textContent = "取消";
+  c.onclick = function () { if (mask.parentNode) mask.parentNode.removeChild(mask); cb("cancel"); };
+  sheet.appendChild(c);
+  mask.appendChild(sheet);
+  document.body.appendChild(mask);
+  mask.addEventListener("pointerdown", function (e) { if (e.target === mask) { mask.remove(); cb("cancel"); } });
+}
+function delMemoryByTexts(texts) {
+  try {
+    if (!texts || !texts.length) return 0;
+    var ns = [];
+    (texts || []).forEach(function (t) { t = String(t || "").trim(); if (t) ns.push(t); });
+    if (!ns.length) return 0;
+    var db = null;
+    try { db = DB; } catch (e) {}
+    if (!db || typeof db !== "object") return 0;
+    function norm(s) { return String(s || "").replace(/[\s\u3000]+/g, ""); }
+    function hit(s) {
+      s = String(s || "");
+      for (var i = 0; i < ns.length; i++) {
+        if (s.indexOf(ns[i]) >= 0) return true;
+        if (ns[i].length >= 10 && norm(s).indexOf(norm(ns[i])) >= 0) return true;
+      }
+      return false;
+    }
+    function scanArr(arr) {
+      var c = 0;
+      if (!arr || !arr.length) return 0;
+      var keep = [];
+      for (var i = 0; i < arr.length; i++) {
+        var x = arr[i];
+        var sv = x && typeof x === "object" ? String(x.text || x.content || x.summary || x.msg || "") : String(x || "");
+        if (hit(sv)) { c++; continue; }
+        keep.push(x);
+      }
+      arr.length = 0;
+      for (var j = 0; j < keep.length; j++) arr.push(keep[j]);
+      return c;
+    }
+    function scanBucket(b) {
+      if (!b || typeof b !== "object") return 0;
+      var c = 0;
+      if (Array.isArray(b.entries)) c += scanArr(b.entries);
+      if (Array.isArray(b.pending)) c += scanArr(b.pending);
+      return c;
+    }
+    var cnt = 0;
+    Object.keys(db).forEach(function (k) {
+      var v = db[k];
+      if (!v || typeof v !== "object") return;
+      if (Array.isArray(v.entries) || Array.isArray(v.pending)) { cnt += scanBucket(v); return; }
+      Object.keys(v).forEach(function (k2) {
+        var v2 = v[k2];
+        if (v2 && typeof v2 === "object" && (Array.isArray(v2.entries) || Array.isArray(v2.pending))) cnt += scanBucket(v2);
+      });
+    });
+    if (cnt) { try { save(); } catch (e) {} }
+    return cnt;
+  } catch (e) { return 0; }
+}
 function deleteSingleMsg(idx) {
   var log = chatLog(currentChatId());
-  if (!log[idx]) return;
-  if (!confirm("\u5220\u9664\u8FD9\u6761\u6D88\u606F\uFF1F")) return;
-  log.splice(idx, 1);
-  save();
-  renderChatAll();
-  toast("\u5DF2\u5220\u9664");
-}
-__name(deleteSingleMsg, "deleteSingleMsg");
-function regenMsg(idx) {
+  var msg = log[idx];
+  if (!msg) return;
+  var text = msg.content || "";
+  var cands = [];
+  if (text) cands.push(text);
+  if (msg.caption) cands.push(String(msg.caption));
+  var brief = "";
+  if (msg.img && !text) brief = "[图片]";
+  if (!brief) brief = text.length > 30 ? text.slice(0, 30) + "…" : (text || "[这条消息]");
+  askDeleteAction("删除这条消息？", brief, false, 1, function (how) {
+    if (how === "cancel") return;
+    log.splice(idx, 1);
+    save();
+    renderChatAll();
+    if (how === "both") {
+      var n = delMemoryByTexts(cands);
+      toast(n ? "已删除，并从角色记忆里抹掉相关 " + n + " 条记录" : "已删除，角色的记忆里没有发现这段话");
+    } else {
+      toast("已删除");
+    }
+  });
+}function regenMsg(idx) {
   var pid = currentChatId();
   var log = chatLog(pid);
   var msg = log[idx];
@@ -7064,15 +7178,32 @@ function deleteMulti() {
     toast("\u8BF7\u5148\u9009\u62E9\u6D88\u606F");
     return;
   }
-  if (!confirm("\u5220\u9664\u9009\u4E2D\u7684 " + idxs.length + " \u6761\u6D88\u606F\uFF1F")) return;
-  var log = chatLog(currentChatId());
+    var cnt = idxs.length;
+  var log0 = chatLog(currentChatId());
+  var cands = [];
   idxs.forEach(function(i) {
-    log.splice(i, 1);
+    var m0 = log0[i];
+    if (m0 && m0.content) cands.push(String(m0.content));
+    if (m0 && m0.caption) cands.push(String(m0.caption));
   });
-  save();
-  exitMulti();
-  renderChatAll();
-  toast("\u5DF2\u5220\u9664");
+  var preview = "";
+  for (var pi = 0; pi < cands.length; pi++) { if (cands[pi]) { preview = cands[pi].length > 30 ? cands[pi].slice(0, 30) + "…" : cands[pi]; break; } }
+  askDeleteAction("删除选中的 " + cnt + " 条消息？", preview || "共 " + cnt + " 条消息", true, cnt, function (how) {
+    if (how === "cancel") return;
+    var log = chatLog(currentChatId());
+    idxs.forEach(function(i) {
+      log.splice(i, 1);
+    });
+    save();
+    exitMulti();
+    renderChatAll();
+    if (how === "both") {
+      var n = delMemoryByTexts(cands);
+      toast(n ? "已删除，并从角色记忆里抹掉相关 " + n + " 条记录" : "已删除，角色的记忆里没有发现这些话");
+    } else {
+      toast("已删除");
+    }
+  });
 }
 __name(deleteMulti, "deleteMulti");
 document.addEventListener("click", function(e) {
@@ -7986,14 +8117,89 @@ function saveOfflineEdit() {
   toast("\u5DF2\u7F16\u8F91");
 }
 __name(saveOfflineEdit, "saveOfflineEdit");
+function bindGroupOfflineMenu(el, idx) {
+  var timer = null, startX = 0, startY = 0, moved = false;
+  function cancelG() { clearTimeout(timer); timer = null; }
+  el.addEventListener("contextmenu", function (e) { e.preventDefault(); showGroupOfflineMenu(e.clientX, e.clientY, idx); });
+  el.addEventListener("pointerdown", function (e) {
+    startX = e.clientX; startY = e.clientY; moved = false;
+    timer = setTimeout(function () {
+      if (!moved) { try { if (navigator.vibrate) navigator.vibrate(30); } catch (e2) {} showGroupOfflineMenu(startX, startY, idx); }
+    }, 480);
+  });
+  el.addEventListener("pointermove", function (e) { if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) moved = true; });
+  el.addEventListener("pointerup", cancelG);
+  el.addEventListener("pointerleave", cancelG);
+  el.addEventListener("pointercancel", cancelG);
+}
+function showGroupOfflineMenu(x, y, idx) {
+  try { closeBubbleMenu(); } catch (e) {}
+  var gid = currentChatId();
+  var h = groupOfflineData(gid).history;
+  var msg = h[idx];
+  if (!msg) return;
+  var m = document.createElement("div");
+  m.className = "bubble-menu";
+  var items = [{ t: "删除", fn: function () { deleteGroupOfflineMsg(idx); } }];
+  items.forEach(function (it) {
+    var d = document.createElement("div");
+    d.className = "bm-item";
+    d.textContent = it.t;
+    d.onclick = function () { try { closeBubbleMenu(); } catch (e2) {} it.fn(); };
+    m.appendChild(d);
+  });
+  document.body.appendChild(m);
+  var mw = m.offsetWidth, mh = m.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+  var px = Math.min(x, vw - mw - 8), py = Math.min(y, vh - mh - 8);
+  if (px < 8) px = 8;
+  if (py < 8) py = 8;
+  m.style.left = px + "px";
+  m.style.top = py + "px";
+  setTimeout(function () {
+    document.addEventListener("pointerdown", function h2(e) {
+      if (!m.contains(e.target)) { try { closeBubbleMenu(); } catch (e3) {} document.removeEventListener("pointerdown", h2); }
+    });
+  }, 0);
+}
+function deleteGroupOfflineMsg(idx) {
+  var gid = currentChatId();
+  var h = groupOfflineData(gid).history;
+  var msg = h[idx];
+  if (!msg) return;
+  var text = msg.content || "";
+  var brief = text.length > 30 ? text.slice(0, 30) + "…" : (text || "[这段叙事]");
+  askDeleteAction("删除这段内容？", brief, false, 1, function (how) {
+    if (how === "cancel") return;
+    h.splice(idx, 1);
+    save();
+    renderGroupOffline();
+    if (how === "both") {
+      var n = delMemoryByTexts(text ? [text] : []);
+      toast(n ? "已删除，并从大家的记忆里抹掉相关 " + n + " 条记录" : "已删除，没有在大家的记忆里发现这段");
+    } else {
+      toast("已删除");
+    }
+  });
+}
+
 function deleteOfflineMsg(idx) {
   var h = offlineHist().history;
-  if (!h[idx]) return;
-  if (!confirm("\u5220\u9664\u8FD9\u6BB5\u5185\u5BB9\uFF1F")) return;
-  h.splice(idx, 1);
-  save();
-  renderOffline();
-  toast("\u5DF2\u5220\u9664");
+  var msg = h[idx];
+  if (!msg) return;
+  var text = msg.content || "";
+  var brief = text.length > 30 ? text.slice(0, 30) + "…" : (text || "[这段叙事]");
+  askDeleteAction("删除这段内容？", brief, false, 1, function (how) {
+    if (how === "cancel") return;
+    h.splice(idx, 1);
+    save();
+    renderOffline();
+    if (how === "both") {
+      var n = delMemoryByTexts(text ? [text] : []);
+      toast(n ? "已删除，并从角色记忆里抹掉相关 " + n + " 条记录" : "已删除，角色的记忆里没有发现这段");
+    } else {
+      toast("已删除");
+    }
+  });
 }
 __name(deleteOfflineMsg, "deleteOfflineMsg");
 function regenOfflineMsg(idx) {
@@ -8194,7 +8400,7 @@ function appendGroupOfflineMe(text, idx) {
   var body = document.getElementById("groupOfflineBody");
   var d = document.createElement("div");
   d.className = "offline-me";
-  if (idx !== void 0) d.setAttribute("data-idx", idx);
+  if (idx !== void 0) { d.setAttribute("data-idx", idx); bindGroupOfflineMenu(d, idx); }
   d.innerHTML = '<div class="ob"><span class="ob-tag">你的选择</span>' + escapeHtml(text) + "</div>";
   body.appendChild(d);
   body.scrollTop = body.scrollHeight;
@@ -8205,7 +8411,7 @@ function appendGroupOfflineNarr(text, idx) {
   var d = document.createElement("div");
   d.className = "offline-narr";
   d.textContent = text;
-  if (idx !== void 0) d.setAttribute("data-idx", idx);
+  if (idx !== void 0) { d.setAttribute("data-idx", idx); bindGroupOfflineMenu(d, idx); }
   body.appendChild(d);
   body.scrollTop = body.scrollHeight;
 }
@@ -24347,4 +24553,579 @@ function jy76Boot() {
   window.addEventListener("load", function() { setTimeout(jy76Boot, 30); });
 })();
 
+</script>
+
+<style>
+/* ===== 你画我猜 (79) ===== */
+#jyGameDg{position:relative}
+.jyDg-body{padding:12px 14px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px}
+.jyDg-zone{background:linear-gradient(135deg,#eef4ff,#fdf0ec);border-radius:16px;padding:12px 14px;text-align:center;font-size:15px;font-weight:800;color:#333;line-height:1.6}
+.jyDg-zone small{display:block;font-weight:500;color:#8a8f98;font-size:12px;margin-top:2px}
+.jyDg-card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.jyDg-word{text-align:center;padding:14px 12px}
+.jyDg-word .k{color:#2b6ee0;font-size:13px;font-weight:700}
+.jyDg-word .v{font-size:34px;font-weight:900;letter-spacing:6px;margin-top:4px;color:#111}
+.jyDg-canvas-wrap{background:#fff;border-radius:16px;padding:10px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+canvas.jyDg-canvas{width:100%;display:block;background:#fff;border:1.5px dashed #dfe3ea;border-radius:12px;touch-action:none}
+.jyDg-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.jyDg-col{width:26px;height:26px;border-radius:50%;border:2px solid #e2e5ea;cursor:pointer;flex:0 0 auto;padding:0}
+.jyDg-col.on{border-color:#111;transform:scale(1.15)}
+.jyDg-clear{font-size:13px;padding:6px 12px;border-radius:20px;background:#f2f3f5;color:#555;border:none;cursor:pointer;flex:0 0 auto}
+.jyDg-tools .jyDg-main{margin-left:auto}
+.jyDg-btn{font-size:15px;font-weight:700;border:none;border-radius:24px;padding:10px 18px;cursor:pointer;display:inline-block}
+.jyDg-btn.main{background:linear-gradient(135deg,#3c82ff,#2b6ee0);color:#fff;box-shadow:0 4px 12px rgba(43,110,224,.25)}
+.jyDg-btn.ghost{background:#f2f3f5;color:#444}
+.jyDg-btn.green{background:linear-gradient(135deg,#22b573,#17a05f);color:#fff;box-shadow:0 4px 12px rgba(34,181,115,.22)}
+.jyDg-btn.red{background:linear-gradient(135deg,#f4514c,#d3382c);color:#fff;box-shadow:0 4px 12px rgba(211,56,44,.22)}
+.jyDg-btn.flat{background:#eef4ff;color:#2b6ee0}
+.jyDg-art{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:12px}
+.jyDg-art .t{font-size:13px;color:#8a8f98;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.jyDg-art .p{background:#fbf7ef;border-radius:12px;border:1px dashed #e6dcc8;padding:12px;font-size:15px;color:#4a4233;line-height:1.9;white-space:pre-wrap;word-break:break-word}
+.jyDg-hint{background:#fff;border-radius:14px;padding:10px;display:flex;gap:8px;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+.jyDg-hint input{flex:1;border:1px solid #e2e5ea;border-radius:20px;padding:9px 14px;font-size:14px;outline:none;background:#f8f9fb}
+.jyDg-ops{display:flex;flex-direction:column;gap:10px}
+.jyDg-ops .row{display:flex;gap:8px}
+.jyDg-ops .row>*{flex:1}
+.jyDg-ops input{flex:1;border:1px solid #e2e5ea;border-radius:20px;padding:10px 14px;font-size:14px;outline:none;background:#fff;min-width:0}
+.jyDg-log{display:flex;flex-direction:column;gap:8px;min-height:10px}
+.jyDg-log .me{align-self:flex-end;max-width:82%;background:#2b6ee0;color:#fff;padding:9px 13px;border-radius:14px 14px 4px 14px;font-size:14px;line-height:1.6;word-break:break-word}
+.jyDg-log .pa{align-self:flex-start;max-width:82%;background:#fff;padding:9px 13px;border-radius:14px 14px 14px 4px;font-size:14px;line-height:1.6;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.05);word-break:break-word}
+.jyDg-log .pa b{color:#2b6ee0;font-size:12px;font-weight:700;margin-right:4px}
+.jyDg-log .sys{align-self:center;font-size:12px;color:#9aa0a8;background:rgba(0,0,0,.04);padding:4px 12px;border-radius:12px}
+.jyDg-log .err{align-self:center;font-size:12px;color:#c0392b;background:#fdecea;padding:4px 12px;border-radius:12px;max-width:90%;text-align:center}
+.jyDg-ldot{display:inline-block;animation:jyDgP 1.2s infinite}
+@keyframes jyDgP{0%,100%{opacity:.35}50%{opacity:1}}
+.jyDg-over{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(20,24,34,.55);z-index:2147483020;display:flex;align-items:center;justify-content:center;padding:24px}
+.jyDg-over-card{background:#fff;border-radius:22px;width:100%;max-width:360px;padding:22px 20px 18px;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.2)}
+.jyDg-over-t{font-size:22px;font-weight:900;line-height:1.4}
+.jyDg-over-s{font-size:14px;color:#6b7280;margin-top:10px;line-height:1.7;white-space:pre-wrap}
+.jyDg-over-pa{margin-top:12px;background:#f5f7fb;border-radius:12px;padding:10px 12px;font-size:13px;color:#4a4f57;line-height:1.7;text-align:left;white-space:pre-wrap}
+.jyDg-over-btns{display:flex;gap:10px;margin-top:16px}
+.jyDg-over-btns>*{flex:1}
+.jyDgMask{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(20,24,34,.5);z-index:2147483005;display:none;align-items:flex-end;justify-content:center}
+.jyDgMask.show{display:flex}
+.jyDgSheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:16px 16px 20px;box-sizing:border-box;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 -8px 30px rgba(0,0,0,.16)}
+.jyDgSheet-t{font-size:17px;font-weight:900;text-align:center;padding-bottom:10px}
+.jyDgSheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch}
+.jyDgSec{font-size:12px;font-weight:800;color:#9aa0a8;margin:12px 2px 6px}
+.jyDgModeRow{display:flex;gap:10px}
+.jyDgMode{flex:1;border:2px solid #e4e6eb;border-radius:14px;padding:12px 8px;text-align:center;font-size:15px;font-weight:800;color:#333;cursor:pointer;background:#fff}
+.jyDgMode small{display:block;font-weight:500;font-size:11px;color:#9aa0a8;margin-top:3px}
+.jyDgMode.on{border-color:#2b6ee0;background:#eef4ff;color:#2b6ee0}
+.jyDgMode.on small{color:#6f9be8}
+.jyDgPickRow{display:flex;align-items:center;gap:10px;border:1.5px solid #e4e6eb;border-radius:14px;padding:10px 12px;margin-top:8px;cursor:pointer;background:#fff}
+.jyDgPickRow.on{border-color:#2b6ee0;background:#eef4ff}
+.jyDgPickRow.off{opacity:.5;cursor:default;background:#f6f7f9}
+.jyDgPickRow img{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:#eef0f3}
+.jyDgPickRow .nm{flex:1;font-size:14px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jyDgPickRow .tag{font-size:11px;color:#2b6ee0;background:#e2ecff;padding:3px 8px;border-radius:10px;flex:0 0 auto}
+.jyDgPickRow .tag.no{color:#9aa0a8;background:#eef0f3}
+.jyDgStartRow{display:flex;gap:10px;margin-top:14px}
+.jyDgStartRow>*{flex:1}
+.jyDgRule{background:#f7f8fa;border-radius:12px;padding:10px 12px;font-size:12px;color:#767c85;line-height:1.7;margin-top:12px}
+</style>
+
+<div class="page light-page" id="jyGameDg">
+  <div class="page-head" style="position:relative;flex:0 0 auto">
+    <span class="back" onclick="jyDgExit()">‹</span>
+    <div style="text-align:center;line-height:1.2">
+      <div class="page-title" style="font-size:16px;font-weight:800">你画我猜</div>
+      <div class="page-sub" id="jyDgSub">TA 画 · 你来猜</div>
+    </div>
+  </div>
+  <div class="jyDg-body" id="jyDgBody">
+    <div class="jyDg-zone" id="jyDgZone"></div>
+    <div class="jyDg-card jyDg-word" id="jyDgWordBox" style="display:none">
+      <div class="k" id="jyDgWordCat"></div>
+      <div class="v" id="jyDgWordVal"></div>
+      <div style="font-size:11px;color:#9aa0a8;margin-top:2px">这个只有你能看到，别让 TA 偷看哦</div>
+    </div>
+    <div class="jyDg-canvas-wrap" id="jyDgDrawWrap" style="display:none">
+      <canvas class="jyDg-canvas" id="jyDgCanvas" width="640" height="480"></canvas>
+      <div class="jyDg-tools" id="jyDgTools" style="display:none">
+        <span class="jyDg-col on" data-c="#111111" style="background:#111111"></span>
+        <span class="jyDg-col" data-c="#2b6ee0" style="background:#2b6ee0"></span>
+        <span class="jyDg-col" data-c="#d3382c" style="background:#d3382c"></span>
+        <span class="jyDg-col" data-c="#17a05f" style="background:#17a05f"></span>
+        <span class="jyDg-col" data-c="#f5a623" style="background:#f5a623"></span>
+        <span class="jyDg-col" data-c="#9b59b6" style="background:#9b59b6"></span>
+        <button class="jyDg-clear" onclick="jyDgClearCanvas()">清空</button>
+        <button class="jyDg-btn main jyDg-main" onclick="jyDgDoneDraw()">画好啦，让 TA 猜</button>
+      </div>
+    </div>
+    <div class="jyDg-art" id="jyDgArtBox" style="display:none">
+      <div class="t" id="jyDgArtTitle"></div>
+      <div class="p" id="jyDgArtPaper"></div>
+    </div>
+    <div class="jyDg-hint" id="jyDgHintBox" style="display:none">
+      <input id="jyDgHintInput" placeholder="给猜的人一点画面提示，比如：圆圆的、戴帽子">
+    </div>
+    <div class="jyDg-ops" id="jyDgOps"></div>
+    <div class="jyDg-log" id="jyDgLog"></div>
+  </div>
+</div>
+
+<div class="jyDg-over" id="jyDgOver" style="display:none">
+  <div class="jyDg-over-card">
+    <div class="jyDg-over-t" id="jyDgOverT"></div>
+    <div class="jyDg-over-s" id="jyDgOverS"></div>
+    <div class="jyDg-over-pa" id="jyDgOverPa" style="display:none"></div>
+    <div class="jyDg-over-btns">
+      <button class="jyDg-btn ghost" onclick="jyDgExit()">返回大厅</button>
+      <button class="jyDg-btn main" onclick="jyDgAgain()">再来一局</button>
+    </div>
+  </div>
+</div>
+
+<div class="jyDgMask" id="jyDgMask">
+  <div class="jyDgSheet">
+    <div class="jyDgSheet-t">你画我猜 · 开局</div>
+    <div class="jyDgSheet-body" id="jyDgMaskBody"></div>
+    <div class="jyDgStartRow">
+      <button class="jyDg-btn ghost" onclick="jyDgCancelPick()">取消</button>
+      <button class="jyDg-btn main" onclick="jyDgStartGame()">开始游戏</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  if (window.__jyDgInited) return;
+  window.__jyDgInited = true;
+
+  /* ---------- 词库 ---------- */
+  var WORDS = [
+    { c: "动物", w: ["兔子","熊猫","大象","长颈鹿","企鹅","小猫","小狗","老虎","猴子","刺猬","蜗牛","恐龙","鲸鱼","青蛙","蜜蜂"] },
+    { c: "食物", w: ["火锅","冰淇淋","汉堡","披萨","蛋糕","西瓜","香蕉","糖葫芦","饺子","棒棒糖","苹果","面条","玉米","葡萄","咖啡"] },
+    { c: "物品", w: ["雨伞","台灯","手机","沙发","水杯","眼镜","吉他","自行车","闹钟","相机","行李箱","扫把","剪刀","蜡烛","钥匙"] },
+    { c: "自然", w: ["太阳","月亮","彩虹","云朵","高山","大海","雪人","火山","大树","蘑菇","星星","城堡","沙滩","闪电","瀑布"] },
+    { c: "人物", w: ["医生","消防员","宇航员","厨师","圣诞老人","公主","超人","小丑","警察","农民","画家","老师","新娘","海盗","运动员"] },
+    { c: "交通", w: ["汽车","火车","飞机","轮船","热气球","火箭","警车","救护车","地铁","帆船","拖拉机","直升机"] },
+    { c: "日常", w: ["刷牙","钓鱼","打篮球","踢足球","跳绳","拍照","睡觉","游泳","滑雪","看书","放风筝","弹钢琴","做蛋糕","野餐","洗衣服"] }
+  ];
+
+  var DG = { on: false, busy: false, pa: null, mode: "aiDraw", word: "", cat: "", guesses: 0, art: "", hints: [], curColor: "#111111", over: false, winDesc: "", askCount: 0 };
+  window.__jyDg = DG;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { try { return escapeHtml(s); } catch (e) { return String(s == null ? "" : s); } }
+  function toastD(t) { try { toast(t); } catch (e) {} }
+  function pName() { try { var a = currentAcc(); if (a && a.name) return a.name; } catch (e) {} return "你"; }
+
+  function listPa() { try { return personaList() || []; } catch (e) { return []; } }
+  function findPa(id) { try { return findPersona(id); } catch (e) { return null; } }
+  function canApi(pa) {
+    try { if (window.jy62CanApi) return !!jy62CanApi(pa); } catch (e) {}
+    try { var p = personaPlan(pa); return !!(pa && p && p.baseUrl && p.apiKey); } catch (e) { return false; }
+  }
+  function avUrl(pa) { try { var u = personaAvatarUrl(pa); return u || ""; } catch (e) { return ""; } }
+
+  function askDg(pa, prompt) {
+    return new Promise(function (res, rej) {
+      var done = false;
+      var timer = setTimeout(function () { if (!done) { done = true; rej(new Error("TA 想了太久没回应，请重试")); } }, 45000);
+      try {
+        callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+          if (done) return; done = true; clearTimeout(timer); res(String(txt || "").trim());
+        }).catch(function (e) {
+          if (done) return; done = true; clearTimeout(timer); rej(e);
+        });
+      } catch (e) { if (done) return; done = true; clearTimeout(timer); rej(e); }
+    });
+  }
+
+  function showPageDg(id) {
+    try {
+      var arr = window.PAGES || [];
+      if (arr.indexOf(id) < 0) arr.push(id);
+      for (var i = 0; i < arr.length; i++) {
+        var el = document.getElementById(arr[i]);
+        if (el && el.classList) { if (arr[i] === id) el.classList.add("active"); else el.classList.remove("active"); }
+      }
+    } catch (e) {}
+  }
+  function backToHall() {
+    DG.on = false; DG.busy = false;
+    try { jy62OpenGames(); } catch (e) { try { showPage("jyGames"); } catch (e2) {} }
+  }
+
+  /* ---------- 日志 ---------- */
+  function addLog(kind, txt) {
+    var box = $("jyDgLog");
+    if (!box) return;
+    var d = document.createElement("div");
+    if (kind === "me") d.className = "me";
+    else if (kind === "pa") d.className = "pa";
+    else if (kind === "sys") d.className = "sys";
+    else d.className = "err";
+    if (kind === "pa") d.innerHTML = "<b>" + esc(DG.pa ? DG.pa.name : "") + "</b>" + esc(txt);
+    else d.textContent = txt;
+    box.appendChild(d);
+    try { d.scrollIntoView({ block: "nearest" }); } catch (e) {}
+  }
+  function logBusy(txt) { $("jyDgLog").appendChild(makeBusy()); }
+  function makeBusy() {
+    var d = document.createElement("div");
+    d.className = "sys";
+    d.innerHTML = "<span class='jyDg-ldot'>" + esc(txt) + "</span>";
+    return d;
+  }
+
+  /* ---------- 开局选择 ---------- */
+  window.jyDgOpen = function () {
+    DG.pa = null; DG.mode = "aiDraw";
+    renderPick();
+    $("jyDgMask").classList.add("show");
+  };
+  window.jyDgCancelPick = function () { $("jyDgMask").classList.remove("show"); };
+  window.jyDgMode = function (m) { DG.mode = m; renderPick(); };
+  window.jyDgPickPa = function (id) {
+    var pa = findPa(id);
+    if (!pa || !canApi(pa)) return;
+    DG.pa = pa;
+    renderPick();
+  };
+  function renderPick() {
+    var body = $("jyDgMaskBody");
+    if (!body) return;
+    var pl = listPa().filter(function (p) { return p && p.id !== "p_x"; });
+    var meName = pName();
+    var html = "";
+    html += '<div class="jyDgSec">谁来画</div>';
+    html += '<div class="jyDgModeRow">';
+    html += '<div class="jyDgMode' + (DG.mode === "aiDraw" ? " on" : "") + '" onclick="jyDgMode(\'aiDraw\')">TA 来画<small>' + esc(meName) + ' 猜</small></div>';
+    html += '<div class="jyDgMode' + (DG.mode === "youDraw" ? " on" : "") + '" onclick="jyDgMode(\'youDraw\')">你 来画<small>TA 猜</small></div>';
+    html += '</div>';
+    html += '<div class="jyDgSec">选角色（需接入模型 API 才能一起玩）</div>';
+    if (!pl.length) html += '<div style="font-size:13px;color:#9aa0a8;padding:6px 2px">还没有可用的角色</div>';
+    pl.forEach(function (p) {
+      var ok = canApi(p);
+      var av = avUrl(p);
+      var sel = DG.pa && DG.pa.id === p.id;
+      html += '<div class="jyDgPickRow' + (ok ? (sel ? " on" : "") : " off") + '"' + (ok ? ' onclick="jyDgPickPa(\'' + p.id + '\')"' : "") + '>';
+      if (av) html += '<img src="' + esc(av) + '" alt="">';
+      else html += '<img alt="" style="background:#eef0f3">';
+      html += '<div class="nm">' + esc(p.name || "未命名") + '</div>';
+      html += ok ? '<span class="tag">已接入</span>' : '<span class="tag no">未接入</span>';
+      html += '</div>';
+    });
+    html += '<div class="jyDgRule">规则：一人画一人猜，共 3 次机会。猜中了——猜的人赢；3 次都没猜中——画的人赢。边玩边聊都会记入角色记忆。</div>';
+    body.innerHTML = html;
+  }
+
+  window.jyDgStartGame = function () {
+    if (!DG.pa) { toastD("先选一个角色"); return; }
+    $("jyDgMask").classList.remove("show");
+    bootGame(DG.pa, DG.mode);
+  };
+
+  function pickWord() {
+    var ci = Math.floor(Math.random() * WORDS.length);
+    var arr = WORDS[ci].w;
+    return { cat: WORDS[ci].c, word: arr[Math.floor(Math.random() * arr.length)] };
+  }
+
+  function bootGame(pa, mode) {
+    var wk = pickWord();
+    DG.on = true; DG.over = false; DG.busy = false;
+    DG.pa = pa; DG.mode = mode;
+    DG.cat = wk.cat; DG.word = wk.word; DG.guesses = 0; DG.art = ""; DG.hints = []; DG.askCount = 0;
+    $("jyDgOver").style.display = "none";
+    $("jyDgWordBox").style.display = "none";
+    $("jyDgDrawWrap").style.display = "none";
+    $("jyDgArtBox").style.display = "none";
+    $("jyDgHintBox").style.display = "none";
+    $("jyDgLog").innerHTML = "";
+    $("jyDgOps").innerHTML = "";
+    var meName = pName();
+    $("jyDgSub").textContent = (mode === "aiDraw" ? pa.name + " 画 · " + meName + " 猜" : meName + " 画 · " + pa.name + " 猜");
+    if (mode === "aiDraw") {
+      $("jyDgZone").innerHTML = "题目已出给 <b>" + esc(pa.name) + "</b>，TA 正在画<small>你负责猜，共 3 次机会</small>";
+      addLog("sys", "你画我猜开始 · 题目类型：" + DG.cat + "（" + DG.word.length + " 个字）");
+      aiDrawStart();
+    } else {
+      $("jyDgZone").innerHTML = "<b>" + esc(meName) + "</b> 来画，让 <b>" + esc(pa.name) + "</b> 猜<small>共 3 次机会，画出关键词别太直白哦</small>";
+      $("jyDgWordBox").style.display = "block";
+      $("jyDgWordCat").textContent = "题目类型：" + DG.cat;
+      $("jyDgWordVal").textContent = DG.word;
+      $("jyDgDrawWrap").style.display = "block";
+      $("jyDgTools").style.display = "flex";
+      $("jyDgHintBox").style.display = "none";
+      $("jyDgLog").innerHTML = "";
+      addLog("sys", "题目：" + DG.cat + "·" + DG.word + "（只有你能看到）");
+      addLog("sys", "在下面画板上画出来，画完点“画好啦”让 TA 猜");
+      $("jyDgOps").innerHTML = "";
+      clearCanvas();
+    }
+    showPageDg("jyGameDg");
+  }
+
+  /* ================= AI 画 ================= */
+  function aiDrawStart() {
+    var ops = $("jyDgOps");
+    DG.busy = true;
+    ops.innerHTML = '<div class="jyDg-log"><div class="pa"><b>' + esc(DG.pa.name) + '</b>低头画了起来<span class="jyDg-ldot">…</span></div></div>';
+    var meName = pName();
+    askDg(DG.pa, "我们在玩你画我猜。你的题目是「" + DG.cat + " · " + DG.word + "」。你是画手，正在给" + meName + "画这幅画。请以你本人平时的口吻，用两三句话描述你刚画好的画面：先画了什么、长什么样、摆在纸的哪里。别把答案词说出来，也别提到“题目是”这几个字。")
+      .then(function (txt) {
+        DG.busy = false;
+        DG.art = txt || "";
+        $("jyDgZone").innerHTML = "<b>" + esc(DG.pa.name) + "</b> 画好了<small>仔细看看 TA 的画，输入你的猜测</small>";
+        var box = $("jyDgArtBox");
+        box.style.display = "block";
+        $("jyDgArtTitle").textContent = DG.pa.name + " 的画（用文字画出来的）";
+        $("jyDgArtPaper").textContent = DG.art;
+        addLog("sys", DG.pa.name + " 把画推到你面前");
+        addLog("pa", DG.art);
+        renderGuessOps(3 - DG.guesses);
+      })
+      .catch(function (e) {
+        DG.busy = false;
+        addLog("err", "TA 画失败了：" + String((e && e.message) || e) + "（角色需接入模型 API）");
+        ops.innerHTML = '<div class="row"><button class="jyDg-btn flat" onclick="aiDrawStart()">TA 重新画</button><button class="jyDg-btn ghost" onclick="jyDgExit()">退出</button></div>';
+      });
+  }
+
+  function renderGuessOps(left) {
+    var ops = $("jyDgOps");
+    ops.innerHTML = '<div class="row"><input id="jyDgGuessInput" placeholder="你猜是……？还剩 ' + left + ' 次" maxlength="30"><button class="jyDg-btn main" onclick="jyDgGuess()">猜！</button></div>';
+    var inp = $("jyDgGuessInput");
+    if (inp) { inp.focus(); inp.addEventListener("keydown", function (e) { if (e.key === "Enter") jyDgGuess(); }); }
+  }
+
+  window.jyDgGuess = function () {
+    if (DG.busy || DG.over || !DG.on) return;
+    var inp = $("jyDgGuessInput");
+    var g = inp ? inp.value.trim() : "";
+    if (!g) { toastD("先输入你猜的词"); return; }
+    DG.busy = true;
+    DG.guesses++;
+    var meName = pName();
+    addLog("me", "我猜是：「" + g + "」");
+    var ops = $("jyDgOps");
+    ops.innerHTML = '<div class="jyDg-log"><div class="pa"><b>' + esc(DG.pa.name) + '</b>看了看你的答案<span class="jyDg-ldot">…</span></div></div>';
+    var prompt = "你画我猜中，你的题目是「" + DG.cat + "·" + DG.word + "」。你画的画面：" + (DG.art || "（无描述）") + "。对方" + meName + "猜「" + g + "」。请判断对不对，严格只输出一个 JSON，不要输出任何别的文字：{\"ok\":true或false,\"hint\":\"一句话：猜对就兴奋地确认并说破答案；猜错就用你本人活人感口吻笑着提示，但不能直接说出答案词\"}";
+    askDg(DG.pa, prompt).then(function (txt) {
+      DG.busy = false;
+      var j = parseJudge(txt);
+      if (j) {
+        addLog("pa", j.hint || (j.ok ? "对啦！" : "不对哦"));
+        if (j.ok) { finishDg(true); }
+        else if (DG.guesses >= 3) { finishDg(false); }
+        else renderGuessOps(3 - DG.guesses);
+      } else {
+        addLog("err", "TA 的回答有点乱，你来自行确认一下");
+        ops.innerHTML = '<div class="row"><button class="jyDg-btn green" onclick="jyDgManual(true)">我猜对了</button><button class="jyDg-btn red" onclick="jyDgManual(false)">我猜错了</button></div>';
+        addLog("sys", "TA 的原话：" + (txt || "").slice(0, 80));
+      }
+    }).catch(function (e) {
+      DG.busy = false;
+      addLog("err", "判定失败：" + String((e && e.message) || e));
+      ops.innerHTML = '<div class="row"><button class="jyDg-btn green" onclick="jyDgManual(true)">我猜对了</button><button class="jyDg-btn red" onclick="jyDgManual(false)">我猜错了</button></div>';
+    });
+  };
+
+  window.jyDgManual = function (ok) {
+    if (DG.over) return;
+    if (ok) { finishDg(true); }
+    else if (DG.guesses >= 3) { finishDg(false); }
+    else renderGuessOps(3 - DG.guesses);
+  };
+
+  function parseJudge(txt) {
+    try {
+      var t = String(txt || "");
+      var s = t.indexOf("{"), e2 = t.lastIndexOf("}");
+      if (s >= 0 && e2 > s) {
+        var j = JSON.parse(t.slice(s, e2 + 1));
+        var ok = j.ok === true || j.ok === "true" || j.ok === 1 || /^(对|是|正确|猜对|对了|没错|yes)/i.test(String(j.ok));
+        return { ok: !!ok, hint: String(j.hint || "") };
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  /* ================= 玩家画 ================= */
+  var cvs = null, cctx = null;
+  window.jyDgClearCanvas = clearCanvas;
+  function clearCanvas() {
+    if (!cvs) cvs = $("jyDgCanvas");
+    if (!cctx && cvs) cctx = cvs.getContext("2d");
+    if (!cvs || !cctx) return;
+    cctx.fillStyle = "#fff";
+    cctx.fillRect(0, 0, cvs.width, cvs.height);
+    DG.curColor = "#111111";
+    var cols = document.querySelectorAll(".jyDg-col");
+    for (var i = 0; i < cols.length; i++) { cols[i].classList.toggle("on", cols[i].getAttribute("data-c") === DG.curColor); }
+  }
+  (function bindCanvas() {
+    cvs = $("jyDgCanvas");
+    if (!cvs) return;
+    cctx = cvs.getContext("2d");
+    cctx.lineCap = "round";
+    cctx.lineJoin = "round";
+    cctx.lineWidth = 5;
+    clearCanvas();
+    function pt(e) {
+      var r = cvs.getBoundingClientRect();
+      return { x: (e.clientX - r.left) * (cvs.width / r.width), y: (e.clientY - r.top) * (cvs.height / r.height) };
+    }
+    var down = false;
+    cvs.addEventListener("pointerdown", function (e) {
+      if (!DG.on || DG.mode !== "youDraw" || DG.over) return;
+      e.preventDefault();
+      down = true;
+      var p = pt(e);
+      cctx.beginPath();
+      cctx.moveTo(p.x, p.y);
+    });
+    cvs.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      e.preventDefault();
+      var p = pt(e);
+      cctx.lineTo(p.x, p.y);
+      cctx.strokeStyle = DG.curColor;
+      cctx.stroke();
+    });
+    window.addEventListener("pointerup", function () { down = false; });
+    window.addEventListener("pointercancel", function () { down = false; });
+    document.addEventListener("pointerdown", function (e) {
+      if (e.target.classList && e.target.classList.contains("jyDg-col")) {
+        DG.curColor = e.target.getAttribute("data-c") || "#111111";
+        var cols = document.querySelectorAll(".jyDg-col");
+        for (var i = 0; i < cols.length; i++) cols[i].classList.toggle("on", cols[i] === e.target);
+      }
+    });
+  })();
+
+  window.jyDgDoneDraw = function () {
+    if (DG.busy || DG.over || !DG.on) return;
+    var hintEl = $("jyDgHintInput");
+    var hint = hintEl ? hintEl.value.trim() : "";
+    DG.hints.push(hint || "");
+    hintEl.value = "";
+    $("jyDgTools").style.display = "none";
+    DG.busy = true;
+    addLog("sys", "你把画好的画推给 " + DG.pa.name);
+    aiGuess(1);
+  };
+
+  function aiGuess(n) {
+    DG.askCount = n;
+    var ops = $("jyDgOps");
+    ops.innerHTML = '<div class="jyDg-log"><div class="pa"><b>' + esc(DG.pa.name) + '</b>歪头盯着画看<span class="jyDg-ldot">…</span></div></div>';
+    var h = DG.hints[DG.hints.length - 1] || "";
+    var meName = pName();
+    var prompt = "我们在玩你画我猜，我是画手" + meName + "，你是猜的人。题目的类型是「" + DG.cat + "」。我把画面里的信息告诉你：" + (h ? "（" + h + "）" : "（我还没给你画面细节，你可以凭" + DG.cat + "类的常见东西猜一个）") + "。请以你本人活人感口吻，只回答一个你觉得最可能的词，不要解释，不要问号结尾。";
+    askDg(DG.pa, prompt).then(function (txt) {
+      DG.busy = false;
+      var g = cleanGuess(txt);
+      DG.guesses++;
+      addLog("pa", "我猜是「" + g + "」？");
+      $("jyDgZone").innerHTML = "<b>" + esc(DG.pa.name) + "</b> 猜了「" + esc(g) + "」<small>猜对了吗？" + (3 - DG.guesses) + " 次机会剩余</small>";
+      var ops2 = $("jyDgOps");
+      var hintBtn = DG.guesses < 3 ? '<button class="jyDg-btn ghost" onclick="jyDgAskMore()">不对，让它再猜</button>' : "";
+      ops2.innerHTML = '<div class="row"><button class="jyDg-btn green" onclick="jyDgAiRight()">对，猜对了！</button>' + (hintBtn ? hintBtn : "") + "</div>";
+      if (DG.guesses < 3) $("jyDgHintBox").style.display = "flex";
+    }).catch(function (e) {
+      DG.busy = false;
+      addLog("err", "TA 没猜出来：" + String((e && e.message) || e));
+      ops.innerHTML = '<div class="row"><button class="jyDg-btn flat" onclick="aiGuess(' + DG.askCount + ')">让 TA 再想想</button><button class="jyDg-btn ghost" onclick="jyDgExit()">退出</button></div>';
+    });
+  }
+
+  window.jyDgAiRight = function () { finishDg(true); };
+  window.jyDgAskMore = function () {
+    if (DG.busy || DG.over) return;
+    var hintEl = $("jyDgHintInput");
+    var h = hintEl ? hintEl.value.trim() : "";
+    if (h) { DG.hints.push(h); hintEl.value = ""; }
+    addLog("me", "不对哦，再想想（补充提示：" + (h || "没补充") + "）");
+    aiGuess(DG.askCount + 1);
+  };
+
+  function cleanGuess(txt) {
+    var t = String(txt || "").trim();
+    t = t.replace(/^["'「『【《(（]/, "").replace(/["'」』】》)）？?。.!！\s]+$/, "");
+    t = t.replace(/^(我觉得|我猜|应该是|是|估计是|可能是|是不是|难道是|该不会是|答案|我想是|感觉是)/, "");
+    t = t.trim();
+    t = t.replace(/[，,。.!！?？、；;：:].*$/, "");
+    if (t.length > 10) t = t.slice(0, 10);
+    return t || "……";
+  }
+
+  /* ---------- 结算 ---------- */
+  function finishDg(guesserWin) {
+    if (DG.over || !DG.on) return;
+    DG.over = true; DG.busy = false;
+    var pa = DG.pa, mode = DG.mode;
+    var meName = pName();
+    var whoWin = "";
+    if (mode === "aiDraw") whoWin = guesserWin ? meName + "（猜的人）" : pa.name + "（画的人）";
+    else whoWin = guesserWin ? pa.name + "（猜的人）" : meName + "（画的人）";
+    DG.winDesc = whoWin + " 赢了";
+    var headT = guesserWin ? "🎉 猜对啦！" : "机会用完啦";
+    var detail = "";
+    if (mode === "aiDraw") {
+      if (guesserWin) detail = meName + " 猜中了「" + DG.word + "」！";
+      else detail = "3 次都没猜中，答案是「" + DG.word + "」";
+      detail += "\n画手 " + pa.name + " 画的：" + (DG.art ? DG.art.slice(0, 60) : "");
+    } else {
+      if (guesserWin) detail = pa.name + " 猜中了「" + DG.word + "」！";
+      else detail = pa.name + " 3 次都没猜中，答案是「" + DG.word + "」";
+    }
+    $("jyDgOverT").textContent = headT;
+    $("jyDgOverS").textContent = detail + "\n本局 " + whoWin;
+    $("jyDgOverPa").style.display = "none";
+    $("jyDgOver").style.display = "flex";
+    var memText = "你和" + pa.name + "玩了你画我猜：题目「" + DG.cat + "·" + DG.word + "」，" + (mode === "aiDraw" ? pa.name + "画" + meName + "猜" : meName + "画" + pa.name + "猜") + "，共猜了" + DG.guesses + "次，" + (guesserWin ? "猜的人" + (mode === "aiDraw" ? meName : pa.name) + "猜中了" : "没猜中，画的人" + (mode === "aiDraw" ? pa.name : meName) + "赢了") + "。";
+    try { addMemorySourceFor(pa, "game", memText); } catch (e) {}
+    try { if (window.jyHistPush) jyHistPush({ text: "你画我猜 · 题目「" + DG.cat + "·" + DG.word + "」：" + (guesserWin ? "猜的人猜中" : "3次未中，画的人赢") + "（" + DG.guesses + "次）", game: "你画我猜", partner: pa.name }); } catch (e) {}
+    epilogue(memText);
+  }
+
+  function epilogue(memText) {
+    var pa = DG.pa;
+    askDg(pa, "咱们这局你画我猜刚结束：" + memText + "。请以你本人活人感口吻说一两句话总结这局（赢了就得意一下，输了就装作不服气），按你们日常聊天的样子来。").then(function (txt) {
+      if (!DG.over) return;
+      var box = $("jyDgOverPa");
+      box.style.display = "block";
+      box.textContent = pa.name + "：" + txt;
+      try { addMemorySourceFor(pa, "gameChat", "你画我猜结束后，" + pa.name + "说：" + txt); } catch (e) {}
+    }).catch(function () {});
+  }
+
+  window.jyDgAgain = function () {
+    $("jyDgOver").style.display = "none";
+    DG.pa = null;
+    jyDgOpen();
+  };
+
+  window.jyDgExit = function () {
+    if (DG.busy && !DG.over) {
+      if (!confirm("游戏还没结束，确定要退出吗？")) return;
+    }
+    $("jyDgOver").style.display = "none";
+    backToHall();
+  };
+
+  /* ---------- 大厅入口 ---------- */
+  try {
+    if (window.HALL62 && window.HALL62.push) {
+      window.HALL62.push({ id: "drawguess", name: "你画我猜", tag: "双人 · 新开放", cls: "gold", icon: '<svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="m7 16 9-9 2 2-9 9-3 1z"/><path d="M14 5l2-2 3 3-2 2"/><circle cx="6" cy="18" r=".6" fill="currentColor" stroke="none"/></svg>' });
+    }
+  } catch (e) {}
+  (function wrapPick() {
+    var base = window.jy62PickGame;
+    window.__jyDgBasePick = base;
+    window.jy62PickGame = function (id) {
+      if (id === "drawguess") {
+        try { window.jyDgOpen(); return; } catch (e) { try { toast("你画我猜加载失败，请刷新重试"); } catch (e2) {} return; }
+      }
+      if (typeof base === "function") return base.apply(this, arguments);
+    };
+  })();
+
+  window.__jyDgDebug = { open: function () { jyDgOpen(); }, start: bootGame };
+})();
 </script>
