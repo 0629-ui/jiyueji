@@ -659,7 +659,8 @@ body.no-scroll{touch-action:none;overflow:hidden}
 .bubble-row .money-card .mc-name{font-size:11px;opacity:.75;margin-bottom:6px}
 .bubble-row .money-card .mc-amt{font-size:20px;font-weight:700;letter-spacing:.5px}
 .bubble-row .money-card .mc-state{font-size:10px;opacity:.7;margin-top:4px}
-.bubble-row .money-card.accepted{background:#f2ede1;color:#8a8474;cursor:default}
+.bubble-row .money-card.accepted{background:#f2ede1;color:#8a8474;cursor:pointer}
+.bubble-row .money-card.rejected{background:#efece6;color:#a29a8c;cursor:default}
 .bubble-row.me .money-card{background:linear-gradient(160deg,#0a0a0a,#2c2c2c);color:#fff}
 .bubble-row .rp-card{background:linear-gradient(135deg,#ff5a3c,#e64340);color:#fff;border-radius:14px;padding:10px 14px;min-width:210px;cursor:pointer;display:flex;align-items:center;gap:10px}
 .bubble-row.me .rp-card{background:linear-gradient(135deg,#c22b18,#a12210)}
@@ -2230,6 +2231,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <h3>聊天设置</h3>
     <div class="set-item" onclick="toggleChatTimeAware()"><div class="set-ico"><svg class="ic stroke" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="set-main"><div class="set-title">时间感知</div><div class="set-desc">开启后 AI 能感知现实时间</div></div><div class="switch" id="chatTimeSwitch"></div></div>
     <div class="set-item" onclick="toggleChatNarration()"><div class="set-ico"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg></div><div class="set-main"><div class="set-title">旁白动作</div><div class="set-desc">回复时附带角色小动作（150字内）</div></div><div class="switch" id="chatNarrSwitch"></div></div>
+    <div class="set-item" onclick="toggleChatInlineVoice()"><div class="set-ico"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.1-6.3"/><path d="M21 3v5h-5"/><path d="M9 10h6M9 14h4"/></svg></div><div class="set-main"><div class="set-title">气泡心声</div><div class="set-desc">在回复气泡里显示角色心声碎碎念（默认关闭，可点头像看心声）</div></div><div class="switch" id="chatVoiceSwitch"></div></div>
     <div class="set-item" onclick="toggleChatTranslate()"><div class="set-ico"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 5h9M9 3v2c0 4-1.5 7-4 9"/><path d="M3 10c2.5 0 4.5 1.5 5.5 4"/><path d="M12 21l3-7 3 7M13.5 18h5"/></svg></div><div class="set-main"><div class="set-title">翻译</div><div class="set-desc">非中文消息自动在下方显示译文</div></div><div class="switch" id="chatTransSwitch"></div></div>
     <div class="set-item" onclick="openMemory()"><div class="set-ico"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div><div class="set-main"><div class="set-title">记忆</div><div class="set-desc">查看角色记忆总结，可自动/手动总结</div></div><div class="switch" id="chatMemSwitch" style="pointer-events:none"></div></div>
     <div class="set-item chatPerWrap" onclick="togglePerSwitch('reverse')"><div class="set-ico"><svg class="ic stroke" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/><path d="M10 6h4"/></svg></div><div class="set-main"><div class="set-title">反查手机</div><div class="set-desc" id="perReverseDesc">开启后角色会随机翻你手机并作出反应</div></div><div class="switch" id="perReverseSwitch"></div></div>
@@ -6659,7 +6661,7 @@ function appendBubble(from, text, withTime, opts) {
   inner += escapeHtml(text);
   if (opts.ref) inner = '<div class="b-quote"><span class="bq-name">' + escapeHtml(opts.ref.from || "") + "\uFF1A</span>" + escapeHtml(opts.ref.text) + "</div>" + inner;
   var time = withTime ? '<span class="bubble-time">' + nowHM() + "</span>" : "";
-  if (opts.voice) inner += '<div class="bubble-voice">' + escapeHtml(opts.voice) + "</div>";
+  if (opts.voice && DB.settings.inlineVoice) inner += '<div class="bubble-voice">' + escapeHtml(opts.voice) + "</div>";
   row2.innerHTML = '<img class="avatar" src="' + avatar + '" alt=""><div class="bubble">' + inner + "</div>" + time;
   var av = row2.querySelector(".avatar");
   if (av) {
@@ -6690,7 +6692,7 @@ function appendGroupBubble(from, text, withTime, opts) {
   inner += escapeHtml(text);
   if (opts.ref) inner = '<div class="b-quote"><span class="bq-name">' + escapeHtml(opts.ref.from || "") + "\uFF1A</span>" + escapeHtml(opts.ref.text) + "</div>" + inner;
   var time = withTime ? '<span class="bubble-time">' + nowHM() + "</span>" : "";
-  if (opts.voice) inner += '<div class="bubble-voice">' + escapeHtml(opts.voice) + "</div>";
+  if (opts.voice && DB.settings.inlineVoice) inner += '<div class="bubble-voice">' + escapeHtml(opts.voice) + "</div>";
   row2.innerHTML = '<div class="chat-msg-name">' + escapeHtml(t.name || from) + '</div><div style="display:flex;align-items:flex-start"><img class="avatar" src="' + chatTargetAvatar(from) + '" alt=""><div class="bubble">' + inner + "</div></div>" + time;
   var av = row2.querySelector(".avatar");
   if (av) {
@@ -6713,7 +6715,7 @@ function isForeignText(t) {
   var s = t.replace(/[\s\p{P}\p{S}]/gu, "");
   if (!s.length) return false;
   var cjk = s.match(/[\u4e00-\u9fff]/g);
-  return !cjk || cjk.length / s.length < 0.35;
+  return !cjk || cjk.length / s.length < 0.5;
 }
 __name(isForeignText, "isForeignText");
 function translateText(t) {
@@ -6745,6 +6747,13 @@ function maybeTranslate(row2, text, idx) {
     return;
   }
   translateText(text).then(function(tr) {
+    if (tr && String(tr).replace(/[\s\p{P}\p{S}]/gu, "") === String(text).replace(/[\s\p{P}\p{S}]/gu, "")) {
+      if (msg) {
+        msg.translated = "";
+        save();
+      }
+      return;
+    }
     if (msg) {
       msg.translated = tr;
       save();
@@ -9299,6 +9308,8 @@ function renderChatMenuSwitches() {
   if (n) n.className = "switch" + (DB.settings.narration ? " on" : "");
   var tr = document.getElementById("chatTransSwitch");
   if (tr) tr.className = "switch" + (DB.settings.translate ? " on" : "");
+  var vv = document.getElementById("chatVoiceSwitch");
+  if (vv) vv.className = "switch" + (DB.settings.inlineVoice ? " on" : "");
   var mm = document.getElementById("chatMemSwitch");
   if (mm) mm.className = "switch" + (memoryOf().mode === "auto" ? " on" : "");
   var cid = currentChatId();
@@ -9393,10 +9404,25 @@ function toggleChatNarration() {
   toast(DB.settings.narration ? "\u5DF2\u5F00\u542F\u65C1\u767D\uFF1A\u56DE\u590D\u5E26\u89D2\u8272\u5C0F\u52A8\u4F5C" : "\u5DF2\u5173\u95ED\u65C1\u767D\uFF1A\u56DE\u590D\u4E3A\u7EAF\u4FE1\u606F");
 }
 __name(toggleChatNarration, "toggleChatNarration");
+function toggleChatInlineVoice() {
+  DB.settings.inlineVoice = !DB.settings.inlineVoice;
+  save();
+  renderChatMenuSwitches();
+  renderChatAll();
+  toast(DB.settings.inlineVoice ? "\u5DF2\u5F00\u542F\u6C14\u6CE1\u5FC3\u58F0\uFF1A\u56DE\u590D\u6C14\u6CE1\u5C06\u663E\u793A\u89D2\u8272\u5FC3\u58F0" : "\u5DF2\u5173\u95ED\u6C14\u6CE1\u5FC3\u58F0\uFF1A\u4E0D\u518D\u5728\u6D88\u606F\u91CC\u663E\u793A\u5FC3\u58F0\u788E\u788E\u5FF5");
+}
+__name(toggleChatInlineVoice, "toggleChatInlineVoice");
 function toggleChatTranslate() {
   DB.settings.translate = !DB.settings.translate;
   save();
   renderChatMenuSwitches();
+  if (!DB.settings.translate) {
+    try {
+      var trAll = document.querySelectorAll("#chatBody .bubble-trans");
+      for (var i = 0; i < trAll.length; i++) trAll[i].remove();
+    } catch (e) {
+    }
+  }
   toast(DB.settings.translate ? "\u5DF2\u5F00\u542F\u7FFB\u8BD1\uFF1A\u975E\u4E2D\u6587\u6D88\u606F\u81EA\u52A8\u663E\u793A\u8BD1\u6587" : "\u5DF2\u5173\u95ED\u7FFB\u8BD1\uFF1A\u4E0D\u518D\u663E\u793A\u8BD1\u6587");
   renderChatAll();
 }
@@ -10443,10 +10469,12 @@ function appendMoneyCard(from, amt, name, accepted, opts) {
   var inner;
   if (from === "me") {
     inner = '<div class="bubble money-card"><div class="mc-name">\u8F6C\u8D26\u7ED9 ' + escapeHtml(name) + '</div><div class="mc-amt">\xA5' + Number(amt).toFixed(2) + '</div><div class="mc-state">\u5DF2\u8F6C\u8D26</div></div>';
-  } else if (accepted) {
-    inner = '<div class="bubble money-card accepted"><div class="mc-name">' + escapeHtml(name) + ' \u8F6C\u8D26\u7ED9\u4F60</div><div class="mc-amt">\xA5' + Number(amt).toFixed(2) + '</div><div class="mc-state">\u5DF2\u6536\u6B3E</div></div>';
   } else {
-    inner = '<div class="bubble money-card" onclick="acceptMoney(this,' + Number(amt) + ",'" + escapeHtml(name).replace(/'/g, "\\'") + "'," + (opts.idx !== void 0 ? opts.idx : -1) + ')"><div class="mc-name">' + escapeHtml(name) + ' \u8F6C\u8D26\u7ED9\u4F60</div><div class="mc-amt">\xA5' + Number(amt).toFixed(2) + '</div><div class="mc-state">\u70B9\u51FB\u6536\u6B3E</div></div>';
+    var mo2 = opts.money || {};
+    var rejected2 = !!mo2.rejected;
+    var curCls = rejected2 ? "accepted rejected" : (accepted ? "accepted" : "");
+    var curTxt = rejected2 ? "\u5DF2\u9000\u8FD8" : (accepted ? "\u5DF2\u6536\u6B3E" : "\u70B9\u51FB\u6536\u6B3E\u6216\u62D2\u6536");
+    inner = '<div class="bubble money-card ' + curCls + '" onclick="showMoneyAction(this,' + Number(amt) + ",'" + escapeHtml(name).replace(/'/g, "\\'") + "'," + (opts.idx !== void 0 ? opts.idx : -1) + ')"><div class="mc-name">' + escapeHtml(name) + ' \u8F6C\u8D26\u7ED9\u4F60</div><div class="mc-amt">\xA5' + Number(amt).toFixed(2) + '</div><div class="mc-state">' + curTxt + '</div></div>';
   }
   row2.innerHTML = '<img class="avatar" src="' + avatar + '" alt=""><div>' + inner + "</div>";
   body.appendChild(row2);
@@ -10469,6 +10497,82 @@ function acceptMoney(el, amt, name, idx) {
   }
 }
 __name(acceptMoney, "acceptMoney");
+function showMoneyAction(el, amt, name, idx) {
+  var log = chatLog(currentChatId());
+  var m = idx >= 0 && log[idx] ? log[idx] : null;
+  var mo = m && m.money ? m.money : null;
+  if (mo && mo.rejected) return;
+  var wasAccepted = !!(mo && mo.accepted);
+  try {
+    closeBubbleMenu();
+  } catch (e) {
+  }
+  var mask = document.createElement("div");
+  mask.style.cssText = "position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:2147483100;display:flex;align-items:flex-end;justify-content:center";
+  mask.addEventListener("click", function() {
+    mask.remove();
+  });
+  var sheet = document.createElement("div");
+  sheet.style.cssText = "width:100%;max-width:520px;background:#fff;border-radius:18px 18px 0 0;padding:20px 18px 24px;box-sizing:border-box;box-shadow:0 -6px 24px rgba(0,0,0,.18)";
+  var head = document.createElement("div");
+  head.style.cssText = "text-align:center;font-size:15px;color:#666";
+  head.textContent = name + " \u8F6C\u8D26\u7ED9\u4F60";
+  var amtEl = document.createElement("div");
+  amtEl.style.cssText = "text-align:center;font-size:28px;font-weight:800;color:#111;margin:6px 0 18px";
+  amtEl.textContent = "\xA5" + Number(amt).toFixed(2);
+  sheet.appendChild(head);
+  sheet.appendChild(amtEl);
+  function mkBtn(label, style, fn) {
+    var b = document.createElement("button");
+    b.textContent = label;
+    b.style.cssText = style;
+    b.addEventListener("click", function(e) {
+      e.stopPropagation();
+      mask.remove();
+      fn();
+    });
+    return b;
+  }
+  if (!wasAccepted) {
+    sheet.appendChild(mkBtn("\u6536\u4E0B", "width:100%;padding:14px;border:none;border-radius:12px;background:#111;color:#fff;font-size:16px;font-weight:700;margin-bottom:10px;cursor:pointer", function() {
+      acceptMoney(el, amt, name, idx);
+    }));
+    sheet.appendChild(mkBtn("\u62D2\u6536\u5E76\u9000\u56DE", "width:100%;padding:14px;border:1px solid #ddd;background:#fff;color:#c0392b;font-size:16px;border-radius:12px;margin-bottom:10px;cursor:pointer", function() {
+      rejectMoney(el, amt, name, idx);
+    }));
+  } else {
+    sheet.appendChild(mkBtn("\u9000\u8FD8\u8FD9\u7B14\u8F6C\u8D26", "width:100%;padding:14px;border:1px solid #ddd;background:#fff;color:#c0392b;font-size:16px;border-radius:12px;margin-bottom:10px;cursor:pointer", function() {
+      rejectMoney(el, amt, name, idx);
+    }));
+  }
+  sheet.appendChild(mkBtn("\u53D6\u6D88", "width:100%;padding:12px;border:none;background:#f2f3f5;color:#666;font-size:15px;border-radius:12px;cursor:pointer", function() {}));
+  mask.appendChild(sheet);
+  document.body.appendChild(mask);
+}
+__name(showMoneyAction, "showMoneyAction");
+function rejectMoney(el, amt, name, idx) {
+  var log = chatLog(currentChatId());
+  var m = idx >= 0 && log[idx] ? log[idx] : null;
+  var mo = m && m.money ? m.money : null;
+  if (mo && mo.rejected) return;
+  var wasAccepted = !!(mo && mo.accepted);
+  if (wasAccepted) {
+    if (walletBalance() < amt) {
+      toast("\u4F59\u989D\u4E0D\u8DB3\uFF0C\u65E0\u6CD5\u9000\u8FD8\u8FD9\u7B14\u8F6C\u8D26\uFF08\u53EF\u5148\u5728\u94B1\u5305\u8F6C\u5165\u4F59\u989D\uFF09");
+      return;
+    }
+    walletPush("out", "\u9000\u8FD8 " + name + " \u7684\u8F6C\u8D26", amt);
+  }
+  el.classList.add("accepted");
+  el.classList.add("rejected");
+  el.querySelector(".mc-state").textContent = "\u5DF2\u9000\u8FD8";
+  if (mo) {
+    mo.rejected = true;
+    save();
+  }
+  toast("\u5DF2\u62D2\u6536\u9000\u8FD8 \xA5" + Number(amt).toFixed(2));
+}
+__name(rejectMoney, "rejectMoney");
 function chatSendMoney() {
   closeChatExtras();
   var cid = currentChatId();
