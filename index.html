@@ -11,6 +11,46 @@
 <meta name="x5-orientation" content="portrait">
 <meta name="360-orientation" content="portrait">
 <title>霁月机 · AI 前端框架</title><script>
+/* 霁月机78 · 极早预检：识别"HTML 被截断/源码被当文本渲染"与 Opera Mini，第一时间引导 */
+(function () {
+  try { window.__jyT0 = Date.now(); } catch (e) {}
+  var ua = '';
+  try { ua = String(navigator.userAgent); } catch (e) {}
+  var isMini = ua.indexOf('Opera Mini') !== -1 || ua.indexOf('OperaMini') !== -1;
+  function tip(style, text) {
+    try {
+      var d = document.createElement('div');
+      d.id = 'jyEarlyTip';
+      d.style.cssText = 'position:fixed;left:0;top:0;right:0;z-index:2147483998;padding:14px 16px;font:13px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;white-space:pre-wrap;word-break:break-all;' + style;
+      d.textContent = text;
+      (document.body || document.documentElement).appendChild(d);
+    } catch (e) {}
+  }
+  if (isMini) {
+    /* Opera Mini 压缩代理容易截断大文件，直接引导换浏览器，同时允许继续尝试 */
+    var done = false;
+    function miniTip() {
+      if (done) return; done = true;
+      tip('background:#fff8e1;color:#8a6d00;border-bottom:2px solid #ffc107;', '[霁月机] 检测到 Opera Mini 浏览器。本应用是大型单文件页面，Opera Mini 压缩代理可能截断文件导致白屏或显示源码。\n\n建议：点击浏览器菜单 → "在浏览器中打开" 或复制链接到 Chrome / 系统浏览器访问。\n若坚持在本浏览器打开，请等待加载完成后手动刷新一次。');
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', miniTip);
+    else miniTip();
+  }
+  function chk() {
+    try {
+      if (document.getElementById('jyEarlyTip')) return;
+      var sc = document.scripts ? document.scripts.length : 0;
+      var hasHome = !!(document.getElementById('homePager') || document.getElementById('homeTrack') || document.getElementById('app') || document.getElementById('lockScreen'));
+      if (sc >= 1 && sc < 8 && !hasHome) {
+        tip('background:#fdecea;color:#b71c1c;', '[霁月机] 页面文件下载不完整（可能是网络中断，或 Opera Mini/旧版压缩代理截断了文件），当前仅加载到部分内容，无法正常运行。\n\n请尝试：\n1. 等待网络稳定后点击浏览器刷新按钮重载本页；\n2. 在 Wi-Fi 或信号更好的地方重新打开链接；\n3. 若使用 Opera Mini / 旧版 Opera，请复制链接改用 Chrome 或系统浏览器打开。');
+      }
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', chk);
+  else setTimeout(chk, 300);
+})();
+</script>
+<script>
 /* ===== 霁月机77 · 全量老内核兼容层（Opera Mini/旧WebView/永恒浏览器） =====
    必须在任何业务脚本之前执行：补齐缺失的 ES5+/DOM API，避免"Script error."黑屏。 */
 (function () {
