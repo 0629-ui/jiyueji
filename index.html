@@ -243,7 +243,7 @@
   }
 })();
 </script>
-
+<script>
 /* 霁月机64 · 全局错误兜底：黑屏时显示错误信息，便于定位与老旧内核提示 */
 (function () {
   try { window.__jyT0 = window.__jyT0 || Date.now(); } catch (e) {}
@@ -264,10 +264,27 @@
         extra += '\n\n建议操作：\n1. 清除浏览器缓存后刷新页面；\n2. 若使用 Opera Mini / 旧版 Opera，请改用系统浏览器或 Chrome 打开；\n3. 仍失败可截图本页反馈。';
       }
       d.textContent = '[霁月机] 页面运行遇到错误，无法正常显示。\n\n错误信息：' + (msg || '未知错误') + (stack ? '\n\n详情：' + stack : '') + extra;
+      try {
+        var okBtn = document.createElement('button');
+        okBtn.type = 'button';
+        okBtn.textContent = '知道了，尝试继续使用';
+        okBtn.style.cssText = 'display:block;margin:22px auto 0;padding:10px 24px;border:1px solid #888;border-radius:8px;background:#fff;color:#222;font:14px/1.5 inherit;cursor:pointer;';
+        okBtn.onclick = function () { try { d.parentNode.removeChild(d); } catch (e3) {} };
+        d.appendChild(okBtn);
+      } catch (e4) {}
       (document.body || document.documentElement).appendChild(d);
     } catch (e) {}
   }
-  window.addEventListener('error', function (ev) { show(ev.message || 'Script error', ev.error && ev.error.stack ? ev.error.stack : ''); });
+  /* v80: 只拦截真正的脚本错误；IMG/LINK/SCRIPT 等资源加载失败属于网络问题，不再全屏误报 */
+  window.addEventListener('error', function (ev) {
+    try {
+      var t = ev && ev.target;
+      if (t && t !== window && t.nodeName && String(t.nodeName) !== '#document') {
+        return;
+      }
+    } catch (e2) {}
+    show(ev.message || 'Script error', ev.error && ev.error.stack ? ev.error.stack : '');
+  });
   window.addEventListener('unhandledrejection', function (ev) {
     var rmsg = ev && ev.reason ? (ev.reason.message || ev.reason) : ev;
     var s = String(rmsg || '');
@@ -1664,6 +1681,29 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 .hp-del-x:active{transform:scale(.85)}
 .hp-widgets .hw-item{position:relative}
 </style>
+
+<script>
+/* v80 · 外链图片兜底：pravatar/picsum/unsplash 等在弱网/部分网络失败时替换为内置占位，避免破图与资源错误事件干扰 */
+(function () {
+  try {
+    var PH = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><rect width="240" height="240" fill="#e6ebf2"/><circle cx="120" cy="92" r="40" fill="#b9c6d4"/><path d="M24 216 Q120 130 216 216 Z" fill="#b9c6d4"/></svg>');
+    function rescue(e) {
+      try {
+        var t = e && e.target;
+        if (!t || t.nodeName !== 'IMG') return;
+        if (t._jyImgOk) return;
+        var src = t.currentSrc || t.getAttribute('src') || '';
+        if (String(src).indexOf('data:') === 0) { t._jyImgOk = 1; return; }
+        t._jyImgOk = 1;
+        var old = String(src).slice(0, 300);
+        t.setAttribute('data-fail-src', old);
+        if (t.src) { t.src = PH; }
+      } catch (e5) {}
+    }
+    if (document.addEventListener) { document.addEventListener('error', rescue, true); }
+  } catch (e6) {}
+})();
+</script>
 </head>
 <body>
 <div class="phone"><div class="screen">
