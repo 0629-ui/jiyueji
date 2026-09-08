@@ -1678,8 +1678,9 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 .home-dots{display:flex;justify-content:center;align-items:center;gap:6px;padding:2px 0 6px;z-index:8;flex-shrink:0;pointer-events:none}
 .hd-dot{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.3);transition:all .25s ease}
 .hd-dot.on{width:19px;background:rgba(255,255,255,.9)}
-.hp-del-x{position:absolute;top:-7px;right:-9px;width:19px;height:19px;border-radius:50%;background:#ff3b30;color:#fff;font-size:12px;line-height:19px;text-align:center;z-index:12;display:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.hp-del-x{position:absolute;top:6px;right:8px;width:21px;height:21px;border-radius:50%;background:#ff3b30;color:#fff;font-size:12px;line-height:21px;text-align:center;z-index:12;display:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 .jiggle .hp-del-x{display:block}
+.jiggle .hw-edit-hint{display:none}
 .hp-del-x:active{transform:scale(.85)}
 .hp-widgets .hw-item{position:relative}
 </style>
@@ -3904,7 +3905,7 @@ function renderHomeWidgets() {
 __name(renderHomeWidgets, "renderHomeWidgets");
 function widgetHtml(w, idx) {
   var d = widgetData(w);
-  var hint = '<span class="hw-edit-hint">\u70B9\u6587\u5B57\u6539 \xB7 \u70B9\u56FE\u6362 \xB7 \u957F\u6309\u5220 <b class="hw-color-btn" onclick="event.stopPropagation();openWidgetColor(' + idx + ')" title="\u6539\u5E95\u8272">' + PALETTE_SVG + "</b></span>";
+  var hint = '<span class="hw-edit-hint">\u70B9\u6587\u5B57\u6539 \xB7 \u70B9\u56FE\u6362 \xB7 \u957F\u6309\u6574\u7406 <b class="hw-color-btn" onclick="event.stopPropagation();openWidgetColor(' + idx + ')" title="\u6539\u5E95\u8272">' + PALETTE_SVG + "</b></span>";
   var bgStyle = d.bg ? ' style="background:' + d.bg + ';background-image:none"' : "";
   if (w.type === "polaroid") {
     return hint + '<div class="hw-polaroid"' + bgStyle + '><div class="hw-pol" style="transform:rotate(-7deg)"><span class="hw-pol-tape" style="left:32%"></span><img src="' + d.i1 + '" onclick="replaceWidgetImage(' + idx + `,'i1')"><div class="hw-pol-txt" onclick="editWidgetText(` + idx + `,'t1')">` + (d.t1 ? escapeHtml(d.t1) : '<span class="hw-pol-empty">\uFF0B \u5199\u53E5\u8BDD</span>') + '</div></div><div class="hw-pol" style="transform:rotate(3deg);margin-top:14px"><span class="hw-pol-tape" style="left:55%"></span><img src="' + d.i2 + '" onclick="replaceWidgetImage(' + idx + `,'i2')"><div class="hw-pol-txt" onclick="editWidgetText(` + idx + `,'t2')">` + (d.t2 ? escapeHtml(d.t2) : '<span class="hw-pol-empty">\uFF0B \u5199\u53E5\u8BDD</span>') + '</div></div><div class="hw-pol" style="transform:rotate(-3deg)"><span class="hw-pol-tape" style="left:22%"></span><img src="' + d.i3 + '" onclick="replaceWidgetImage(' + idx + `,'i3')"><div class="hw-pol-txt" onclick="editWidgetText(` + idx + `,'t3')">` + (d.t3 ? escapeHtml(d.t3) : '<span class="hw-pol-empty">\uFF0B \u5199\u53E5\u8BDD</span>') + "</div></div></div>";
@@ -24266,6 +24267,11 @@ function jy76RenderPageWidgets(pg) {
     el.className = "hw-item hw-" + w.type;
     el.setAttribute("data-widx", idx);
     el.setAttribute("data-uid", uid);
+    var _wd = w.data || {};
+    if (_wd.bg) {
+      el.style.background = _wd.bg;
+      el.style.backgroundImage = "none";
+    }
     el.innerHTML = '<span class="hp-del-x" onclick="event.stopPropagation();jy76DeleteWidget(\'' + uid + '\')">✕</span>' + widgetHtml(w, idx);
     box.appendChild(el);
   });
@@ -24314,6 +24320,11 @@ function renderHomeWidgets() {
         var el = document.createElement("div");
         el.className = "hw-item hw-" + w.type;
         el.setAttribute("data-widx", i);
+        var _wd2 = w.data || {};
+        if (_wd2.bg) {
+          el.style.background = _wd2.bg;
+          el.style.backgroundImage = "none";
+        }
         el.innerHTML = widgetHtml(w, i);
         bindWidgetLongPress(el, i);
         ob.appendChild(el);
@@ -24359,7 +24370,7 @@ function addWidget(type) {
   renderHomeWidgets();
   renderHomeGrid();
   closeWidgetPick();
-  try { toast("已添加「" + widgetTypeName(type) + "」：点文字改内容、点图片换图、整理模式可拖动/长按✕删除"); } catch (e) {}
+  try { toast("已添加「" + widgetTypeName(type) + "」：点文字改内容、点图片换图；长按卡片进整理，可拖动换位、点✕删除"); } catch (e) {}
 }
 function jy76DeleteWidget(uid) {
   var pool = DB.widgets || [];
@@ -24411,7 +24422,7 @@ function jy76BeginDrag(kind, el, sx, sy) {
   ghost.style.height = rect.height + "px";
   ghost.id = "jy76Ghost";
   var id = kind === "app" ? (el.dataset.app || "") : (el.dataset.uid || "");
-  JY76.drag = { on: true, kind: kind, id: id, fromPg: fromPg, el: el, ghost: ghost, startX: sx, startY: sy, neighbor: null, after: false, lastEdge: 0 };
+  JY76.drag = { on: true, kind: kind, id: id, fromPg: fromPg, el: el, ghost: ghost, startX: sx, startY: sy, neighbor: null, after: false, lastEdge: 0, moved: false };
   JY76.mode = "drag";
   document.body.classList.add("no-scroll");
   el.classList.add("dragging");
@@ -24435,6 +24446,7 @@ function jy76ContainerOf(kind, pg) {
 function jy76DragMove(e) {
   var d = JY76.drag;
   if (!d || !d.on) return;
+  d.moved = true;
   e.preventDefault();
   var el = d.el;
   el.style.transform = "translate(" + (e.clientX - d.startX) + "px," + (e.clientY - d.startY) + "px) scale(1.06)";
@@ -24508,6 +24520,11 @@ function jy76MoveGhost(e) {
 function jy76DoDrop() {
   var d = JY76.drag;
   if (!d || !d.on) return;
+  if (!d.moved) {
+    jy76CleanupDrop(false);
+    try { toast("整理中：点卡片右上角 ✕ 可删除，点空白处退出"); } catch (e) {}
+    return;
+  }
   var kind = d.kind, id = d.id;
   var pages = JY76.pages = jy76Pages();
   var fromPg = d.fromPg >= 0 && d.fromPg < pages.length ? d.fromPg : 0;
@@ -24537,6 +24554,7 @@ function jy76DoDrop() {
   arr.splice(idx, 0, id);
   save();
   jy76CleanupDrop(false);
+  try { toast("整理中：点卡片右上角 ✕ 可删除，点空白处退出"); } catch (e) {}
 }
 function jy76CleanupDrop(reverted) {
   var d = JY76.drag;
@@ -24555,7 +24573,6 @@ function jy76CleanupDrop(reverted) {
   JY76.drag = null;
   JY76.mode = "idle";
   try { document.body.classList.remove("no-scroll"); } catch (e) {}
-  jy76ExitEdit();
   renderHomeGrid();
   renderHomeWidgets();
   try { save(); } catch (e) {}
@@ -24670,7 +24687,12 @@ function jy76BindInteractions() {
     if (JY76.drag && JY76.drag.on) return;
     var jig = pager.querySelector(".hp-grid.jiggle, .hp-widgets.jiggle");
     if (jig) {
-      if (!e.target.closest(".hp-grid .app") && !e.target.closest(".hp-widgets .hw-item") && !e.target.closest(".home-add-plus")) {
+      if (e.target.closest(".hp-del-x")) return;
+      if (e.target.closest(".hp-grid .app") || e.target.closest(".hp-widgets .hw-item")) {
+        e.preventDefault();
+        e.stopPropagation();
+        jy76ExitEdit();
+      } else if (!e.target.closest(".home-add-plus")) {
         jy76ExitEdit();
       }
     }
