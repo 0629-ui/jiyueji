@@ -3849,6 +3849,8 @@ function showPage(id) {
   PAGES.forEach(function(p) {
     document.getElementById(p).classList.toggle("active", p === id);
   });
+  var tar = document.getElementById(id);
+  if (tar) tar.classList.add("active");
   var onWall = id === "lockscreen" || id === "home";
   document.getElementById("wallpaper").style.display = onWall ? "block" : "none";
   if (onWall) updateSnow();
