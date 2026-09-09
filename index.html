@@ -1045,12 +1045,18 @@ body.no-scroll{touch-action:none;overflow:hidden}
 .mini-btn.danger{background:rgba(200,30,30,.08);color:#b00}
 .persona-add-wrap{display:flex;gap:8px;margin-top:10px}
 .persona-add-wrap .sheet-btn{flex:1}
+.pt-char-add{margin:2px 0 2px;padding:0 14px}
 /* v21 人设档案三栏 */
 .persona-tabs{display:flex;padding:8px 14px 0;gap:6px}
 .pt-tab{flex:1;text-align:center;padding:8px 0;font-size:13px;font-weight:600;color:var(--page-dim);border-radius:10px;background:#f2f2f2;cursor:pointer}
 .pt-tab.active{background:#07c160;color:#fff}
 #ptCharWrap{overflow-y:auto;flex:1;padding-bottom:24px}
 #ptMeWrap,#ptNpcWrap{overflow-y:auto;flex:1;padding:10px 14px 24px}
+.me-account-item.sel{border-color:#07c160;box-shadow:0 0 0 1px #07c160}
+.me-account-item.sel .ma-desc{color:#07c160}
+.me-import{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:2px 0 12px;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+.me-import .mi-title{font-size:13px;font-weight:700;margin-bottom:10px}
+.mi-bind-tip{font-size:10px;color:var(--page-dim);margin:-2px 0 8px;line-height:1.5}
 .me-account-item{display:flex;align-items:center;gap:10px;padding:11px 12px;background:#fff;border:1px solid var(--line);border-radius:13px;margin-bottom:9px;cursor:pointer}
 .me-account-item .ma-main{flex:1;min-width:0}
 .me-account-item .ma-name{font-size:13px;font-weight:600}
@@ -2795,14 +2801,12 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <span class="pt-tab" data-pt="npc" onclick="switchPersonaTab('npc')">NPC</span>
   </div>
   <div id="ptCharWrap">
-  <div class="persona-hero">
-    <img id="personaAvatar" src="https://i.pravatar.cc/100?img=12" alt="">
-    <div style="flex:1"><div class="ph-name" id="personaName">小助手</div><div class="ph-style" id="personaStyle">简洁 · 友好 · 元气</div></div>
-    <button class="sheet-btn ghost" onclick="resetPersona()">恢复默认</button>
-  </div>
   <div class="persona-list" id="personaList"></div>
-  <div class="hint-box">人设档案是发给模型的「系统提示词」，决定 AI 扮演什么角色。可保存多个人设，点「启用」切换当前使用的角色。</div>
-  <div class="persona-import">
+  <div class="persona-add-wrap pt-char-add">
+    <button class="sheet-btn primary" onclick="newPersona()">＋ 新增人设</button>
+  </div>
+  <div class="hint-box">人设档案是发给模型的「系统提示词」，决定 AI 扮演什么角色。点下方任意一张人设卡片即可展开完整档案修改，点「保存人设」生效；再点一下同一张卡片即可收起。</div>
+  <div class="persona-import" id="personaImport" style="display:none">
     <div class="form-field"><label>专属头像（可选 · 每个角色都有自己的一张脸）</label>
       <div class="pa-avatar-row">
         <img id="pfPersonaAvatar" src="https://i.pravatar.cc/100?img=12" alt="">
@@ -2852,15 +2856,43 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
       <button class="sheet-btn ghost" onclick="importPersona()">导入 JSON</button>
       <button class="sheet-btn primary" onclick="savePersona()">保存人设</button>
     </div>
-    <div class="persona-add-wrap">
-      <button class="sheet-btn ghost" onclick="newPersona()">＋ 新增人设</button>
+    <div class="sheet-row" style="margin-top:8px">
+      <button class="sheet-btn ghost" onclick="if(confirm('确认恢复默认人设？这会删除全部自定义人设并清空角色数据。'))resetPersona()">恢复默认人设</button>
     </div>
   </div>
   </div>
   <!-- 我（账号）栏 -->
   <div id="ptMeWrap" style="display:none">
-    <div class="hint-box">「我」是你自己的多账号体系：每个账号一套完全独立的世界（人设、聊天记录、记忆、朋友圈、钱包全部隔离）。AI 人设可绑定某个「我」账号。</div>
+    <div class="hint-box">「我」是你自己的多账号体系：每个账号一套完全独立的世界（人设、聊天记录、记忆、朋友圈、钱包全部隔离）。点账号卡片可展开修改资料，还能勾选它与哪些 AI 人设绑定。</div>
     <div class="me-accounts" id="meAccountList"></div>
+    <div class="me-import" id="meImport" style="display:none">
+      <div class="mi-title">编辑「我」账号</div>
+      <div class="form-field"><label>头像</label>
+        <div class="pa-avatar-row">
+          <img id="mefAvatar" src="" alt="">
+          <div class="pa-avatar-col">
+            <input id="mefAvatarUrl" type="text" placeholder="粘贴头像图片链接，或选择本地图片">
+            <div class="sheet-row">
+              <button class="sheet-btn ghost" onclick="pickMeImportAvatar()">选择图片</button>
+              <button class="sheet-btn ghost" onclick="applyMeImportAvatarUrl()">使用链接</button>
+              <button class="sheet-btn ghost" onclick="clearMeImportAvatar()">移除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-field"><label>昵称（别人怎么称呼你）</label><input id="mefNickname" type="text" maxlength="20"></div>
+      <div class="form-field"><label>网名</label><input id="mefWangname" type="text" maxlength="30"></div>
+      <div class="form-field"><label>简介</label><input id="mefIntro" type="text" maxlength="60"></div>
+      <div class="form-field"><label>拍一拍（你被拍时显示，如：的头 / 的肩膀）</label><input id="mefPatpat" type="text" maxlength="30"></div>
+      <div class="form-field"><label>人设面具（AI 必读）</label><textarea id="mefPersona" rows="4" placeholder="描述你希望以什么形象与 AI 相处，例如：我是 24 岁的上班族，性格慢热但熟了话多…"></textarea></div>
+      <div class="form-field"><label>绑定角色（可多选）</label>
+        <div class="mi-bind-tip">勾选后该「我」账号会与对应 AI 人设绑定，便于按角色管理身份。</div>
+        <div id="mefBindList"></div>
+      </div>
+      <div class="sheet-row" style="margin-top:4px">
+        <button class="sheet-btn primary" onclick="saveMeImport()" style="flex:1">保存账号档案</button>
+      </div>
+    </div>
     <div class="persona-add-wrap">
       <button class="sheet-btn primary" onclick="addMeAccount()">＋ 新增「我」账号</button>
     </div>
@@ -2949,6 +2981,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
   </div>
 </div>
 <input type="file" id="meAvatarFileInput" accept="image/*" style="display:none" onchange="handleMeAvatarFile(event)">
+<input type="file" id="meImportAvatarFileInput" accept="image/*" style="display:none" onchange="handleMeImportAvatarFile(event)">
 
 <!-- 世界书 -->
 <div class="page light-page" id="worldbooks">
@@ -3806,6 +3839,8 @@ function applyAvatars() {
 }
 __name(applyAvatars, "applyAvatars");
 let currentPersonaId = null;
+let _pfOpen = false;
+let _meEditId = null;
 const PAGES = ["lockscreen", "home", "messages", "chat", "offline", "groupOffline", "memory", "moments", "calls", "dialer", "incoming", "incall", "facetime", "camera", "photos", "weather", "music", "memo", "wallet", "favorites", "calendar", "worldbooks", "settings", "persona", "aiplans", "theme", "me", "love", "loveDetail", "newfriends", "bookstore", "ifline", "pdd", "watch", "phonecheck", "map", "relation", "dream", "dreamplay"];
 function showPage(id) {
   PAGES.forEach(function(p) {
@@ -5035,8 +5070,6 @@ function togglePersonaWb(id, el) {
 __name(togglePersonaWb, "togglePersonaWb");
 function renderPersona() {
   var ap = activePersona();
-  document.getElementById("personaName").textContent = ap.name || "\u672A\u547D\u540D";
-  document.getElementById("personaStyle").textContent = ap.style || "";
   var list = personaList();
   var html = "";
   list.forEach(function(p) {
@@ -5044,32 +5077,42 @@ function renderPersona() {
     var btns = "";
     if (!p.active) btns += `<button class="mini-btn" onclick="event.stopPropagation();activatePersona('` + p.id + `')">\u542F\u7528</button>`;
     if (list.length > 1) btns += `<button class="mini-btn danger" onclick="event.stopPropagation();deletePersona('` + p.id + `')">\u5220\u9664</button>`;
-    html += '<div class="persona-item' + (currentPersonaId === p.id ? " sel" : "") + `" onclick="editPersona('` + p.id + `')"><img class="avatar sm" src="` + personaAvatarUrl(p) + '" alt=""><div class="pi-main"><div class="pi-name">' + escapeHtml(p.name || "\u672A\u547D\u540D") + '</div><div class="pi-style">' + escapeHtml([p.wangname ? "@" + p.wangname : "", p.gender || "", p.voice || ""].filter(Boolean).join(" \xB7 ") || (p.style || "")) + "</div></div>" + tag + btns + "</div>";
+    html += '<div class="persona-item' + (currentPersonaId === p.id ? " sel" : "") + `" onclick="togglePersonaEdit('` + p.id + `')"><img class="avatar sm" src="` + personaAvatarUrl(p) + '" alt=""><div class="pi-main"><div class="pi-name">' + escapeHtml(p.name || "\u672A\u547D\u540D") + '</div><div class="pi-style">' + escapeHtml([p.wangname ? "@" + p.wangname : "", p.gender || "", p.voice || ""].filter(Boolean).join(" \xB7 ") || (p.style || "")) + "</div></div>" + tag + btns + "</div>";
   });
   document.getElementById("personaList").innerHTML = html || '<div class="empty-tip">\u8FD8\u6CA1\u6709\u4EBA\u8BBE\uFF0C\u70B9\u4E0B\u65B9\u300C\u65B0\u589E\u4EBA\u8BBE\u300D\u521B\u5EFA</div>';
-  var cur = currentPersonaId ? findPersona(currentPersonaId) : ap;
-  if (cur) {
+  var cur = _pfOpen && currentPersonaId ? findPersona(currentPersonaId) : null;
+  var importWrap = document.getElementById("personaImport");
+  if (cur && importWrap) {
+    importWrap.style.display = "block";
     fillPersonaForm(cur);
     _pfEditingId = cur.id;
+    renderPersonaWb(cur);
   } else {
+    if (importWrap) importWrap.style.display = "none";
     _pfEditingId = null;
   }
-  renderPersonaWb(cur);
-  document.getElementById("personaAvatar").src = personaAvatarUrl(ap);
   renderMeProfile();
-  document.getElementById("mcName").textContent = ap.name || "";
-  document.getElementById("chatName").textContent = ap.name || "";
-  document.getElementById("chatState").textContent = isConnected("chat") ? "AI \u5DF2\u63A5\u5165 \xB7 " + activePlan("chat").name : "AI \u52A9\u624B \xB7 \u672A\u63A5\u5165";
+  var el;
+  if ((el = document.getElementById("mcName"))) el.textContent = ap.name || "";
+  if ((el = document.getElementById("chatName"))) el.textContent = ap.name || "";
+  if ((el = document.getElementById("chatState"))) el.textContent = isConnected("chat") ? "AI \u5DF2\u63A5\u5165 \xB7 " + activePlan("chat").name : "AI \u52A9\u624B \xB7 \u672A\u63A5\u5165";
 }
 __name(renderPersona, "renderPersona");
-function editPersona(id) {
-  if (_pfEditingId && _pfEditingId !== id) {
-    var old = findPersona(_pfEditingId);
-    if (old) syncPersonaFormToCur(old);
+function togglePersonaEdit(id) {
+  if (_pfOpen && currentPersonaId === id) {
+    currentPersonaId = null;
+    _pfOpen = false;
+    renderPersona();
+    return;
   }
   currentPersonaId = id;
+  _pfOpen = true;
   renderPersona();
+  var wrap = document.getElementById("personaImport");
+  if (wrap) setTimeout(function() { wrap.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
 }
+__name(togglePersonaEdit, "togglePersonaEdit");
+function editPersona(id) { togglePersonaEdit(id); }
 __name(editPersona, "editPersona");
 function switchPersonaTab(tab) {
   document.querySelectorAll(".pt-tab").forEach(function(t) {
@@ -5086,15 +5129,150 @@ function meAccountList() {
   return DB.meProfiles || [];
 }
 __name(meAccountList, "meAccountList");
+function meBoundNames(mp) {
+  var ids = mp.boundPersonas || [];
+  if (!ids.length) return "";
+  var names = [];
+  ids.forEach(function(pid) {
+    var p = findPersona(pid);
+    if (p && p.name) names.push(p.name);
+  });
+  return names.join("\u3001");
+}
+__name(meBoundNames, "meBoundNames");
+function meEditTarget() {
+  return meAccountList().filter(function(mp) { return mp.id === _meEditId; })[0] || null;
+}
+__name(meEditTarget, "meEditTarget");
+function toggleMeEdit(meId) {
+  if (_meEditId === meId) { closeMeEdit(); return; }
+  if (!meAccountList().filter(function(mp) { return mp.id === meId; }).length) return;
+  _meEditId = meId;
+  renderMeAccounts();
+  var mp = meEditTarget();
+  var wrap = document.getElementById("meImport");
+  if (wrap && mp) {
+    wrap.style.display = "block";
+    fillMeImport(mp);
+    setTimeout(function() { wrap.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
+  }
+}
+__name(toggleMeEdit, "toggleMeEdit");
+function closeMeEdit() {
+  _meEditId = null;
+  var wrap = document.getElementById("meImport");
+  if (wrap) wrap.style.display = "none";
+  renderMeAccounts();
+}
+__name(closeMeEdit, "closeMeEdit");
+function fillMeImport(mp) {
+  if (!mp) return;
+  var a0 = document.getElementById("mefAvatar");
+  if (a0) a0.src = mp.avatar || personaDefaultAvatar({ id: "me" });
+  var a1 = document.getElementById("mefAvatarUrl");
+  if (a1) a1.value = mp.avatar || "";
+  document.getElementById("mefNickname").value = mp.nickname || "";
+  document.getElementById("mefWangname").value = mp.wangname || "";
+  document.getElementById("mefIntro").value = mp.intro || "";
+  document.getElementById("mefPatpat").value = mp.patpat || "";
+  document.getElementById("mefPersona").value = mp.persona || "";
+  renderMeBindChips(mp);
+}
+__name(fillMeImport, "fillMeImport");
+function renderMeBindChips(mp) {
+  var box = document.getElementById("mefBindList");
+  if (!box) return;
+  var ps = personaList();
+  if (!ps.length) { box.innerHTML = '<div class="empty-tip" style="padding:10px 0">\u8FD8\u6CA1\u6709 AI \u4EBA\u8BBE\uFF0C\u5148\u5230\u300C\u4EBA\u8BBE\u300D\u680F\u521B\u5EFA</div>'; return; }
+  var html = "";
+  ps.forEach(function(p) {
+    var on = (mp.boundPersonas || []).indexOf(p.id) > -1;
+    html += '<label class="wb-check' + (on ? " on" : "") + `" onclick="toggleMeBind('` + mp.id + `','` + p.id + `',this)"><span class="wb-box">` + (on ? '<svg class="ic stroke" viewBox="0 0 24 24" style="width:10px;height:10px"><path d="M4 12l5 5L20 6"/></svg>' : "") + "</span>" + escapeHtml(p.name || "\u672A\u547D\u540D") + "</label>";
+  });
+  box.innerHTML = html;
+}
+__name(renderMeBindChips, "renderMeBindChips");
+function toggleMeBind(meId, pid, el) {
+  var mp = meAccountList().filter(function(x) { return x.id === meId; })[0];
+  if (!mp) return;
+  if (!mp.boundPersonas) mp.boundPersonas = [];
+  var i = mp.boundPersonas.indexOf(pid);
+  if (i > -1) mp.boundPersonas.splice(i, 1); else mp.boundPersonas.push(pid);
+  save();
+  renderMeBindChips(mp);
+  renderMeAccounts();
+  toast(i > -1 ? "\u5DF2\u53D6\u6D88\u7ED1\u5B9A\u8BE5\u89D2\u8272" : "\u5DF2\u7ED1\u5B9A\u8BE5\u89D2\u8272");
+}
+__name(toggleMeBind, "toggleMeBind");
+function pickMeImportAvatar() { document.getElementById("meImportAvatarFileInput").click(); }
+__name(pickMeImportAvatar, "pickMeImportAvatar");
+function handleMeImportAvatarFile(ev) {
+  var file = ev.target.files && ev.target.files[0];
+  ev.target.value = "";
+  if (!file) return;
+  var rd = new FileReader();
+  rd.onload = function() {
+    var img = document.getElementById("mefAvatar");
+    var inp = document.getElementById("mefAvatarUrl");
+    if (img) img.src = rd.result;
+    if (inp) inp.value = rd.result;
+    toast("\u5934\u50CF\u5DF2\u8F7D\u5165\uFF0C\u70B9\u300C\u4FDD\u5B58\u8D26\u53F7\u6863\u6848\u300D\u751F\u6548");
+  };
+  rd.readAsDataURL(file);
+}
+__name(handleMeImportAvatarFile, "handleMeImportAvatarFile");
+function applyMeImportAvatarUrl() {
+  var v = document.getElementById("mefAvatarUrl").value.trim();
+  if (!v) { toast("\u5148\u7C98\u8D34\u5934\u50CF\u56FE\u7247\u94FE\u63A5"); return; }
+  var img = document.getElementById("mefAvatar");
+  if (img) img.src = v;
+  toast("\u5934\u50CF\u5DF2\u66F4\u65B0\uFF0C\u70B9\u300C\u4FDD\u5B58\u8D26\u53F7\u6863\u6848\u300D\u751F\u6548");
+}
+__name(applyMeImportAvatarUrl, "applyMeImportAvatarUrl");
+function clearMeImportAvatar() {
+  var img = document.getElementById("mefAvatar");
+  var inp = document.getElementById("mefAvatarUrl");
+  if (img) img.src = personaDefaultAvatar({ id: "me" });
+  if (inp) inp.value = "";
+  toast("\u5DF2\u79FB\u9664\u5934\u50CF\uFF08\u4FDD\u5B58\u540E\u751F\u6548\uFF09");
+}
+__name(clearMeImportAvatar, "clearMeImportAvatar");
+function saveMeImport() {
+  var mp = meEditTarget();
+  if (!mp) return;
+  mp.nickname = document.getElementById("mefNickname").value.trim() || "\u6211";
+  mp.wangname = document.getElementById("mefWangname").value.trim();
+  mp.intro = document.getElementById("mefIntro").value.trim();
+  mp.patpat = document.getElementById("mefPatpat").value.trim();
+  mp.persona = document.getElementById("mefPersona").value.trim();
+  var av = document.getElementById("mefAvatarUrl").value.trim();
+  mp.avatar = av || null;
+  save();
+  if (mp.id === DB.currentMeId) {
+    DB.meProfile = mp;
+    renderMeProfile();
+    renderMe();
+    renderLockNotice();
+  }
+  renderMeAccounts();
+  toast("\u8D26\u53F7\u6863\u6848\u5DF2\u4FDD\u5B58");
+}
+__name(saveMeImport, "saveMeImport");
 function renderMeAccounts() {
   var list = document.getElementById("meAccountList");
   if (!list) return;
   var html = "";
   meAccountList().forEach(function(mp) {
     var isCur = mp.id === DB.currentMeId;
-    html += '<div class="me-account-item' + (isCur ? " cur" : "") + '"><img class="avatar" src="' + (mp.avatar || personaDefaultAvatar({ id: "me" })) + '" alt=""><div class="gp-main"><div class="gp-name">' + escapeHtml(mp.nickname || "\u672A\u547D\u540D") + '</div><div class="gp-sub">' + (mp.wangname || mp.intro || "") + '</div></div><div class="ma-btns">' + (!isCur ? `<button class="mini-btn" onclick="switchMeAccount('` + mp.id + `')">\u5207\u6362</button>` : '<span class="ai-status-tag ok">\u5F53\u524D</span>') + (meAccountList().length > 1 ? `<button class="mini-btn danger" onclick="deleteMeAccount('` + mp.id + `')">\u5220\u9664</button>` : "") + "</div></div>";
+    var bn = meBoundNames(mp);
+    var sub = mp.wangname || mp.intro || "";
+    if (bn) sub = (sub ? sub + " \xB7 " : "") + "\u7ED1\u5B9A\uFF1A" + bn;
+    else sub = sub || "\u70B9\u51FB\u5361\u7247\u53EF\u7F16\u8F91\uFF0C\u5E76\u7ED1\u5B9A\u89D2\u8272";
+    var btns = isCur ? '<span class="ai-status-tag ok">\u5F53\u524D</span>' : `<button class="mini-btn" onclick="event.stopPropagation();switchMeAccount('` + mp.id + `')">\u5207\u6362</button>`;
+    if (meAccountList().length > 1) btns += `<button class="mini-btn danger" onclick="event.stopPropagation();deleteMeAccount('` + mp.id + `')">\u5220\u9664</button>`;
+    html += '<div class="me-account-item' + (isCur ? " cur" : "") + (_meEditId === mp.id ? " sel" : "") + '" onclick="toggleMeEdit(\'' + mp.id + '\')"><img class="avatar" src="' + (mp.avatar || personaDefaultAvatar({ id: "me" })) + '" alt=""><div class="gp-main"><div class="gp-name">' + escapeHtml(mp.nickname || "\u672A\u547D\u540D") + '</div><div class="gp-sub">' + escapeHtml(sub) + "</div></div><div class=\"ma-btns\">" + btns + "</div></div>";
   });
-  list.innerHTML = html || '<div class="empty-tip">\u8FD8\u6CA1\u6709\u8D26\u53F7</div>';
+  list.innerHTML = html || '<div class="empty-tip">\u8FD8\u6CA1\u6709\u8D26\u53F7\uFF0C\u70B9\u4E0B\u65B9\u300C\u65B0\u589E\u300D\u521B\u5EFA</div>';
 }
 __name(renderMeAccounts, "renderMeAccounts");
 function addMeAccount() {
@@ -5102,8 +5280,8 @@ function addMeAccount() {
   mp.nickname = "\u6211" + (meAccountList().length + 1);
   DB.meProfiles.push(mp);
   save();
-  renderMeAccounts();
-  toast("\u5DF2\u65B0\u589E\u8D26\u53F7\u300C" + mp.nickname + "\u300D\uFF0C\u70B9\u53F3\u4FA7\u300C\u5207\u6362\u300D\u8FDB\u5165\u5B83\u7684\u72EC\u7ACB\u4E16\u754C");
+  toggleMeEdit(mp.id);
+  toast("\u5DF2\u65B0\u589E\u8D26\u53F7\uFF0C\u53EF\u4FEE\u6539\u6635\u79F0/\u5934\u50CF\u5E76\u7ED1\u5B9A\u89D2\u8272");
 }
 __name(addMeAccount, "addMeAccount");
 function deleteMeAccount(meId) {
@@ -5115,6 +5293,7 @@ function deleteMeAccount(meId) {
   DB.meProfiles = DB.meProfiles.filter(function(x) {
     return x.id !== meId;
   });
+  if (_meEditId === meId) { _meEditId = null; var _mwrap = document.getElementById("meImport"); if (_mwrap) _mwrap.style.display = "none"; }
   if (DB.currentMeId === meId) switchMeAccount(DB.meProfiles[0].id);
   delete DB.worlds[meId];
   save();
@@ -5123,6 +5302,7 @@ function deleteMeAccount(meId) {
 }
 __name(deleteMeAccount, "deleteMeAccount");
 function switchMeAccount(meId) {
+  if (_meEditId) closeMeEdit();
   var meId2 = meId;
   if (!DB.meProfiles.filter(function(mp) {
     return mp.id === meId2;
@@ -5336,6 +5516,7 @@ function newPersona() {
   currentPersonaId = p.id;
   _pfAvatar = null;
   _pfRefImg = null;
+  _pfOpen = true;
   renderPersona();
   var el = document.getElementById("pfPersonaName");
   el.focus();
@@ -5805,7 +5986,7 @@ function deletePersona(id) {
   DB.personas = DB.personas.filter(function(p) {
     return p.id !== id;
   });
-  if (currentPersonaId === id) currentPersonaId = null;
+  if (currentPersonaId === id) { currentPersonaId = null; _pfOpen = false; }
   if (DB.maskData && DB.maskData[id]) delete DB.maskData[id];
   save();
   renderPersona();
@@ -5818,6 +5999,7 @@ __name(deletePersona, "deletePersona");
 function resetPersona() {
   DB.personas = [Object.assign({ id: "p_1", active: true }, JSON.parse(JSON.stringify(DEFAULT_PERSONA)))];
   currentPersonaId = null;
+  _pfOpen = false;
   DB.maskData = {};
   save();
   renderPersona();
