@@ -655,6 +655,10 @@ body.no-scroll{touch-action:none;overflow:hidden}
 .bubble{max-width:74%;padding:7px 11px;font-size:13px;line-height:1.45;word-break:break-word}
 .bubble-row.them .bubble{background:#e8e8e8;color:#111;border-radius:17px 17px 17px 4px}
 .bubble-row.me .bubble{background:#0a0a0a;color:#fff;border-radius:17px 17px 4px 17px}
+.bubble-row .bubble.narr{background:transparent;border:1px dashed;border-radius:17px;font-style:italic}
+.bubble-row.them .bubble.narr{border-color:rgba(17,17,17,.45);color:#333}
+.bubble-row.me .bubble.narr{border-color:rgba(255,255,255,.55);color:rgba(255,255,255,.95)}
+.bubble-row .bubble .narr-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:2px;font-style:normal;opacity:.65;margin-right:6px;vertical-align:1px;border:1px solid currentColor;border-radius:6px;padding:0 5px;line-height:14px}
 .bubble-row .money-card{background:linear-gradient(160deg,#f6c85c,#ef9f2a);color:#5a3b00;border-radius:14px;padding:10px 14px;min-width:150px;cursor:pointer}
 .bubble-row .money-card .mc-name{font-size:11px;opacity:.75;margin-bottom:6px}
 .bubble-row .money-card .mc-amt{font-size:20px;font-weight:700;letter-spacing:.5px}
@@ -2221,6 +2225,7 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <button onclick="startFt()"><svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="6" width="13" height="12" rx="3"/><path d="m15 10 6-3v10l-6-3Z"/></svg>视频通话</button>
     <button onclick="openImgPicker()"><svg class="ic stroke" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="m21 16-5-5L6 21"/></svg>发送图片</button>
     <button onclick="openOfflineEntry()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h7M9 11h7M9 15h4"/></svg>线下模式</button>
+    <button onclick="openNarrSheet()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.3-.7L3 21l1.8-5.2A8.4 8.4 0 1 1 21 11.5Z"/><path d="M9 9h.01M14 9h.01M9 13.5a3 3 0 0 0 5 0"/></svg>旁白</button>
     <button onclick="chatSendMoney()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 7v14"/><path d="M12 7c-3 0-5-1.5-5-4h3c0 1.5.8 3 2 4Z"/><path d="M12 7c3 0 5-1.5 5-4h-3c0 1.5-.8 3-2 4Z"/></svg>转账</button>
     <button id="chatRedpacketBtn" onclick="openRedpacket()" style="display:none"><svg class="ic stroke" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="4"/><path d="M2 10h20"/><path d="M12 10c-1.5-2.5-4-3-4-5 0-1.5 1-2.5 2-2.5S11.5 3.5 12 5c.5-1.5 1.5-2 2.5-2S16 3.5 16 5c0 2-2.5 2.5-4 5Z"/></svg>红包</button>
     <button onclick="speakLast()"><svg class="ic stroke" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>朗读</button>
@@ -2546,6 +2551,18 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
     <div class="sheet-row">
       <button class="sheet-btn ghost" onclick="document.getElementById('txtImgMask').classList.remove('show')">取消</button>
       <button class="sheet-btn primary" onclick="doSendTextImage()">生成并发送</button>
+    </div>
+  </div>
+</div>
+<!-- 弹层：旁白输入 -->
+<div class="modal-mask" id="narrMask">
+  <div class="modal-sheet">
+    <h3>旁白</h3>
+    <div style="font-size:11px;color:var(--page-dim);padding:0 14px 6px">写一段场景 / 剧情叙述发出去，角色会当作正在经历的画面自然回应。玩家随时可用，不受侧边栏开关限制。</div>
+    <textarea id="narrText" placeholder="例：窗外突然下起大雨，两个人挤在同一个屋檐下…" style="min-height:110px"></textarea>
+    <div class="sheet-row">
+      <button class="sheet-btn ghost" onclick="closeNarrSheet()">取消</button>
+      <button class="sheet-btn primary" onclick="doSendNarr()">发送旁白</button>
     </div>
   </div>
 </div>
@@ -6371,11 +6388,17 @@ function chatKind(id) {
   return "persona";
 }
 __name(chatKind, "chatKind");
+function aiTextOf(m) {
+  if (!m) return "";
+  if (m.narr) return "【旁白】" + m.content;
+  return m.content;
+}
+__name(aiTextOf, "aiTextOf");
 function reloadHistory() {
   chatHistory = chatLog(currentChatId()).filter(function(m) {
     return m.role === "user" || m.role === "assistant";
   }).map(function(m) {
-    return { role: m.role, content: m.content, img: m.img, caption: m.caption };
+    return { role: m.role, content: aiTextOf(m), img: m.img, caption: m.caption };
   });
 }
 __name(reloadHistory, "reloadHistory");
@@ -6830,7 +6853,7 @@ function renderChatFromLogs(pid) {
       appendGroupBubble(m.from, m.content || "", false, { img: m.img, caption: m.caption, ref: m.ref, idx: i, voice: m.innerVoice });
       return;
     }
-    appendBubble(m.role === "user" ? "me" : "them", m.content || "", false, { img: m.img, caption: m.caption, ref: m.ref, idx: i, from: m.from, kind: pid, voice: m.innerVoice });
+    appendBubble(m.role === "user" ? "me" : "them", m.content || "", false, { img: m.img, caption: m.caption, ref: m.ref, idx: i, from: m.from, kind: pid, voice: m.innerVoice, narr: m.narr });
   });
   body.scrollTop = body.scrollHeight;
 }
@@ -6850,7 +6873,7 @@ function appendBubble(from, text, withTime, opts) {
   if (opts.ref) inner = '<div class="b-quote"><span class="bq-name">' + escapeHtml(opts.ref.from || "") + "\uFF1A</span>" + escapeHtml(opts.ref.text) + "</div>" + inner;
   var time = withTime ? '<span class="bubble-time">' + nowHM() + "</span>" : "";
   if (opts.voice && DB.settings.inlineVoice) inner += '<div class="bubble-voice">' + escapeHtml(opts.voice) + "</div>";
-  row2.innerHTML = '<img class="avatar" src="' + avatar + '" alt=""><div class="bubble">' + inner + "</div>" + time;
+  row2.innerHTML = '<img class="avatar" src="' + avatar + '" alt=""><div class="bubble' + (opts.narr ? " narr" : "") + '">' + (opts.narr ? '<span class="narr-tag">旁白</span>' : "") + inner + "</div>" + time;
   var av = row2.querySelector(".avatar");
   if (av) {
     av.title = "\u53CC\u51FB\u62CD\u4E00\u62CD\uFF0C\u5355\u51FB\u770B\u5FC3\u58F0";
@@ -7660,6 +7683,36 @@ function sendOnly() {
   if (!isConnected("chat")) appendSysTip("\u6D88\u606F\u5DF2\u53D1\u9001\uFF0C\u4F46\u89D2\u8272\u8FD8\u672A\u63A5\u5165\u5BF9\u8BDD\u6A21\u578B\uFF0C\u6682\u65F6\u65E0\u6CD5\u56DE\u590D\u3002\u53BB\u8BBE\u7F6E\u91CC\u914D\u7F6E API \u540E\u5C31\u80FD\u804A\u5929\u5566\uFF5E");
 }
 __name(sendOnly, "sendOnly");
+function openNarrSheet() {
+  document.getElementById("chatExtras").classList.remove("open");
+  document.getElementById("chatPlusBtn").textContent = "+";
+  var ta = document.getElementById("narrText");
+  if (ta) ta.value = "";
+  document.getElementById("narrMask").classList.add("show");
+  if (ta) setTimeout(function() { ta.focus(); }, 60);
+}
+__name(openNarrSheet, "openNarrSheet");
+function closeNarrSheet() {
+  document.getElementById("narrMask").classList.remove("show");
+}
+__name(closeNarrSheet, "closeNarrSheet");
+function doSendNarr() {
+  var ta = document.getElementById("narrText");
+  var text = ta ? ta.value.trim() : "";
+  if (!text) {
+    toast("先写点旁白内容再发吧～");
+    return;
+  }
+  closeNarrSheet();
+  var pid = currentChatId();
+  var log = chatLog(pid);
+  log.push({ role: "user", content: text, narr: true, time: Date.now() });
+  appendBubble("me", text, true, { idx: log.length - 1, narr: true });
+  reloadHistory();
+  save();
+  replyNow();
+}
+__name(doSendNarr, "doSendNarr");
 function replyNow() {
   var panel = document.getElementById("chatExtras");
   panel.classList.remove("open");
@@ -7756,7 +7809,7 @@ function replyGroupNow(gid) {
   var hist = log.filter(function(m) {
     return m.role === "user" || m.role === "assistant";
   }).map(function(m) {
-    return { role: m.role, content: m.content, img: m.img, caption: m.caption };
+    return { role: m.role, content: aiTextOf(m), img: m.img, caption: m.caption };
   });
   for (var i = hist.length - 1; i >= 0; i--) {
     if (hist[i].role === "user") {
@@ -7887,6 +7940,7 @@ function buildGroupSys(g, t, hist, lastUser) {
     sys += "\n\u3010\u5F53\u524D\u65F6\u95F4\u3011\u73B0\u5728\u662F" + now.getFullYear() + "\u5E74" + (now.getMonth() + 1) + "\u6708" + now.getDate() + "\u65E5 \u661F\u671F" + week + " " + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") + "\u3002";
   }
   if (DB.settings.narration !== false) sys += "\n\u3010\u65C1\u767D\u52A8\u4F5C\u3011\u56DE\u590D\u65F6\u7528\u534A\u89D2\u62EC\u53F7\uFF08\uFF09\u7B80\u77ED\u63CF\u5199\u89D2\u8272\u5C0F\u52A8\u4F5C\u3001\u8868\u60C5\u3001\u8BED\u6C14\uFF0C\u4E0D\u8D85\u8FC780\u5B57\uFF0C\u81EA\u7136\u7A7F\u63D2\u3002";
+  sys += "\n【旁白消息】群里可能有人（通常是玩家）发来以【旁白】开头的内容，那是玩家以导演视角描述当前场景/剧情（天气、地点、气氛、正在发生的事），不是直接说给你听的话，不必照念复述。看到时请把内容当作正在发生在自己身上的画面自然回应，其他成员也会进入同一场景，你们像正常群聊一样轮流接话、推进剧情即可。玩家随时可以用旁白，不受旁白动作开关限制。"
   sys += "\n\u3010\u62CD\u4E00\u62CD\u3011\u5408\u9002\u65F6\u673A\u53EF\u4EE5\u50CF\u5FAE\u4FE1\u62CD\u4E00\u62CD\u90A3\u6837\u8F7B\u62CD\u7528\u6237\uFF0C\u5728\u56DE\u590D\u672B\u5C3E\u9644\u52A0\u6807\u8BB0\uFF1A\u3010\u62CD\u4E00\u62CD\uFF1A\u62CD\u7684\u5730\u65B9\u3011\uFF0C\u4F8B\u5982\u3010\u62CD\u4E00\u62CD\uFF1A\u7684\u80A9\u8180\u3011\u3002\u4E0D\u8981\u6BCF\u6761\u90FD\u62CD\u3002";
   if (DB.settings.autoMoment !== false) sys += "\n\u3010\u670B\u53CB\u5708\u3011\u5408\u9002\u65F6\u673A\u53EF\u4EE5\u5728\u56DE\u590D\u672B\u5C3E\u9644\u52A0\u6807\u8BB0\uFF1A\u3010\u53D1\u670B\u53CB\u5708\uFF1A\u5185\u5BB9\u3011\u3002\u4E0D\u8981\u9891\u7E41\u3002";
   sys += "\n\u3010\u89D2\u8272\u5FC3\u58F0\u3011\u6BCF\u6B21\u56DE\u590D\u90FD\u5FC5\u987B\u9644\u5E26\u89D2\u8272\u5FC3\u58F0\uFF1A\u5728\u56DE\u590D\u672B\u5C3E\u53E6\u8D77\u4E00\u884C\u9644\u52A0\u6807\u8BB0\u3010\u5FC3\u58F0\uFF1Axxx\u3011\u3002xxx \u7528\u7B2C\u4E00\u4EBA\u79F0\u5199\u51FA\u89D2\u8272\u8BF4\u8FD9\u53E5\u8BDD\u65F6\u5FC3\u91CC\u771F\u6B63\u7684\u60F3\u6CD5\uFF08\u5185\u5FC3 OS\uFF09\uFF0C\u53E3\u8BED\u5316\u3001\u7B80\u77ED\u3001\u6709\u60C5\u7EEA\uFF0C10~40\u5B57\uFF0C\u4E0D\u8981\u590D\u8FF0\u6216\u89E3\u91CA\u56DE\u590D\u5185\u5BB9\u672C\u8EAB\u3002";
@@ -8011,6 +8065,7 @@ function callChat(messages, pa) {
     if (DB.settings.narration !== false) {
       sys += "\n\u3010\u65C1\u767D\u52A8\u4F5C\u3011\u56DE\u590D\u65F6\u50CF\u771F\u4EBA\u624B\u673A\u804A\u5929\u4E00\u6837\uFF1A\u7528\u534A\u89D2\u62EC\u53F7\uFF08\uFF09\u5728\u53F0\u8BCD\u524D\u6216\u540E\u7B80\u77ED\u63CF\u5199\u89D2\u8272\u7684\u5C0F\u52A8\u4F5C\u3001\u8868\u60C5\u3001\u8BED\u6C14\uFF0C\u52A8\u4F5C\u63CF\u5199\u4E0D\u8D85\u8FC7150\u5B57\u3002\u4F8B\uFF1A\uFF08\u5979\u6258\u7740\u816E\u770B\u4F60\uFF09\u4ECA\u5929\u600E\u4E48\u5566\uFF1F\u4E0D\u5FC5\u6BCF\u6761\u90FD\u5199\uFF0C\u81EA\u7136\u7A7F\u63D2\u5373\u53EF\u3002";
     }
+    sys += "\n【旁白消息】玩家可能会发来以【旁白】开头的内容，那是玩家以导演视角为此刻的场景和剧情加旁白（天气、地点、气氛、你正在经历的处境），不是玩家本人说给你听的话，不必照念复述。看到它请把内容当作正在发生在你身上的画面，用你作为角色的身份、语气自然承接、回应或推进剧情，不要让画面冷场。玩家随时可以用旁白，不受旁白动作开关限制。"
     sys += "\n\u3010\u62CD\u4E00\u62CD\u3011\u5728\u5408\u9002\u7684\u804A\u5929\u65F6\u673A\uFF08\u6CA1\u6709\u56FA\u5B9A\u89C4\u5F8B\uFF0C\u5B8C\u5168\u7531\u4F60\u6839\u636E\u5267\u60C5\u3001\u4EBA\u8BBE\u548C\u5FC3\u60C5\u81EA\u7531\u51B3\u5B9A\uFF0C\u7EDD\u4E0D\u6BCF\u6761\u90FD\u62CD\u3001\u4E5F\u4E0D\u8981\u6709\u5468\u671F\uFF09\uFF0C\u4F60\u53EF\u4EE5\u50CF\u5FAE\u4FE1\u300C\u62CD\u4E00\u62CD\u300D\u90A3\u6837\u4EB2\u6635\u5730\u8F7B\u62CD\u7528\u6237\uFF0C\u62CD\u7684\u65B9\u5F0F\uFF08\u62CD\u54EA\u91CC\u3001\u600E\u4E48\u8BF4\uFF09\u4E5F\u7531\u4F60\u6309\u5F53\u524D\u4EBA\u8BBE\u548C\u60C5\u5883\u4E34\u573A\u53D1\u6325\u3002\u60F3\u62CD\u65F6\uFF0C\u5728\u56DE\u590D\u672B\u5C3E\u9644\u52A0\u6807\u8BB0\uFF1A\u3010\u62CD\u4E00\u62CD\uFF1A\u62CD\u7684\u5730\u65B9\u3011\uFF0C\u4F8B\u5982\u3010\u62CD\u4E00\u62CD\uFF1A\u7684\u80A9\u8180\u3011\u3002\u7CFB\u7EDF\u4F1A\u628A\u6807\u8BB0\u5355\u72EC\u5C55\u793A\u6210\u4E00\u6761\u300C" + (pa ? pa.name : "\u89D2\u8272") + " \u62CD\u4E86\u62CD \u6211 \u7684\u80A9\u8180\u300D\u7684\u62CD\u4E00\u62CD\u6D88\u606F\uFF0C\u4F60\u65E0\u9700\u5728\u6B63\u6587\u91CC\u91CD\u590D\u63CF\u8FF0\u62CD\u4E00\u62CD\u52A8\u4F5C\u3002";
     if (DB.settings.autoMoment !== false) sys += "\n\u3010\u670B\u53CB\u5708\u3011\u4F60\u6709\u4E00\u4E2A\u300C\u670B\u53CB\u5708\u300D\u529F\u80FD\uFF0C\u53EF\u4EE5\u50CF\u771F\u5B9E\u793E\u4EA4\u8F6F\u4EF6\u90A3\u6837\u5076\u5C14\u53D1\u5E03\u52A8\u6001\uFF1A\u53D1\u4EC0\u4E48\u5B8C\u5168\u7531\u4F60\u6839\u636E\u4EBA\u8BBE\u3001\u5267\u60C5\u548C\u5F53\u4E0B\u5FC3\u60C5\u81EA\u7531\u51B3\u5B9A\uFF08\u4E0D\u9891\u7E41\u3001\u65E0\u56FA\u5B9A\u89C4\u5F8B\uFF09\uFF0C\u5185\u5BB9\u77ED\u5C0F\u6709\u751F\u6D3B\u611F\u3002\u60F3\u53D1\u65F6\uFF0C\u5728\u56DE\u590D\u672B\u5C3E\u9644\u52A0\u6807\u8BB0\uFF1A\u3010\u53D1\u670B\u53CB\u5708\uFF1A\u5185\u5BB9\u3011\uFF0C\u4F8B\u5982\u3010\u53D1\u670B\u53CB\u5708\uFF1A\u4ECA\u5929\u8DEF\u8FC7\u4E00\u5BB6\u5E97\uFF0C\u73BB\u7483\u7A97\u4E0A\u7684\u732B\u5728\u6253\u54C8\u6B20\uFF0C\u597D\u6CBB\u6108\u3011\u3002\u7CFB\u7EDF\u4F1A\u628A\u6807\u8BB0\u5355\u72EC\u53D1\u5E03\u6210\u4E00\u6761\u670B\u53CB\u5708\uFF0C\u4F60\u65E0\u9700\u5728\u6B63\u6587\u91CC\u91CD\u590D\u63D0\u53CA\u3002";
     sys += "\n\u3010\u89D2\u8272\u5FC3\u58F0\u3011\u6BCF\u6B21\u56DE\u590D\u90FD\u5FC5\u987B\u9644\u5E26\u89D2\u8272\u5FC3\u58F0\uFF1A\u5728\u56DE\u590D\u672B\u5C3E\u53E6\u8D77\u4E00\u884C\u9644\u52A0\u6807\u8BB0\u3010\u5FC3\u58F0\uFF1Axxx\u3011\u3002xxx \u7528\u7B2C\u4E00\u4EBA\u79F0\u5199\u51FA\u89D2\u8272\u8BF4\u8FD9\u53E5\u8BDD\u65F6\u5FC3\u91CC\u771F\u6B63\u7684\u60F3\u6CD5\uFF08\u5185\u5FC3 OS\uFF09\uFF0C\u53E3\u8BED\u5316\u3001\u7B80\u77ED\u3001\u6709\u60C5\u7EEA\uFF0C10~40\u5B57\uFF0C\u4E0D\u8981\u590D\u8FF0\u6216\u89E3\u91CA\u56DE\u590D\u5185\u5BB9\u672C\u8EAB\u3002\u4F8B\u5982\u5979\u56DE\u590D\u201C\u6211\u6CA1\u4E8B\u5440\u201D\uFF0C\u5FC3\u58F0\u5199\u3010\u5FC3\u58F0\uFF1A\u5176\u5B9E\u6709\u70B9\u96BE\u8FC7\uFF0C\u4F46\u4E0D\u60F3\u8BA9\u4ED6\u62C5\u5FC3\u3011\u3002";
