@@ -25583,3 +25583,691 @@ canvas.jyDg-canvas{width:100%;display:block;background:#fff;border:1.5px dashed 
   window.__jyDgDebug = { open: function () { jyDgOpen(); }, start: bootGame };
 })();
 </script>
+<style>
+/* ===================== 真心话大冒险 · 89 ===================== */
+.jyTD-body{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;background:linear-gradient(180deg,#fff6f2,#ffeae4)}
+.jyTD-top{display:flex;flex-direction:column;gap:5px;padding:8px 10px 4px}
+.jyTD-tagrow{display:flex;align-items:center;gap:6px}
+.jyTD-tag{font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;background:#f26b8a;color:#fff}
+.jyTD-tag.nsfw{background:#7b5bd6}
+.jyTD-verdot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.75);display:inline-block;margin-right:4px;vertical-align:1px}
+.jyTD-state{flex:1;text-align:right;font-size:11px;color:#b06a5e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jyTD-seats{display:flex;gap:6px;overflow-x:auto;padding:4px 0 2px}
+.jyTD-seat{flex:0 0 auto;display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #f0d5cd;border-radius:16px;padding:3px 9px 3px 3px;transition:all .2s}
+.jyTD-seat img{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#f4d9d1}
+.jyTD-seat .noav{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#ffb3c6,#f26b8a);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.jyTD-seat .nm{font-size:12px;font-weight:700;color:#6b4a43;max-width:72px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jyTD-seat .role-tag{font-size:8px;color:#e79a5b;border:1px solid #f2cfae;border-radius:8px;padding:0 4px;font-weight:700}
+.jyTD-seat.host{border-color:#f0a45c;background:#fff7ec;box-shadow:0 0 0 2px rgba(240,164,92,.18)}
+.jyTD-seat.act{border-color:#e95f83;background:#fff0f4;box-shadow:0 0 0 2px rgba(233,95,131,.18)}
+.jyTD-seat.me .nm{color:#c94f70}
+.jyTD-scene{flex:1;min-height:0;overflow-y:auto;margin:4px 10px 8px;background:rgba(255,255,255,.78);border:1px solid rgba(240,200,190,.6);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.jyTD-line{display:flex;gap:7px;align-items:flex-start;max-width:100%}
+.jyTD-line.me{flex-direction:row-reverse}
+.jyTD-line .av{flex:0 0 auto}
+.jyTD-line .av img{width:28px;height:28px;border-radius:50%;object-fit:cover;background:#f4d9d1;display:block}
+.jyTD-line .noav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#ffb3c6,#f26b8a);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.jyTD-line .bd{max-width:78%;min-width:0}
+.jyTD-line .nm{font-size:11px;font-weight:700;color:#a2695c;margin-bottom:2px}
+.jyTD-line.me .nm{text-align:right;color:#c94f70}
+.jyTD-line .tx{font-size:13px;line-height:1.5;color:#46322e;background:#fbf1ed;border-radius:2px 12px 12px 12px;padding:7px 10px;word-break:break-word;white-space:pre-wrap}
+.jyTD-line.me .tx{background:#ffe3ea;border-radius:12px 2px 12px 12px;color:#4c2233}
+.jyTD-line.host .tx{background:#fff2dd;border:1px solid #f5d9ae}
+.jyTD-line.host .nm{color:#c07a2d}
+.jyTD-line.host .nm .hz{font-size:8px;background:#f0a45c;color:#fff;border-radius:7px;padding:0 4px;margin-left:4px}
+.jyTD-line.sys{display:block;text-align:center;color:#b98d84;font-size:11px;font-style:italic;line-height:1.5}
+.jyTD-line.risk{display:block;text-align:center;color:#d26060;font-size:11px;line-height:1.5}
+.jyTD-qcard{background:linear-gradient(160deg,#fff,#fff4f6);border:1.5px dashed #f2a5ba;border-radius:14px;padding:8px 10px;margin:2px 0}
+.jyTD-qmeta{font-size:12px;font-weight:800;color:#d4567d;margin-bottom:6px}
+.jyTD-qmeta b{color:#a63a5e}
+.jyTD-qrow{display:flex;gap:7px}
+.jyTD-qopt{flex:1;border-radius:10px;padding:7px 9px;font-size:12px}
+.jyTD-qopt .jt{font-size:11px;font-weight:800;margin-bottom:3px}
+.jyTD-qopt .jt2{line-height:1.5;color:#5c463f;word-break:break-word}
+.jyTD-qopt.t{background:#fdeef2;border:1px solid #f5c4d1}
+.jyTD-qopt.t .jt{color:#d4567d}
+.jyTD-qopt.d{background:#fff6e3;border:1px solid #f2dba8}
+.jyTD-qopt.d .jt{color:#c88b1e}
+.jyTD-pick{text-align:center;font-size:12px;color:#a2695c}
+.jyTD-pick b{padding:1px 8px;border-radius:10px;font-size:11px}
+.jyTD-pick b.t{background:#fdeef2;color:#d4567d}
+.jyTD-pick b.d{background:#fff6e3;color:#c88b1e}
+.jyTD-ctrl{background:#fff;border-top:1px solid #f2d8d0;padding:6px 10px 9px;display:flex;flex-direction:column;gap:6px}
+.jyTD-ctrls{display:flex;gap:6px;align-items:center}
+.jyTD-ctrls input{flex:1;min-width:0;background:#fdf4f1;border:1px solid #f0d5cd;border-radius:18px;padding:8px 13px;font-size:13px;color:#46322e;outline:none}
+.jyTD-ctrls input:disabled{opacity:.55}
+.jyTD-send{border:none;border-radius:18px;padding:0 14px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#ff9db4,#f26b8a);color:#fff;cursor:pointer;min-height:32px}
+.jyTD-send:disabled{opacity:.5;cursor:not-allowed}
+.jyTD-next{border:none;border-radius:18px;padding:0 13px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#ffcf8e,#f0a45c);color:#5f3600;cursor:pointer;min-height:32px;white-space:nowrap}
+.jyTD-next:disabled{opacity:.5;cursor:not-allowed}
+.jyTD-stop{border:1px solid #e8c8bf;background:#fff;color:#b06a5e;border-radius:18px;padding:0 12px;font-size:11px;font-weight:700;cursor:pointer;min-height:30px;white-space:nowrap}
+.jyTD-kind{display:flex;gap:6px;align-items:center}
+.jyTD-kn{border:none;border-radius:14px;padding:5px 12px;font-size:12px;font-weight:800;cursor:pointer}
+.jyTD-kn.t{background:#fdeef2;color:#d4567d}
+.jyTD-kn.d{background:#fff6e3;color:#c88b1e}
+.jyTD-kn.on.t{background:#e95f83;color:#fff}
+.jyTD-kn.on.d{background:#e5a53a;color:#fff}
+.jyTD-kn:disabled{opacity:.45;cursor:not-allowed}
+.jyTD-hint{font-size:11px;color:#b98d84;min-height:14px;padding:0 3px;line-height:1.45}
+.jyTD-pickwrap{background:#fff;border:1.5px solid #f0d5cd;border-radius:14px;padding:10px}
+.jyTD-pickwrap .tg{font-size:12px;color:#b06a5e;padding-bottom:8px}
+.jyTD-verrow{display:flex;gap:8px}
+.jyTD-ver{flex:1;border:1.5px solid #f0d5cd;background:#fff;border-radius:14px;padding:12px 10px;text-align:left;cursor:pointer;transition:all .15s}
+.jyTD-ver b{display:block;font-size:15px;margin-bottom:4px}
+.jyTD-ver span{font-size:11.5px;color:#a2695c;line-height:1.55;display:block}
+.jyTD-ver.sel{border-color:#f26b8a;background:#fff0f4}
+.jyTD-idchip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid #e7c4bb;background:#fff;border-radius:16px;padding:5px 12px;font-size:12px;font-weight:700;color:#8a5147;cursor:pointer;margin-bottom:10px}
+.jyTD-idchip .arr{color:#d6a39a}
+</style>
+<div class="page light-page" id="jyGameTD">
+  <div class="page-head jy-game-head"><span class="back" onclick="jyTDExit()">‹</span><div style="flex:1;min-width:0;text-align:center"><div class="jy-game-title">真心话大冒险</div><div class="jy-game-sub" id="jyTDSub"></div></div><span class="jy-mask-btn" onclick="jyTDHelp()">规则</span></div>
+  <div class="jy-game-body jyTD-body">
+    <div class="jyTD-top">
+      <div class="jyTD-tagrow"><span class="jyTD-tag" id="jyTDTag">普通版</span><span class="jyTD-state" id="jyTDState"></span></div>
+      <div class="jyTD-seats" id="jyTDSeats"></div>
+    </div>
+    <div class="jyTD-scene" id="jyTDScene"></div>
+    <div class="jyTD-ctrl">
+      <div class="jyTD-kind" id="jyTDKind" style="display:none"><span class="jyTD-kn t" onclick="jyTDKindPick('truth')">真心话</span><span class="jyTD-kn d" onclick="jyTDKindPick('dare')">大冒险</span><span style="font-size:11px;color:#b98d84">先选类型，再输入你的回答</span></div>
+      <div class="jyTD-ctrls">
+        <input id="jyTDInput" placeholder="点「抽下一位」开始…" onkeydown="jyTDKey(event)" disabled>
+        <button class="jyTD-next" id="jyTDNextBtn" onclick="jyTDNext()">抽下一位</button>
+        <button class="jyTD-send" id="jyTDSendBtn" onclick="jyTDSend()" style="display:none">发送</button>
+      </div>
+      <div class="jyTD-hint" id="jyTDHint"></div>
+    </div>
+    <div class="jy-over" id="jyTdOver" style="display:none"><div class="jy-over-card"><div class="t" id="jyTdOverT"></div><div class="s" id="jyTdOverS"></div><div class="row"><button class="jy-small-btn primary" onclick="jyTDAgain()">再来一局</button><button class="jy-small-btn quit" onclick="jyTDExit()">返回主页</button></div></div></div>
+  </div>
+</div>
+<div class="modal-mask" id="jyTdMask" onclick="if(event.target===this)jyTdMaskClose()">
+  <div class="modal-sheet"><div style="display:flex;align-items:center;gap:8px;padding-bottom:8px"><span class="back" onclick="jyTdMaskClose()">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800" id="jyTdMaskTitle">真心话大冒险 · 开局</div><span style="width:28px"></span></div><div id="jyTdMaskBody"></div></div>
+</div>
+<div class="modal-mask" id="jyTdIdMask" onclick="if(event.target===this)jyTdIdMaskClose()">
+  <div class="modal-sheet"><div style="display:flex;align-items:center;gap:8px;padding-bottom:8px"><span class="back" onclick="jyTdIdMaskClose()">‹</span><div style="flex:1;text-align:center;font-size:16px;font-weight:800">选择玩家身份</div><span style="width:28px"></span></div><div id="jyTdIdList"></div></div>
+</div>
+<div class="modal-mask" id="jyTdRuleMask" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-sheet"><h3 style="text-align:center">真心话大冒险 · 玩法</h3><div class="jyL-rule" id="jyTdRuleBody"></div><div class="sheet-row" style="padding-top:10px"><button class="sheet-btn" onclick="document.getElementById('jyTdRuleMask').classList.remove('show')">关闭</button></div></div>
+</div>
+<script>/* ===================== 真心话大冒险 · 89 ===================== */
+(function () {
+  var TD = {
+    on: false, over: false, step: "ver", ver: "sfw", need: 1,
+    roleIds: [], seats: [], roles: [], meKey: "me",
+    round: 0, busy: false, cur: null, logs: [], hostFail: 0
+  };
+  function g(id) { return document.getElementById(id); }
+  function escTD(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function canApiTD(pa) { try { if (window.jy62CanApi) return !!window.jy62CanApi(pa); var pl = personaPlan(pa); return !!(pa && pl && pl.baseUrl && pl.apiKey); } catch (e) { return false; } }
+  function paListTD() { try { return personaList() || []; } catch (e) { return []; } }
+  function findPaTD(id) { try { return findPersona(id); } catch (e) { return null; } }
+  function avTD(pa) { try { return personaAvatarUrl(pa) || ""; } catch (e) { return ""; } }
+  function askTD(pa, prompt) {
+    return new Promise(function (resolve, reject) {
+      if (!pa || !canApiTD(pa) || typeof callChat !== "function") { reject(new Error("未接入API")); return; }
+      var done = false;
+      var timer = setTimeout(function () { if (!done) { done = true; reject(new Error("超时")); } }, 30000);
+      callChat([{ role: "user", content: prompt }], pa).then(function (txt) {
+        if (done) return;
+        done = true; clearTimeout(timer);
+        if (txt && String(txt).trim().length) resolve(String(txt).trim());
+        else reject(new Error("空回复"));
+      }).catch(function (e) { if (!done) { done = true; clearTimeout(timer); reject(e); } });
+    });
+  }
+  function pickJson(s) {
+    if (!s) return null;
+    var i = s.indexOf("{");
+    var j = s.lastIndexOf("}");
+    if (i < 0 || j <= i) return null;
+    try { return JSON.parse(s.slice(i, j + 1)); } catch (e) { return null; }
+  }
+  function meName() {
+    try { var a = currentAcc(); if (a && a.name) return a.name; } catch (e) {}
+    try { var mp = meProfile(); if (mp && (mp.nickname || mp.wangname)) return mp.nickname || mp.wangname; } catch (e) {}
+    return "你";
+  }
+  function verLabel() { return TD.ver === "nsfw" ? "NSFW 版" : "普通版"; }
+  function verRule() {
+    return TD.ver === "nsfw"
+      ? "NSFW 成人向（限18+）：题目要辛辣大胆、放得开，可以涉及两性话题、欲望、隐秘八卦与让人脸红心跳的挑战；越敢玩越好，把气氛推到顶点。"
+      : "普通轻松聚会向：题目走心、有趣、有点小八卦，可以玩梗整活，但保持礼貌不越界。";
+  }
+  function seatName(k) {
+    for (var i = 0; i < TD.seats.length; i++) if (TD.seats[i].key === k) return TD.seats[i].name;
+    return "";
+  }
+  function seatOf(k) {
+    for (var i = 0; i < TD.seats.length; i++) if (TD.seats[i].key === k) return TD.seats[i];
+    return null;
+  }
+  function seatAv(s) { return s && s.pa ? avTD(s.pa) : ""; }
+  function seatShortAvHtml(s) {
+    var u = seatAv(s);
+    if (u) return '<img src="' + escTD(u) + '" alt="">';
+    return '<span class="noav">' + escTD((s && s.name ? s.name : "?").slice(0, 1)) + "</span>";
+  }
+
+  /* ---------------- 状态 / 提示 ---------------- */
+  function setState(t) { var el = g("jyTDState"); if (el) el.textContent = t || ""; }
+  function setHint(t) { var el = g("jyTDHint"); if (el) el.textContent = t || ""; }
+  function toastTd(t) { try { if (window.toast) toast(t); else setHint(t); } catch (e) { setHint(t); } }
+  function setBusy(t) {
+    TD.busy = !!t;
+    var nb = g("jyTDNextBtn"), sb = g("jyTDSendBtn"), ip = g("jyTDInput"), kd = g("jyTDKind");
+    if (nb) { nb.disabled = TD.busy; nb.textContent = TD.busy ? "TA 正在思考…" : "抽下一位"; }
+    if (sb) { sb.disabled = TD.busy; }
+    if (ip) { ip.disabled = TD.busy; if (TD.busy) ip.placeholder = "TA 正在思考…"; }
+    if (kd) { var ks = kd.querySelectorAll(".jyTD-kn"); for (var i = 0; i < ks.length; i++) ks[i].disabled = TD.busy; }
+    setState(t || "");
+  }
+
+  /* ---------------- 日志 / 渲染 ---------------- */
+  function pushLog(type, who, text, extra) {
+    TD.logs.push({ type: type, who: who || "", text: text || "", extra: extra || null });
+    if (TD.logs.length > 200) TD.logs.splice(0, TD.logs.length - 200);
+  }
+  function lineHtml(lg) {
+    if (lg.type === "sys") return '<div class="jyTD-line sys">' + escTD(lg.text) + "</div>";
+    if (lg.type === "risk") return '<div class="jyTD-line risk">' + escTD(lg.text) + "</div>";
+    if (lg.type === "q") {
+      var e = lg.extra || {};
+      return '<div class="jyTD-qcard"><div class="jyTD-qmeta">🎲 ' + escTD(e.hostName || lg.who) + ' 转瓶子，点到 <b>' + escTD(e.toName || "") + "</b></div>" +
+        '<div class="jyTD-qrow"><div class="jyTD-qopt t"><div class="jt">真心话</div><div class="jt2">' + escTD(e.truth || "") + "</div></div>" +
+        '<div class="jyTD-qopt d"><div class="jt">大冒险</div><div class="jt2">' + escTD(e.dare || "") + "</div></div></div></div>";
+    }
+    if (lg.type === "pick") {
+      var kk = lg.extra && lg.extra.kind === "dare" ? "d" : "t";
+      var kn = kk === "d" ? "大冒险" : "真心话";
+      return '<div class="jyTD-pick"><span>' + escTD(lg.who) + " 选择挑战：</span><b class=\"" + kk + '">' + kn + "</b></div>";
+    }
+    var me = lg.type === "me";
+    var cls = me ? "me" : (lg.type === "host" ? "host" : "ot");
+    var hz = lg.type === "host" ? '<span class="hz">主持</span>' : "";
+    var u = "";
+    if (!me) {
+      var se = lg.whoKey ? seatOf(lg.whoKey) : null;
+      u = seatAv(se);
+    }
+    var av = me ? '<span class="noav">' + escTD(lg.who.slice(0, 1)) + "</span>"
+      : u ? '<img src="' + escTD(u) + '" alt="">' : '<span class="noav">' + escTD(lg.who.slice(0, 1)) + "</span>";
+    return '<div class="jyTD-line ' + cls + '"><div class="av">' + av + '</div><div class="bd"><div class="nm">' + escTD(lg.who) + hz + '</div><div class="tx">' + escTD(lg.text) + "</div></div></div>";
+  }
+  function renderScene() {
+    var sc = g("jyTDScene");
+    if (!sc) return;
+    var h = "";
+    for (var i = 0; i < TD.logs.length; i++) h += lineHtml(TD.logs[i]);
+    sc.innerHTML = h;
+    sc.scrollTop = sc.scrollHeight;
+  }
+  function renderSeats() {
+    var box = g("jyTDSeats");
+    if (!box) return;
+    var h = "";
+    for (var i = 0; i < TD.seats.length; i++) {
+      var s = TD.seats[i];
+      var cls = "jyTD-seat";
+      if (s.key === TD.meKey) cls += " me";
+      if (TD.cur && TD.cur.toKey === s.key) cls += " act";
+      else if (TD.cur && TD.cur.hostKey === s.key) cls += " host";
+      else if (!TD.cur && TD.busy && TD.busyKey === s.key) cls += " host";
+      h += '<div class="' + cls + '">' + seatShortAvHtml(s) + '<span class="nm">' + escTD(s.name) + "</span></div>";
+    }
+    box.innerHTML = h;
+  }
+  function sceneTail(n) {
+    var arr = [];
+    for (var i = TD.logs.length - 1; i >= 0 && arr.length < n; i--) {
+      var lg = TD.logs[i];
+      if (lg.type === "sys" || lg.type === "risk") continue;
+      if (lg.type === "q") { arr.unshift((lg.extra.hostName || lg.who) + "点名" + (lg.extra.toName || "") + "：真心话「" + lg.extra.truth + "」、大冒险「" + lg.extra.dare + "」"); continue; }
+      if (lg.type === "pick") { arr.unshift(lg.who + "选了" + (lg.extra && lg.extra.kind === "dare" ? "大冒险" : "真心话")); continue; }
+      arr.unshift(lg.who + "：" + lg.text);
+    }
+    return arr.join("\n");
+  }
+  function resetGame() {
+    TD.on = false; TD.over = false; TD.round = 0; TD.cur = null; TD.logs = []; TD.hostFail = 0; TD.busy = false; TD.busyKey = null;
+    TD.seats = []; TD.roles = [];
+    var ov = g("jyTdOver"); if (ov) ov.style.display = "none";
+  }
+  function goHomeTD() { try { if (window.goHome) { goHome(); return; } } catch (e) {} try { showPage("home"); } catch (e2) {} }
+
+  /* ---------------- 场景：开局设置 UI ---------------- */
+  function maskClose(m) { var el = g(m); if (el) el.classList.remove("show"); }
+  function showMask(m) { var el = g(m); if (el) el.classList.add("show"); }
+  function jyTdMaskClose() {
+    maskClose("jyTdMask");
+    if (!TD.on) { resetGame(); goHomeTD(); }
+  }
+  window.jyTdMaskClose = jyTdMaskClose;
+  window.jyTdIdMaskClose = function () { maskClose("jyTdIdMask"); };
+
+  function renderIdChip() {
+    var el = g("jyTdIdChipWrap");
+    if (!el) return;
+    el.innerHTML = '<button class="jyTD-idchip" onclick="jyTdOpenIdPick()">🎭 我以：<b>' + escTD(meName()) + '</b><span class="arr">▾</span></button>';
+  }
+  function idList() {
+    var ids = [];
+    try { var mk = maskList() || []; for (var i = 0; i < mk.length; i++) { var m = mk[i]; if (!m) continue; var accs = (m.accounts || []).filter(function (a) { return a && a.name; }); for (var j = 0; j < accs.length; j++) ids.push({ maskId: m.id, accId: accs[j].id, name: accs[j].name }); } } catch (e) {}
+    return ids;
+  }
+  function renderIdPickList() {
+    var box = g("jyTdIdList");
+    if (!box) return;
+    var h = '<div class="jyL-players" style="max-height:46vh;overflow-y:auto">';
+    h += '<div class="jyL-player' + (isMaskChat() ? "" : " sel") + '" onclick="jyTdPickId(\'\',\'\')"><div class="jyL-av" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#ffb3c6,#f26b8a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex:0 0 auto">本</div><div class="pm"><div class="pn">本尊</div><div class="pd">用你真实的身份陪他们玩</div></div></div>';
+    var ids = idList();
+    for (var i = 0; i < ids.length; i++) {
+      var it = ids[i];
+      var sel = isMaskChat() && (function () { try { var ci = currentIdentity(); return ci && ci.maskId === it.maskId && ci.accId === it.accId; } catch (e) { return false; } })();
+      h += '<div class="jyL-player' + (sel ? " sel" : "") + '" onclick="jyTdPickId(\'' + escTD(it.maskId) + '\',\'' + escTD(it.accId) + '\')"><div class="jyL-av" style="width:38px;height:38px;border-radius:50%;background:#8a5cd6;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex:0 0 auto">' + escTD(it.name.slice(0, 1)) + '</div><div class="pm"><div class="pn">' + escTD(it.name) + '</div><div class="pd">面具小号 · 向他们隐瞒真实身份</div></div></div>';
+    }
+    h += "</div>";
+    box.innerHTML = h;
+  }
+  window.jyTdOpenIdPick = function () {
+    renderIdPickList();
+    showMask("jyTdIdMask");
+  };
+  window.jyTdPickId = function (maskId, accId) {
+    try {
+      if (maskId && accId) DB.currentIdentity = { maskId: maskId, accId: accId };
+      else DB.currentIdentity = null;
+      try { save(); } catch (e) {}
+      if (maskId && accId) toastTd("已切换小号身份：" + meName());
+      else toastTd("已切换回本尊身份");
+    } catch (e) {}
+    maskClose("jyTdIdMask");
+    renderIdChip();
+    renderOpenUI();
+  };
+
+  function renderOpenUI() {
+    var box = g("jyTdMaskBody"), tt = g("jyTdMaskTitle");
+    if (!box) return;
+    if (tt) tt.textContent = "真心话大冒险 · 开局";
+    if (TD.step === "ver") {
+      box.innerHTML =
+        '<div id="jyTdIdChipWrap" style="text-align:left"></div>' +
+        '<div class="jyTD-pickwrap"><div class="tg">选择你想玩的版本（题目全部由 AI 现场生成，没有脚本兜底）：</div><div class="jyTD-verrow">' +
+        '<div class="jyTD-ver' + (TD.ver === "sfw" ? " sel" : "") + '" onclick="jyTdVer(\'sfw\')"><b>🍑 普通版</b><span>轻松聚会向：走心、有趣、八卦、整活，人人都能接得住。</span></div>' +
+        '<div class="jyTD-ver' + (TD.ver === "nsfw" ? " sel" : "") + '" onclick="jyTdVer(\'nsfw\')"><b>🔞 NSFW 版</b><span>成人向（限 18+）：辛辣大胆，脸红心跳，越敢玩越上头。</span></div>' +
+        "</div></div>" +
+        '<div class="sheet-row" style="padding-top:12px"><button class="sheet-btn" style="flex:1" onclick="jyTdGoCnt()">下一步：选人数</button></div>';
+      renderIdChip();
+      return;
+    }
+    if (TD.step === "cnt") {
+      var dots = [];
+      for (var i = 1; i <= 3; i++) dots.push('<div class="jyTD-ver' + (TD.need === i ? " sel" : "") + '" style="flex:1;text-align:center" onclick="jyTdNeed(' + i + ')"><b>' + i + " 位</b><span>" + (i === 1 ? "只和 TA 一对一" : "热闹的多人桌") + "</span></div>");
+      box.innerHTML =
+        '<div class="jyTD-pickwrap"><div class="tg">当前版本：<b style="color:#d4567d">' + escTD(verLabel()) + '</b> · 除了你，想拉几位角色同桌？</div><div class="jyTD-verrow">' + dots.join("") + "</div></div>" +
+        '<div class="sheet-row" style="padding-top:12px"><button class="sheet-btn" style="flex:1" onclick="jyTdGoPlayers()">下一步：选角色</button></div>';
+      return;
+    }
+    if (TD.step === "p") {
+      var pls = paListTD().filter(function (p) { return canApiTD(p); });
+      var h = '<div class="jyTD-pickwrap"><div class="tg">挑 <b>' + TD.need + "</b> 位角色（只显示已接入 API 的角色）：</div>";
+      if (!pls.length) {
+        h += '<div style="font-size:12px;color:#d26060;line-height:1.6;padding:6px 2px">当前没有可用的角色。请先给角色接入 API，再回来开局。</div>';
+      } else {
+        h += '<div class="jyL-players" style="max-height:38vh;overflow-y:auto">';
+        for (var j = 0; j < pls.length; j++) {
+          var p = pls[j];
+          var on = TD.roleIds.indexOf(p.id) >= 0;
+          var full = !on && TD.roleIds.length >= TD.need;
+          h += '<div class="jyL-player' + (on ? " sel" : "") + (full ? " off" : "") + '" onclick="jyTdToggleRole(\'' + escTD(p.id) + '\')">' +
+            '<img src="' + escTD(avTD(p)) + '" alt="" onerror="this.style.visibility=\'hidden\'">' +
+            '<div class="pm"><div class="pn">' + escTD(p.name) + "</div><div class=\"pd\">" + escTD(p.style || "性格鲜明") + "</div></div></div>";
+        }
+        h += "</div>";
+      }
+      h += '</div><div class="sheet-row" style="padding-top:12px"><button class="sheet-btn" style="flex:1" onclick="jyTdGoCnt()">‹ 上一步</button><button class="sheet-btn primary" style="flex:2" onclick="jyTdStart()">开始游戏</button></div>';
+      box.innerHTML = h;
+    }
+  }
+  window.jyTdVer = function (v) {
+    TD.ver = v;
+    try { var tag = g("jyTDTag"); if (tag) { tag.textContent = verLabel(); tag.className = "jyTD-tag" + (v === "nsfw" ? " nsfw" : ""); } } catch (e) {}
+    renderOpenUI();
+  };
+  window.jyTdGoCnt = function () { TD.step = "cnt"; renderOpenUI(); };
+  window.jyTdNeed = function (n) { TD.need = n; renderOpenUI(); };
+  window.jyTdGoPlayers = function () { TD.step = "p"; renderOpenUI(); };
+  window.jyTdToggleRole = function (id) {
+    var idx = TD.roleIds.indexOf(id);
+    if (idx >= 0) TD.roleIds.splice(idx, 1);
+    else {
+      if (TD.roleIds.length >= TD.need) { toastTd("这局最多带 " + TD.need + " 位角色"); renderOpenUI(); return; }
+      TD.roleIds.push(id);
+    }
+    renderOpenUI();
+  };
+  window.jyTdStart = function () {
+    if (TD.roleIds.length !== TD.need) { toastTd("请先选满 " + TD.need + " 位角色"); return; }
+    var paOk = TD.roleIds.every ? true : true;
+    TD.seats = [{ key: TD.meKey, name: meName(), pa: null }];
+    TD.roles = [];
+    for (var i = 0; i < TD.roleIds.length; i++) {
+      var pa = findPaTD(TD.roleIds[i]);
+      if (!pa || !canApiTD(pa)) { toastTd("有角色未接入 API，请重新选择"); return; }
+      TD.seats.push({ key: "r" + pa.id, name: pa.name, pa: pa });
+      TD.roles.push({ key: "r" + pa.id, name: pa.name, pa: pa });
+    }
+    resetGame();
+    TD.on = true;
+    try { var tag = g("jyTDTag"); if (tag) { tag.textContent = verLabel(); tag.className = "jyTD-tag" + (TD.ver === "nsfw" ? " nsfw" : ""); } } catch (e) {}
+    var sub = g("jyTDSub");
+    if (sub) sub.textContent = verLabel() + " · 你 + " + TD.roles.map(function (r) { return r.name; }).join("、");
+    maskClose("jyTdMask");
+    try { showPage("jyGameTD"); } catch (e) { try { window.jyTDPrev = "jyGameTD"; } catch (e2) {} }
+    var ov = g("jyTdOver"); if (ov) ov.style.display = "none";
+    pushLog("sys", "", "桌上已坐好：" + seatName(TD.meKey) + "、" + TD.roles.map(function (r) { return r.name; }).join("、") + "。");
+    pushLog("sys", "", "规则：角色轮流当主持人转瓶子出题，AI 现编真心话与大冒险，答完记得点「抽下一位」。");
+    if (TD.ver === "nsfw") pushLog("risk", "", "本局为 NSFW 成人向，请确保在场玩家均已成年。");
+    renderScene(); renderSeats();
+    setBusy(false);
+    var nb = g("jyTDNextBtn"); if (nb) nb.textContent = "抽下一位";
+    setHint("准备好了吗？点「抽下一位」，第 1 轮开始。");
+  };
+
+  /* ---------------- 对局 ---------------- */
+  function myNameGuess(txt) {
+    var m = meName();
+    if (!txt) return false;
+    var t = String(txt).replace(/[\s"「」『』“”]/g, "");
+    return t === m || t === "你" || t === "我" || t.indexOf(m) === 0 || m.indexOf(t) === 0;
+  }
+  function resolveTarget(nameTxt) {
+    if (myNameGuess(nameTxt)) return TD.meKey;
+    var t = String(nameTxt || "").replace(/[\s"「」『』“”]/g, "");
+    for (var i = 0; i < TD.roles.length; i++) {
+      var r = TD.roles[i];
+      if (r.name === t || t.indexOf(r.name) === 0 || r.name.indexOf(t) === 0) return r.key;
+    }
+    return null;
+  }
+  function buildHostPrompt(host) {
+    var others = TD.seats.filter(function (s) { return s.key !== host.key; }).map(function (s) { return s.name; });
+    var names = others.slice();
+    names.unshift(host.name);
+    var txt = "你在霁月机的聚会游戏「真心话大冒险」里当发牌主持人。你的人物身份与性格照旧。";
+    txt += "在座玩家有：" + names.join("、") + "（其中 " + seatName(TD.meKey) + " 是屏幕对面的真人玩家）。";
+    txt += "你既是玩家之一，这一轮也负责转瓶子出题。刚刚发生的事：\n" + sceneTail(6) + "\n";
+    txt += "请按你的性格先讲一句带动气氛的话（调侃/起哄/铺垫都行，15~30字），再点名一位【其他人】（绝不能点你自己，也尽量别连着点同一个）来接受挑战，并分别为 TA 出一道「真心话」和一道「大冒险」。\n";
+    txt += "游戏尺度要求：" + verRule() + "\n";
+    txt += "严格只输出 JSON，不要输出任何其它文字：{\"to\":\"被点到的人名\",\"truth\":\"真心话问题\",\"dare\":\"大冒险挑战\",\"talk\":\"你说的话\"}";
+    return txt;
+  }
+  function buildRolePrompt(role, q) {
+    return "你是 " + role.name + "，人物身份与性格照旧。你和大家在霁月机的聚会里玩「真心话大冒险」，现在被点名的是你。\n" +
+      "上一步：\n" + sceneTail(4) + "\n" +
+      "题面 —— 真心话：「" + q.truth + "」；大冒险：「" + q.dare + "」。\n" +
+      "请按你的性格二选一（挑更有节目效果或你更敢玩的），先亮出选择，再完成：若选真心话就给一个走心或机灵的回答；若选大冒险就用第一人称具体描写你怎样完成（带一点神态动作，20~50字）。\n" +
+      "游戏尺度要求：" + verRule() + "\n" +
+      "严格只输出 JSON，不要输出其它文字：{\"pick\":\"truth\"或\"dare\",\"ans\":\"你的回答/行动描述\"}";
+  }
+
+  window.jyTDNext = function () {
+    if (!TD.on || TD.over) return;
+    if (TD.busy) { toastTd("TA 还在思考，稍等一下…"); return; }
+    if (TD.cur && TD.cur.toKey === TD.meKey && !TD.cur.answered) { toastTd("先回答当前这题，或点「跳过」"); return; }
+    TD.round++;
+    TD.roleFail = 0;
+    hostTurn();
+  };
+  function hostTurn() {
+    var hi = (TD.round - 1) % TD.roles.length;
+    var host = TD.roles[hi];
+    if (!host) { setHint("角色没了，重新开局吧"); return; }
+    TD.cur = null;
+    TD.busyKey = host.key;
+    setBusy("🎲 " + host.name + " 正在转瓶子出题…");
+    setHint("请稍候，AI 正在现场编题…");
+    renderSeats();
+    askTD(host.pa, buildHostPrompt(host)).then(function (raw) {
+      if (!TD.on || TD.over) return;
+      var o = pickJson(raw);
+      if (!o || !o.truth || !o.dare) throw new Error("bad");
+      var toKey = resolveTarget(o.to);
+      if (toKey === host.key) toKey = TD.meKey;
+      if (!toKey) {
+        var cands = TD.roles.filter(function (r) { return r.key !== host.key; });
+        if (!cands.length) cands = TD.roles.slice();
+        var pick = cands[(TD.round) % cands.length];
+        toKey = pick ? pick.key : TD.meKey;
+      }
+      var toName = seatName(toKey);
+      TD.cur = { toKey: toKey, toName: toName, truth: String(o.truth).trim(), dare: String(o.dare).trim(), talk: String(o.talk || "").trim(), hostKey: host.key, hostName: host.name, answered: false, myKind: null };
+      TD.hostFail = 0;
+      if (TD.cur.talk) pushLog("host", host.name, TD.cur.talk);
+      pushLog("q", host.name, "", { hostName: host.name, toName: toName, truth: TD.cur.truth, dare: TD.cur.dare });
+      renderScene(); renderSeats();
+      if (toKey === TD.meKey) { setBusy(false); enterMeAnswer(); return; }
+      setTimeout(function () { roleAnswer(); }, 350);
+    }).catch(function () {
+      if (!TD.on || TD.over) return;
+      if (TD.hostFail < 1) {
+        TD.hostFail++;
+        setHint(host.name + " 有点卡壳，再试一次…");
+        setTimeout(function () { hostTurn(); }, 400);
+        return;
+      }
+      TD.hostFail = 0;
+      setBusy(false);
+      pushLog("risk", "", host.name + " 这轮没编出题来，点「抽下一位」重新来。");
+      renderScene();
+      setHint("AI 没返回题目，可以再抽一次。");
+    });
+  }
+  function enterMeAnswer() {
+    setBusy(false);
+    var kd = g("jyTDKind"); if (kd) kd.style.display = "flex";
+    var ip = g("jyTDInput"); if (ip) { ip.disabled = false; ip.placeholder = "说出你的真心话 / 大冒险行动…"; ip.focus(); }
+    var nb = g("jyTDNextBtn"); if (nb) nb.disabled = true;
+    setHint("轮到你啦：先点「真心话」或「大冒险」，再输入作答。");
+  }
+  window.jyTDKindPick = function (k) {
+    if (!TD.cur || TD.cur.answered) return;
+    TD.cur.myKind = k;
+    var kd = g("jyTDKind"); if (!kd) return;
+    var ks = kd.querySelectorAll(".jyTD-kn");
+    for (var i = 0; i < ks.length; i++) ks[i].className = "jyTD-kn " + (ks[i].getAttribute("onclick").indexOf("'" + k + "'") >= 0 ? "on " : "") + (ks[i].className.indexOf(" t") >= 0 ? "t" : "d");
+    var ip = g("jyTDInput"); if (ip) ip.focus();
+  };
+  window.jyTDKey = function (e) { if (e && e.key === "Enter") { e.preventDefault(); jyTDSend(); } };
+  window.jyTDSend = function () {
+    if (!TD.on || TD.over) return;
+    var ip = g("jyTDInput");
+    if (!ip) return;
+    var text = ip.value.trim();
+    if (!text) return;
+    if (TD.busy) { toastTd("TA 还在思考，稍等…"); return; }
+    ip.value = "";
+    if (TD.cur && TD.cur.toKey === TD.meKey && !TD.cur.answered) {
+      if (!TD.cur.myKind) { toastTd("先选「真心话」还是「大冒险」"); return; }
+      answerMe(text);
+      return;
+    }
+    pushLog("me", meName(), text);
+    renderScene();
+    setHint("已记下。点「抽下一位」继续，或接着说。");
+  };
+  function answerMe(text) {
+    var k = TD.cur.myKind === "dare" ? "dare" : "truth";
+    pushLog("pick", TD.cur.toName, "", { kind: k });
+    pushLog("me", meName(), text);
+    TD.cur.answered = true;
+    var kd = g("jyTDKind"); if (kd) kd.style.display = "none";
+    renderScene();
+    afterRound();
+  }
+  window.jyTDSkip = function () {
+    if (!TD.cur || TD.cur.toKey !== TD.meKey || TD.cur.answered) return;
+    pushLog("sys", "", meName() + " 选择跳过这题（气氛凝固了一秒）。");
+    TD.cur.answered = true;
+    var kd = g("jyTDKind"); if (kd) kd.style.display = "none";
+    renderScene();
+    afterRound();
+  };
+  function roleAnswer() {
+    if (!TD.on || TD.over || !TD.cur || TD.cur.answered) return;
+    var role = seatOf(TD.cur.toKey);
+    if (!role || !role.pa) { TD.cur.answered = true; afterRound(); return; }
+    setBusy("💭 " + role.name + " 正在作答…");
+    askTD(role.pa, buildRolePrompt(role, TD.cur)).then(function (raw) {
+      if (!TD.on || TD.over) return;
+      var o = pickJson(raw);
+      var k = o && o.pick === "dare" ? "dare" : "truth";
+      var ans = o && o.ans ? String(o.ans).trim() : (raw || "").replace(/^\{.*\}$/s ? String(raw) : "");
+      if (!o || !ans || ans.indexOf("{") === 0) {
+        var t2 = String(raw || "").replace(/\{[\s\S]*\}/, "").trim();
+        if (t2) { pushLog("role", role.name, t2); TD.cur.answered = true; renderScene(); afterRound(); return; }
+        throw new Error("bad");
+      }
+      pushLog("pick", role.name, "", { kind: k });
+      pushLog("role", role.name, ans);
+      TD.cur.answered = true;
+      renderScene();
+      afterRound();
+    }).catch(function () {
+      if (!TD.on || TD.over) return;
+      if (!TD.cur) return;
+      if (!TD.cur.answered && TD.cur.toKey === role.key && TD.roleFail < 1) {
+        TD.roleFail = (TD.roleFail || 0) + 1;
+        setHint(role.name + " 卡壳了，重试…");
+        setTimeout(function () { roleAnswer(); }, 500);
+        return;
+      }
+      TD.cur.answered = true;
+      pushLog("risk", "", role.name + " 溜号没接住这题，气氛组救场成功。");
+      renderScene();
+      afterRound();
+    });
+  }
+  function afterRound() {
+    setBusy(false);
+    var kd = g("jyTDKind"); if (kd) kd.style.display = "none";
+    var ip = g("jyTDInput");
+    if (ip) { ip.disabled = false; ip.placeholder = "想插句话就写这里（可选）…"; }
+    setHint("第 " + TD.round + " 轮完成。点「抽下一位」继续，或「结束本局」收尾。");
+    renderSeats();
+  }
+
+  /* ---------------- 结束 / 记忆 ---------------- */
+  function buildStory() {
+    var lines = [];
+    var curQ = null;
+    for (var i = 0; i < TD.logs.length; i++) {
+      var lg = TD.logs[i];
+      if (lg.type === "q") { curQ = lg; }
+      else if (curQ && (lg.type === "pick" || lg.type === "me" || lg.type === "role")) {
+        var e = curQ.extra || {};
+        var pk = lg.type === "pick" ? (lg.extra && lg.extra.kind === "dare" ? "大冒险" : "真心话") : "";
+        var ansTxt = lg.type === "pick" ? "" : "，答：" + lg.text;
+        lines.push("（真心话大冒险）" + (e.hostName || "") + "点名" + (e.toName || "") + "出了真心话「" + e.truth + "」与大冒险「" + e.dare + "」，" + (pk ? lg.who + "选择" + pk + ansTxt : lg.who + ansTxt));
+        curQ = null;
+      }
+    }
+    if (lines.length > 8) lines = lines.slice(-8);
+    return lines;
+  }
+  window.jyTDEnd = function () {
+    if (!TD.on || TD.over) return;
+    if (TD.busy) { toastTd("等 TA 忙完这一轮再结束"); return; }
+    if (TD.cur && TD.cur.toKey === TD.meKey && !TD.cur.answered) { toastTd("先回答或跳过当前这题，再结束"); return; }
+    finishTD();
+  };
+  function finishTD() {
+    TD.on = false; TD.over = true;
+    var names = TD.roles.map(function (r) { return r.name; }).join("、");
+    var lines = buildStory();
+    var ver = verLabel();
+    for (var i = 0; i < TD.roles.length; i++) {
+      var r = TD.roles[i];
+      try {
+        addMemorySourceFor(r.pa, "game", "你和" + seatName(TD.meKey) + "（同桌还有：" + names + "）在霁月机玩了一局「真心话大冒险·" + ver + "」，一共抽了 " + TD.round + " 轮。");
+        for (var j = 0; j < lines.length; j++) addMemorySourceFor(r.pa, "game", lines[j]);
+      } catch (e) {}
+    }
+    try { if (window.jyHistPush) jyHistPush({ text: "真心话大冒险·" + ver + "：和 " + names + " 抽了 " + TD.round + " 轮", game: "真心话大冒险", partner: names, ts: Date.now() }); } catch (e) {}
+    var ot = g("jyTdOverT");
+    if (ot) ot.textContent = TD.round + " 轮 · 玩得尽兴！";
+    var os = g("jyTdOverS");
+    if (os) os.textContent = "版本：" + ver + " · 同桌：" + seatName(TD.meKey) + (names ? "、" + names : "") + "。整局高光已记入角色记忆。";
+    var ov = g("jyTdOver");
+    if (ov) ov.style.display = "flex";
+    var kd = g("jyTDKind"); if (kd) kd.style.display = "none";
+    setBusy(false);
+    setHint("本局已结束，记忆已归档。");
+  }
+  window.jyTDAgain = function () {
+    resetGame();
+    TD.step = "ver"; TD.ver = "sfw"; TD.need = 1; TD.roleIds = [];
+    try { var tag = g("jyTDTag"); if (tag) { tag.textContent = "普通版"; tag.className = "jyTD-tag"; } } catch (e) {}
+    var ov = g("jyTdOver"); if (ov) ov.style.display = "none";
+    renderOpenUI();
+    showMask("jyTdMask");
+  };
+  window.jyTDHelp = function () {
+    var body = g("jyTdRuleBody");
+    if (body) {
+      body.textContent = "「真心话大冒险」：AI 现场出题的聚会桌游，没有脚本兜底。\n\n· 开局选版本（普通版 / NSFW 成人版），再挑 1~3 位角色同桌。\n· 每轮由角色轮流当主持人转瓶子，AI 按版本尺度现编「真心话」和「大冒险」。\n· 点到你时：先选真心话或大冒险，再输入作答；也可以自由发挥或跳过。\n· 点到角色时：TA 会按自己的性格选择并当场完成挑战。\n· 每轮结束点「抽下一位」继续，随时可「结束本局」。\n· 整局问答与高光都会写入角色记忆，下次见面 TA 可能还会提起。";
+    }
+    showMask("jyTdRuleMask");
+  };
+  window.jyTDExit = function () {
+    if (TD.on && !TD.over && !TD.busy && TD.round > 0 && !(TD.cur && TD.cur.toKey === TD.meKey && !TD.cur.answered)) {
+      if (window.confirm && confirm("这局还没收尾，确定直接退出吗？（未结束的对局不会写入记忆）")) { resetGame(); maskClose("jyTdMask"); maskClose("jyTdRuleMask"); goHomeTD(); return; }
+      if (!window.confirm) { resetGame(); maskClose("jyTdMask"); maskClose("jyTdRuleMask"); goHomeTD(); return; }
+      return;
+    }
+    resetGame(); maskClose("jyTdMask"); maskClose("jyTdRuleMask"); goHomeTD();
+  };
+
+  /* ---------------- 主屏入口 ---------------- */
+  var TD_ICON = '<svg class="ic fill" viewBox="0 0 24 24"><circle cx="8.6" cy="12" r="5.6" fill="#ff9db4" stroke="none"/><path d="M8.6 14.5s-2.3-1.5-3.3-3.6c-.4-.95.5-2 1.45-1.7.85.25 1.35.95 1.85.95s1-.7 1.85-.95c.95-.3 1.85.75 1.45 1.7-1 2.1-3.3 3.6-3.3 3.6Z" fill="#fff" stroke="none"/><circle cx="15.4" cy="12" r="5.6" fill="#f0b25c" stroke="none"/><path d="M15.4 8.9c.8 0 1.45.65 1.45 1.45v3.3c0 .8-.65 1.45-1.45 1.45s-1.45-.65-1.45-1.45v-3.3c0-.8.65-1.45 1.45-1.45Z" fill="#fff" stroke="none"/><path d="M15.4 10.6h.6a.3.3 0 0 1 .3.3v2.2a.3.3 0 0 1-.3.3h-.6a.3.3 0 0 1-.3-.3v-2.2a.3.3 0 0 1 .3-.3Z" fill="#f0b25c" stroke="none"/><path d="M15.4 15.4a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Z" fill="#f0b25c" stroke="none"/></svg>';
+  function goHomePage() { try { if (window.goHome) { goHome(); return; } } catch (e) {} try { showPage("home"); } catch (e2) {} }
+  window.jyTDOpen = function () {
+    resetGame();
+    TD.step = "ver"; TD.ver = "sfw"; TD.need = 1; TD.roleIds = [];
+    try { var tag = g("jyTDTag"); if (tag) { tag.textContent = "普通版"; tag.className = "jyTD-tag"; } } catch (e) {}
+    renderOpenUI();
+    showMask("jyTdMask");
+  };
+  function initTD() {
+    try {
+      if (window.PAGES && PAGES.indexOf("jyGameTD") < 0) PAGES.push("jyGameTD");
+    } catch (e) {}
+    try {
+      var m = window.HOME_APP_META;
+      if (m && !m.truthdare) m.truthdare = { name: "真心话大冒险", icon: TD_ICON };
+    } catch (e) {}
+    try {
+      var o = window.DEFAULT_HOME_ORDER;
+      if (o && o.indexOf("truthdare") < 0) o.push("truthdare");
+    } catch (e) {}
+    try {
+      var db = window.DB;
+      if (db) {
+        if (!db.homeOrder || !db.homeOrder.length) db.homeOrder = ((window.DEFAULT_HOME_ORDER || []).slice());
+        if (db.homeOrder.indexOf("truthdare") < 0) db.homeOrder.push("truthdare");
+        try { save(); } catch (e) {}
+      }
+    } catch (e) {}
+    try {
+      var base = window.openApp;
+      window.__jyTdBaseOpen = base;
+      window.openApp = function (app) {
+        if (app === "truthdare") { try { jyTDOpen(); } catch (e) {} return; }
+        return base.apply(this, arguments);
+      };
+    } catch (e) {}
+    try { if (window.renderHomeGrid) renderHomeGrid(); } catch (e) {}
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initTD);
+  else initTD();
+})();
+</script>
