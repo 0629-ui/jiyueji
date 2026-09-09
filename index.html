@@ -7102,7 +7102,8 @@ function editMsg(idx) {
 }
 __name(editMsg, "editMsg");
 /* ===== 79 删除双选项：仅删除 / 删除并清除角色记忆 ===== */
-function askDeleteAction(title, brief, isMulti, count, cb) {
+function askDeleteAction(title, brief, isMulti, count, cb, opts) {
+  opts = opts || {};
   try { closeBubbleMenu(); } catch (e) {}
   var mask = document.createElement("div");
   mask.style.cssText = "position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:2147483010;display:flex;align-items:flex-end;justify-content:center";
@@ -7138,8 +7139,12 @@ function askDeleteAction(title, brief, isMulti, count, cb) {
     b.onclick = function () { if (mask.parentNode) mask.parentNode.removeChild(mask); action(); };
     sheet.appendChild(b);
   }
-  mkBtn("仅删除消息", isMulti ? "只从聊天里删掉这 " + count + " 条，角色的记忆还会留着" : "只从聊天里删掉，角色的记忆还会留着这段", "#2b6ee0", function () { cb("msg"); });
-  mkBtn("删除并清除角色记忆", isMulti ? "同时把这 " + count + " 条从角色的记忆里永久抹掉" : "同时把这段从角色的记忆里永久抹掉，TA 不会再想起", "#d3382c", function () { cb("both"); });
+  var optMsg = opts.msgLabel || "仅删除消息";
+  var optMsgDesc = opts.msgDesc || (isMulti ? "只从聊天里删掉这 " + count + " 条，角色的记忆还会留着" : "只从聊天里删掉，角色的记忆还会留着这段");
+  var optBoth = opts.bothLabel || "删除并清除角色记忆";
+  var optBothDesc = opts.bothDesc || (isMulti ? "同时把这 " + count + " 条从角色的记忆里永久抹掉" : "同时把这段从角色的记忆里永久抹掉，TA 不会再想起");
+  mkBtn(optMsg, optMsgDesc, "#2b6ee0", function () { cb("msg"); });
+  mkBtn(optBoth, optBothDesc, "#d3382c", function () { cb("both"); });
   var c = document.createElement("div");
   c.style.cssText = "margin-top:12px;text-align:center;font-size:14px;color:#6b7280;padding:9px 0 2px;border-top:1px solid #f0f1f3;cursor:pointer";
   c.textContent = "取消";
@@ -24019,6 +24024,9 @@ function closeDreamHelp() {
 #jyHeartRoot .jh-btn{flex:1;border:none;border-radius:16px;padding:10px 0;font-size:12px;font-weight:700;cursor:pointer}
 #jyHeartRoot .jh-btn.light{background:rgba(0,0,0,.05);color:#555}
 #jyHeartRoot .jh-btn.primary{background:linear-gradient(135deg,#b48ae0,#7f9cf5);color:#fff;box-shadow:0 4px 12px rgba(127,156,245,.35)}
+#jyHeartRoot .jh-btn.danger{background:rgba(255,69,58,.07);color:#d3382c;box-shadow:none}
+#jyHeartRoot .jh-hist-line .hl-del{margin-left:6px;flex:0 0 auto;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,69,58,.09);color:#d3382c;font-size:11px;cursor:pointer;opacity:.75;transition:opacity .15s}
+#jyHeartRoot .jh-hist-line .hl-del:hover{opacity:1;background:rgba(255,69,58,.18)}
 </style>
 <script>
 (function () {
@@ -24266,7 +24274,7 @@ function closeDreamHelp() {
       if (i === S.idx) continue;
       var it = list[i];
       if (i >= 8) break;
-      out += '<div class="jh-hist-line' + (i === S.idx ? " on" : "") + '" onclick="jyHeartPick(' + i + ')"><span class="hl-mood">' + esc(it.mood || "💭") + '</span><span class="hl-txt">' + esc(it.whisper || "") + '</span><span class="hl-time">' + fmtTime(it.ts) + '</span></div>';
+      out += '<div class="jh-hist-line' + (i === S.idx ? " on" : "") + '" onclick="jyHeartPick(' + i + ')"><span class="hl-mood">' + esc(it.mood || "💭") + '</span><span class="hl-txt">' + esc(it.whisper || "") + '</span><span class="hl-time">' + fmtTime(it.ts) + '</span><span class="hl-del" onclick="event.stopPropagation();jyHeartDel(' + i + ')">🗑</span></div>';
     }
     if (!out) return "";
     return '<div class="jh-history"><div class="jh-hist-t">📚 最近的心声历史</div>' + out + '</div>';
@@ -24315,12 +24323,51 @@ function closeDreamHelp() {
     html += '</div>';
     html += histHtml();
     html += '</div>';
-    html += '<div class="jh-foot"><button class="jh-btn light" onclick="jyHeartForceNow()">🔄 再听一条</button><button class="jh-btn primary" onclick="jyHeartClose()">知道了</button></div>';
+    html += '<div class="jh-foot"><button class="jh-btn danger" onclick="jyHeartDel(' + S.idx + ')">🗑 删除</button><button class="jh-btn light" onclick="jyHeartForceNow()">🔄 再听一条</button><button class="jh-btn primary" onclick="jyHeartClose()">知道了</button></div>';
     r.innerHTML = '<div class="jh-card">' + html + '</div>';
   }
   window.jyHeartPick = function (idx) {
     S.idx = idx;
     renderCard();
+  };
+  /* 重建这条心声写入记忆时的文本，供“删除并清除记忆”匹配 */
+  function heartMemTexts(it) {
+    var arr = [];
+    try {
+      var t0 = "心声（" + fmtTime(it.ts) + "）：" + str(it.mood) + "·" + str(it.online) + "，心声：" + str(it.whisper) + "。此刻在" + str(it.place) + "，日程：" + str(it.schedule) + "，与玩家相距：" + str(it.distance);
+      arr.push(t0);
+    } catch (e) {}
+    if (it.whisper) arr.push(String(it.whisper).trim());
+    return arr;
+  }
+  window.jyHeartDel = function (idx) {
+    try {
+      var lst = heartOf(S.roleId);
+      var list = (lst && lst.list) || [];
+      var it = list[idx];
+      if (!it) return;
+      var brief = (str(it.mood) ? str(it.mood) + " " : "") + str(it.whisper);
+      if (brief.length > 32) brief = brief.slice(0, 32) + "…";
+      askDeleteAction("删除这条心声？", brief, false, 1, function (how) {
+        if (how === "cancel") return;
+        list.splice(idx, 1);
+        if (S.idx > idx) S.idx -= 1;
+        if (S.idx >= list.length) S.idx = list.length ? list.length - 1 : 0;
+        try { save(); } catch (e) {}
+        renderCard();
+        if (how === "both") {
+          var n = delMemoryByTexts(heartMemTexts(it));
+          try { toast(n ? "已删除，并从角色记忆里抹掉相关 " + n + " 条记录" : "已删除，角色的记忆里没有发现这段心声"); } catch (e2) {}
+        } else {
+          try { toast("已删除这条心声"); } catch (e3) {}
+        }
+      }, {
+        msgLabel: "仅删除心声",
+        msgDesc: "只从心声里删掉这条，角色的记忆还会留着",
+        bothLabel: "删除并清除记忆",
+        bothDesc: "同时把这条心声从角色的记忆里永久抹掉，TA 不会再想起"
+      });
+    } catch (e) {}
   };
   window.jyHeartChainToggle = function (el) {
     var b = el.parentNode ? el.parentNode.querySelector(".jh-chain-body") : null;
