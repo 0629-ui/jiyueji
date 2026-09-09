@@ -26250,7 +26250,7 @@ canvas.jyDg-canvas{width:100%;display:block;background:#fff;border:1.5px dashed 
       if (o && o.indexOf("truthdare") < 0) o.push("truthdare");
     } catch (e) {}
     try {
-      var db = window.DB;
+      var db = (typeof DB !== "undefined") ? DB : null;
       if (db) {
         if (!db.homeOrder || !db.homeOrder.length) db.homeOrder = ((window.DEFAULT_HOME_ORDER || []).slice());
         if (db.homeOrder.indexOf("truthdare") < 0) db.homeOrder.push("truthdare");
