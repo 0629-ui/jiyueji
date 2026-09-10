@@ -1677,7 +1677,10 @@ box-shadow:0 6px 18px rgba(80,120,80,.18);overflow:hidden}
 .home-page{flex:0 0 100%;width:100%;min-width:0;height:100%;display:flex;flex-direction:column;padding:0 12px 2px;box-sizing:border-box;overflow:hidden}
 .hp-widgets{flex-shrink:0;display:flex;flex-direction:column;gap:9px;max-height:34vh;overflow-y:auto;padding:2px 2px;margin-bottom:4px}
 .hp-widgets::-webkit-scrollbar{display:none}
-.hp-grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px 6px;padding:10px 6px 6px;align-content:start;overflow-y:auto}
+.hp-grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:78px;gap:14px 6px;padding:10px 6px 6px;align-content:start;overflow-y:auto}
+.hp-slot{position:relative;display:flex;align-items:flex-start;justify-content:center;min-height:78px;border-radius:18px}
+.hp-slot>.app{width:100%}
+.hp-slot.slot-hot{background:rgba(255,255,255,.12);border:1.6px dashed rgba(255,255,255,.5)}
 .hp-grid::-webkit-scrollbar{display:none}
 .hp-grid .app{transition:transform .24s cubic-bezier(.25,.8,.25,1);touch-action:pan-y;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 .hp-grid .app.dragging,.hp-widgets .hw-item.dragging{position:fixed;z-index:9999;pointer-events:none;margin:0;transition:none;will-change:transform;box-shadow:0 18px 40px rgba(0,0,0,.45)}
@@ -24484,6 +24487,68 @@ function jy76EnsureUid() {
     });
   } catch (e) {}
 }
+var JY76_MAX_PAGES = 8;
+function jy76PageApps(pg) {
+  var pages = JY76.pages || [];
+  var p = pages[pg];
+  if (!p) return [];
+  var arr = p.apps || (p.apps = []);
+  for (var i = 0; i < JY76_PAGE_CAP; i++) if (typeof arr[i] === "undefined") arr[i] = null;
+  if (arr.length > JY76_PAGE_CAP) arr.length = JY76_PAGE_CAP;
+  return arr;
+}
+function jy76TrimPage(pg) {
+  var arr = jy76PageApps(pg);
+  while (arr.length && !arr[arr.length - 1]) arr.pop();
+}
+function jy76PageHasContent(pg) {
+  var p = (JY76.pages || [])[pg];
+  if (!p) return false;
+  var a = p.apps || [];
+  for (var i = 0; i < a.length; i++) if (a[i]) return true;
+  return !!(p.wids && p.wids.length);
+}
+function jy76FlatApps() {
+  var out = [];
+  (JY76.pages || []).forEach(function(p) {
+    (p.apps || []).forEach(function(id) { if (id) out.push(id); });
+  });
+  return out;
+}
+function jy76SyncHomeOrder() {
+  try { DB.homeOrder = jy76FlatApps(); } catch (e) {}
+}
+function jy76SlotAtPoint(e, grid) {
+  var slots = grid.querySelectorAll(".hp-slot");
+  if (!slots.length) return -1;
+  var best = -1, bd = 1e18;
+  for (var i = 0; i < slots.length; i++) {
+    var r = slots[i].getBoundingClientRect();
+    var dx = e.clientX - (r.left + r.width / 2);
+    var dy = e.clientY - (r.top + r.height / 2);
+    var dd = dx * dx + dy * dy;
+    if (dd < bd) { bd = dd; best = i; }
+  }
+  return best;
+}
+function jy76AddBlankPage() {
+  var pages = JY76.pages = jy76Pages();
+  if (pages.length >= JY76_MAX_PAGES) return -1;
+  pages.push({ apps: [], wids: [] });
+  DB.homeLayout.pages = pages;
+  var idx = pages.length - 1;
+  var track = document.getElementById("homeTrack");
+  if (track) {
+    var page = document.createElement("div");
+    page.className = "home-page";
+    page.setAttribute("data-page", idx);
+    page.innerHTML = '<div class="hp-widgets" data-pg="' + idx + '"></div><div class="hp-grid" data-pg="' + idx + '"></div>';
+    track.appendChild(page);
+    jy76RenderPageWidgets(idx);
+    jy76RenderPageGrid(idx);
+  }
+  return idx;
+}
 function jy76Pages() {
   if (!DB.homeLayout || !DB.homeLayout.pages || !DB.homeLayout.pages.length) {
     var arr = (DB.homeOrder && DB.homeOrder.length) ? DB.homeOrder.slice() : (DEFAULT_HOME_ORDER ? DEFAULT_HOME_ORDER.slice() : []);
@@ -24513,9 +24578,11 @@ function jy76WidgetIdxByUid(uid) {
   return -1;
 }
 function jy76CleanPages() {
+  var t;
+  for (t = 0; t < JY76.pages.length; t++) jy76TrimPage(t);
   if (JY76.pages.length > 1) {
     JY76.pages = JY76.pages.filter(function(pg, idx) {
-      return idx === 0 || (pg.apps && pg.apps.length) || (pg.wids && pg.wids.length);
+      return idx === 0 || jy76PageHasContent(idx);
     });
     DB.homeLayout.pages = JY76.pages;
   }
@@ -24571,13 +24638,17 @@ function jy76RenderPageGrid(pg) {
   if (!track) return;
   var grid = track.querySelector('.hp-grid[data-pg="' + pg + '"]');
   if (!grid) return;
+  var arr = jy76PageApps(pg);
   var html = "";
-  var pgObj = JY76.pages[pg];
-  (pgObj.apps || []).forEach(function(id) {
-    var m = HOME_APP_META[id];
-    if (!m) return;
-    html += '<div class="app" data-app="' + id + '" onclick="openApp(\'' + id + '\')"><div class="app-icon">' + m.icon + '</div><div class="app-name">' + m.name + "</div></div>";
-  });
+  for (var i = 0; i < JY76_PAGE_CAP; i++) {
+    var id = arr[i];
+    var m = id ? HOME_APP_META[id] : null;
+    html += '<div class="hp-slot" data-slot="' + i + '">';
+    if (m) {
+      html += '<div class="app" data-app="' + id + '" onclick="openApp(\'' + id + '\')"><div class="app-icon">' + m.icon + '</div><div class="app-name">' + m.name + "</div></div>";
+    }
+    html += "</div>";
+  }
   grid.innerHTML = html;
 }
 function jy76RenderAll() {
@@ -24702,6 +24773,9 @@ function jy76BeginDrag(kind, el, sx, sy) {
   if (JY76.drag && JY76.drag.on) return;
   var pageEl = el.closest ? el.closest(".home-page") : null;
   var fromPg = pageEl ? parseInt(pageEl.getAttribute("data-page"), 10) : JY76.active;
+  var slotEl = (kind === "app" && el.closest) ? el.closest(".hp-slot") : null;
+  var fromSlot = slotEl ? parseInt(slotEl.getAttribute("data-slot"), 10) : -1;
+  if (isNaN(fromSlot)) fromSlot = -1;
   var rect = el.getBoundingClientRect();
   var ghost = document.createElement("div");
   ghost.className = kind === "app" ? "app drop-ghost" : "hw-item drop-ghost";
@@ -24709,7 +24783,7 @@ function jy76BeginDrag(kind, el, sx, sy) {
   ghost.style.height = rect.height + "px";
   ghost.id = "jy76Ghost";
   var id = kind === "app" ? (el.dataset.app || "") : (el.dataset.uid || "");
-  JY76.drag = { on: true, kind: kind, id: id, fromPg: fromPg, el: el, ghost: ghost, startX: sx, startY: sy, neighbor: null, after: false, lastEdge: 0, moved: false };
+  JY76.drag = { on: true, kind: kind, id: id, fromPg: fromPg, fromSlot: fromSlot, slot: fromSlot, el: el, ghost: ghost, hotSlot: null, hotAppEl: null, startX: sx, startY: sy, neighbor: null, after: false, lastEdge: 0, moved: false };
   JY76.mode = "drag";
   document.body.classList.add("no-scroll");
   el.classList.add("dragging");
@@ -24718,10 +24792,18 @@ function jy76BeginDrag(kind, el, sx, sy) {
   el.style.left = rect.left + "px";
   el.style.top = rect.top + "px";
   el.style.transform = "translate(0px,0px) scale(1.06)";
-  var cont = jy76ContainerOf(kind, fromPg);
-  if (cont) cont.insertBefore(ghost, el.nextSibling || null);
+  if (kind === "app") {
+    if (slotEl) {
+      slotEl.appendChild(ghost);
+      slotEl.classList.add("slot-hot");
+      JY76.drag.hotSlot = slotEl;
+    }
+  } else {
+    var cont = jy76ContainerOf(kind, fromPg);
+    if (cont) cont.insertBefore(ghost, el.nextSibling || null);
+  }
   jy76EnterEdit();
-  try { toast(kind === "app" ? "拖动图标：拖到屏幕左右边缘可翻页换页放置" : "拖动小组件：拖到屏幕左右边缘可换页放置"); } catch (e) {}
+  try { toast(kind === "app" ? "拖动图标：拖到任意格子松手即放置，拖到屏幕左右边缘可翻页" : "拖动小组件：拖到屏幕左右边缘可换页放置"); } catch (e) {}
   JY76.suppressClickUntil = Date.now() + 600;
 }
 function jy76ContainerOf(kind, pg) {
@@ -24740,11 +24822,16 @@ function jy76DragMove(e) {
   var pager = document.getElementById("homePager");
   var vw = pager ? pager.clientWidth : window.innerWidth;
   var now = Date.now();
-  if (e.clientX <= 26 || e.clientX >= vw - 26) {
-    if (!d.lastEdge || now - d.lastEdge > 420) {
+  var EDGE = 42;
+  if (e.clientX <= EDGE || e.clientX >= vw - EDGE) {
+    if (!d.lastEdge || now - d.lastEdge > 460) {
       d.lastEdge = now;
-      var dir = e.clientX <= 26 ? -1 : 1;
+      var dir = e.clientX <= EDGE ? -1 : 1;
       var ni = JY76.active + dir;
+      if (dir === 1 && ni >= JY76.pages.length) {
+        var created = jy76AddBlankPage();
+        ni = created >= 0 ? created : -1;
+      }
       if (ni >= 0 && ni < JY76.pages.length) {
         jy76SetActive(ni);
         jy76MoveGhost(e);
@@ -24758,12 +24845,36 @@ function jy76DragMove(e) {
 function jy76MoveGhost(e) {
   var d = JY76.drag;
   if (!d || !d.on) return;
+  var ghost = d.ghost;
+  if (d.kind === "app") {
+    var grid = jy76ContainerOf("app", JY76.active);
+    if (!grid) return;
+    var slotIdx = jy76SlotAtPoint(e, grid);
+    if (slotIdx < 0) return;
+    var slots = grid.querySelectorAll(".hp-slot");
+    var target = slots[slotIdx];
+    if (!target) return;
+    d.slot = slotIdx;
+    if (d.hotSlot !== target || d.hotAppEl === null) {
+      if (d.hotSlot) d.hotSlot.classList.remove("slot-hot");
+      if (d.hotAppEl) { d.hotAppEl.style.visibility = ""; d.hotAppEl = null; }
+      d.hotSlot = target;
+      target.classList.add("slot-hot");
+      var kids = target.querySelectorAll(".app");
+      for (var i = 0; i < kids.length; i++) {
+        if (kids[i] === ghost || kids[i].classList.contains("drop-ghost")) continue;
+        if (kids[i] !== d.el) { kids[i].style.visibility = "hidden"; d.hotAppEl = kids[i]; }
+        break;
+      }
+    }
+    if (ghost.parentElement !== target) target.appendChild(ghost);
+    return;
+  }
   var cont = jy76ContainerOf(d.kind, JY76.active);
   if (!cont) return;
-  var ghost = d.ghost;
   if (ghost.parentElement !== cont) cont.appendChild(ghost);
   var items = [];
-  cont.querySelectorAll(d.kind === "app" ? ".app:not(.dragging)" : ".hw-item:not(.dragging)").forEach(function(it) {
+  cont.querySelectorAll(d.kind === "app" ? ".app:not(.dragging):not(.drop-ghost)" : ".hw-item:not(.dragging)").forEach(function(it) {
     if (it === ghost) return;
     items.push(it);
   });
@@ -24807,46 +24918,78 @@ function jy76MoveGhost(e) {
 function jy76DoDrop() {
   var d = JY76.drag;
   if (!d || !d.on) return;
+  var TIP = "整理中：长按图标拖到任意格子即可放置，拖到屏幕左右边缘可翻页；点空白处退出";
   if (!d.moved) {
     jy76CleanupDrop(false);
-    try { toast("整理中：点卡片右上角 ✕ 可删除，点空白处退出"); } catch (e) {}
+    try { toast(TIP); } catch (e) {}
     return;
   }
   var kind = d.kind, id = d.id;
   var pages = JY76.pages = jy76Pages();
   var fromPg = d.fromPg >= 0 && d.fromPg < pages.length ? d.fromPg : 0;
   var tp = JY76.active >= 0 && JY76.active < pages.length ? JY76.active : 0;
-  var targetPage = pages[tp];
-  pages.forEach(function(pg) {
-    if (kind === "app") pg.apps = pg.apps.filter(function(x) { return x !== id; });
-    else pg.wids = pg.wids.filter(function(x) { return x !== id; });
-  });
-  var arr = kind === "app" ? pages[tp].apps : pages[tp].wids;
-  var full = kind === "app" && arr.length >= JY76_PAGE_CAP && tp !== fromPg;
-  var fullW = kind !== "app" && arr.length >= JY76_WID_PAGE_CAP && tp !== fromPg;
-  if (full || fullW) {
-    pages[fromPg][kind === "app" ? "apps" : "wids"].push(id);
-    try { toast(kind === "app" ? "这页满啦，长按图标拖到屏幕边缘翻页放到别的页" : "这页小组件太多，先搬到别的页吧"); } catch (e) {}
-    jy76CleanupDrop(true);
-    return;
+  var i;
+  for (i = 0; i < pages.length; i++) {
+    if (!pages[i].apps) pages[i].apps = [];
+    if (!pages[i].wids) pages[i].wids = [];
   }
-  var idx = d.neighbor ? arr.indexOf(d.neighbor) : -1;
-  if (idx >= 0) {
-    if (d.after) idx = idx + 1;
+  if (kind === "app") {
+    var slot = (typeof d.slot === "number" && d.slot >= 0 && d.slot < JY76_PAGE_CAP) ? d.slot : (d.fromSlot >= 0 ? d.fromSlot : 0);
+    if (tp === fromPg && slot === d.fromSlot) {
+      save();
+      jy76CleanupDrop(false);
+      try { toast(TIP); } catch (e) {}
+      return;
+    }
+    var p, k, a;
+    for (p = 0; p < pages.length; p++) {
+      a = jy76PageApps(p);
+      for (k = 0; k < a.length; k++) if (a[k] === id) a[k] = null;
+    }
+    var tArr = jy76PageApps(tp);
+    var occ = tArr[slot] || null;
+    tArr[slot] = id;
+    if (tp === fromPg) {
+      if (occ && d.fromSlot >= 0) tArr[d.fromSlot] = occ;
+    } else if (occ && d.fromSlot >= 0) {
+      jy76PageApps(fromPg)[d.fromSlot] = occ;
+    }
+    jy76TrimPage(tp);
+    jy76TrimPage(fromPg);
   } else {
-    idx = arr.length;
+    pages.forEach(function(pg) {
+      pg.wids = pg.wids.filter(function(x) { return x !== id; });
+    });
+    var wArr = pages[tp].wids;
+    if (wArr.length >= JY76_WID_PAGE_CAP && tp !== fromPg) {
+      pages[fromPg].wids.push(id);
+      save();
+      jy76CleanupDrop(true);
+      try { toast("这页小组件太多，先搬到别的页吧"); } catch (e) {}
+      return;
+    }
+    var widx = d.neighbor ? wArr.indexOf(d.neighbor) : -1;
+    if (widx >= 0) {
+      if (d.after) widx = widx + 1;
+    } else {
+      widx = wArr.length;
+    }
+    if (widx < 0) widx = 0;
+    if (widx > wArr.length) widx = wArr.length;
+    wArr.splice(widx, 0, id);
   }
-  if (idx < 0) idx = 0;
-  if (idx > arr.length) idx = arr.length;
-  arr.splice(idx, 0, id);
   save();
+  jy76SyncHomeOrder();
+  jy76CleanPages();
   jy76CleanupDrop(false);
-  try { toast("整理中：点卡片右上角 ✕ 可删除，点空白处退出"); } catch (e) {}
+  try { toast(TIP); } catch (e) {}
 }
 function jy76CleanupDrop(reverted) {
   var d = JY76.drag;
   if (!d) return;
   try {
+    if (d.hotSlot) d.hotSlot.classList.remove("slot-hot");
+    if (d.hotAppEl) d.hotAppEl.style.visibility = "";
     if (d.ghost && d.ghost.parentElement) d.ghost.parentElement.removeChild(d.ghost);
     if (d.el) {
       d.el.classList.remove("dragging");
@@ -24984,6 +25127,9 @@ function jy76BindInteractions() {
       }
     }
   }, true);
+  document.addEventListener("touchmove", function(e) {
+    if (JY76.drag && JY76.drag.on && e.cancelable) e.preventDefault();
+  }, { passive: false });
 }
 function jy76Boot() {
   var home = document.getElementById("home");
